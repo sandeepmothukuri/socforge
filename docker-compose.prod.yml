@@ -1,38 +1,42 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: socforge-postgres
-    restart: unless-stopped
+    container_name: socforge-postgres-prod
+    restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-socforge}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-socforge}
-      POSTGRES_DB: ${POSTGRES_DB:-socforge}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set in production}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in production}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set in production}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U socforge"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - socforge_internal
 
   redis:
     image: redis:7-alpine
-    container_name: socforge-redis
-    restart: unless-stopped
+    container_name: socforge-redis-prod
+    restart: always
     volumes:
       - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - socforge_internal
 
   api:
     build:
       context: .
       dockerfile: deployments/docker/Dockerfile.api
-    container_name: socforge-api
-    restart: unless-stopped
+    container_name: socforge-api-prod
+    restart: always
     depends_on:
       postgres:
         condition: service_healthy
@@ -41,23 +45,26 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://socforge:socforge@postgres:5432/socforge
+      - APP_ENV=production
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/1
     ports:
       - "8000:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
+      interval: 15s
       timeout: 5s
       retries: 5
+    networks:
+      - socforge_internal
 
   worker:
     build:
       context: .
       dockerfile: deployments/docker/Dockerfile.api
-    container_name: socforge-worker
-    restart: unless-stopped
+    container_name: socforge-worker-prod
+    restart: always
     command: ["celery", "-A", "workers.celery_app", "worker", "--loglevel=info"]
     depends_on:
       api:
@@ -65,22 +72,34 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql+asyncpg://socforge:socforge@postgres:5432/socforge
+      - APP_ENV=production
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+    networks:
+      - socforge_internal
 
   web:
     build:
       context: .
       dockerfile: deployments/docker/Dockerfile.web
-    container_name: socforge-web
-    restart: unless-stopped
+    container_name: socforge-web-prod
+    restart: always
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     ports:
       - "3000:3000"
     environment:
+      - NODE_ENV=production
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    networks:
+      - socforge_internal
 
 volumes:
   postgres_data:
   redis_data:
+
+networks:
+  socforge_internal:
+    driver: bridge
