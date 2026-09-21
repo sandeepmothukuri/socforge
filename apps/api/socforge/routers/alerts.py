@@ -225,6 +225,8 @@ async def create_alert(
         target_type="alert",
         target_id=str(alert.id),
     )
+    await db.commit()
+    await db.refresh(alert)
 
     return AlertRead.from_orm(alert)
 
