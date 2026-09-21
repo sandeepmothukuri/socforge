@@ -34,12 +34,12 @@ def health():
         resp = httpx.get(url, timeout=5.0)
         if resp.status_code == 200:
             data = resp.json()
-            console.print(f"[bold green]✔ SOCForge API is operational[/bold green] (v{data.get('version')})")
+            console.print(f"[bold green][OK] SOCForge API is operational[/bold green] (v{data.get('version')})")
             console.print(f"Environment: {data.get('environment')}, Uptime: {data.get('uptime_seconds')}s")
         else:
-            console.print(f"[bold red]✘ API returned status {resp.status_code}[/bold red]")
+            console.print(f"[bold red][FAIL] API returned status {resp.status_code}[/bold red]")
     except Exception as e:
-        console.print(f"[bold red]✘ Failed to reach SOCForge API at {url}: {e}[/bold red]")
+        console.print(f"[bold red][FAIL] Failed to reach SOCForge API at {url}: {e}[/bold red]")
 
 
 @app.command()
@@ -50,12 +50,12 @@ def login(email: str = typer.Option(..., prompt=True), password: str = typer.Opt
         resp = httpx.post(url, data={"username": email, "password": password})
         if resp.status_code == 200:
             token = resp.json().get("access_token")
-            console.print("[bold green]✔ Authentication successful.[/bold green]")
+            console.print("[bold green][OK] Authentication successful.[/bold green]")
             console.print(f"Export this token to your shell:\nexport SOCFORGE_TOKEN='{token}'")
         else:
-            console.print(f"[bold red]✘ Authentication failed: {resp.text}[/bold red]")
+            console.print(f"[bold red][FAIL] Authentication failed: {resp.text}[/bold red]")
     except Exception as e:
-        console.print(f"[bold red]✘ Login failed: {e}[/bold red]")
+        console.print(f"[bold red][FAIL] Login failed: {e}[/bold red]")
 
 
 alerts_app = typer.Typer(help="Manage and query alerts")
@@ -126,12 +126,12 @@ def list_detections():
 @app.command()
 def demo():
     """Initialize synthetic security operations demo dataset."""
-    console.print("[bold cyan]🚀 Initializing SOCForge deterministic demo environment...[/bold cyan]")
+    console.print("[bold cyan][*] Initializing SOCForge deterministic demo environment...[/bold cyan]")
     # Run seed script via API or sub-process
-    console.print("[green]✔ Seeded synthetic authentication anomaly[/green]")
-    console.print("[green]✔ Seeded credential dumping incident with LSASS memory dump evidence[/green]")
-    console.print("[green]✔ Populated typed Evidence Graph (User -> Host -> Process -> Domain -> ATT&CK)[/green]")
-    console.print("[green]✔ Generated validated Sigma candidate mapped to T1003.001[/green]")
+    console.print("[green][OK] Seeded synthetic authentication anomaly[/green]")
+    console.print("[green][OK] Seeded credential dumping incident with LSASS memory dump evidence[/green]")
+    console.print("[green][OK] Populated typed Evidence Graph (User -> Host -> Process -> Domain -> ATT&CK)[/green]")
+    console.print("[green][OK] Generated validated Sigma candidate mapped to T1003.001[/green]")
     console.print("\n[bold]Demo ready! Access the workspace at:[/bold] [link=http://localhost:3000]http://localhost:3000[/link]")
 
 
