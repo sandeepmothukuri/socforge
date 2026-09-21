@@ -1,10 +1,10 @@
-"""Investigations router — create, list, view workspace, add findings."""
+"""Investigations router — create, triage, findings, evidence graph."""
 
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
-from typing import Annotated, Any
+from datetime import datetime, timezone
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -15,18 +15,28 @@ from sqlalchemy.orm import selectinload
 from socforge.auth.dependencies import CurrentAnalyst, CurrentUser
 from socforge.database import get_db
 from socforge.models.alert import Alert, Entity, EntityRelationship, Event
-from socforge.models.investigation import Finding, FindingConfidence, Investigation, InvestigationAlert, InvestigationStatus
+from socforge.models.investigation import (
+    Finding,
+    FindingConfidence,
+    FindingEntity,
+    FindingEvent,
+    Investigation,
+    InvestigationAlert,
+    InvestigationStatus,
+)
 from socforge.models.operations import AuditAction
 from socforge.services.audit import record_audit_event
 
-
 router = APIRouter(prefix="/investigations", tags=["Investigations"])
+
+
+# ── Schemas ──────────────────────────────────────────────────────────────────
 
 
 class InvestigationCreate(BaseModel):
     title: str = Field(..., max_length=512)
     description: str | None = None
-    severity: str | None = None
+    severity: str | None = "medium"
     alert_ids: list[str] = Field(default_factory=list)
     mitre_techniques: list[str] = Field(default_factory=list)
     mitre_tactics: list[str] = Field(default_factory=list)
@@ -38,8 +48,6 @@ class InvestigationUpdate(BaseModel):
     status: InvestigationStatus | None = None
     severity: str | None = None
     notes: str | None = None
-    mitre_techniques: list[str] | None = None
-    assigned_to_id: str | None = None
 
 
 class FindingCreate(BaseModel):
@@ -51,8 +59,7 @@ class FindingCreate(BaseModel):
     supporting_event_ids: list[str] = Field(default_factory=list)
     supporting_entity_ids: list[str] = Field(default_factory=list)
     response_recommendations: list[str] = Field(default_factory=list)
-    justification: str | None = Field(default=None, description="Required justification if no supporting events are linked")
-
+    justification: str | None = Field(default=None, description="Analytical justification if no direct event IDs are linked")
 
 
 class FindingRead(BaseModel):
@@ -68,7 +75,6 @@ class FindingRead(BaseModel):
     response_recommendations: list[str]
     has_detection_hypothesis: bool
     created_at: datetime
-    updated_at: datetime
 
     @classmethod
     def from_orm(cls, f: Finding) -> "FindingRead":
@@ -85,7 +91,6 @@ class FindingRead(BaseModel):
             response_recommendations=f.response_recommendations or [],
             has_detection_hypothesis=f.has_detection_hypothesis,
             created_at=f.created_at,
-            updated_at=f.updated_at,
         )
 
 
@@ -100,16 +105,20 @@ class InvestigationRead(BaseModel):
     created_by_id: str | None
     mitre_techniques: list[str]
     mitre_tactics: list[str]
-    notes: str | None
     opened_at: datetime
     closed_at: datetime | None
     created_at: datetime
     updated_at: datetime
-    alert_count: int
-    finding_count: int
+    alert_count: int = 0
+    finding_count: int = 0
 
     @classmethod
-    def from_orm(cls, inv: Investigation) -> "InvestigationRead":
+    def from_orm(
+        cls,
+        inv: Investigation,
+        alert_count: int = 0,
+        finding_count: int = 0,
+    ) -> "InvestigationRead":
         return cls(
             id=str(inv.id),
             title=inv.title,
@@ -121,28 +130,29 @@ class InvestigationRead(BaseModel):
             created_by_id=str(inv.created_by_id) if inv.created_by_id else None,
             mitre_techniques=inv.mitre_techniques or [],
             mitre_tactics=inv.mitre_tactics or [],
-            notes=inv.notes,
             opened_at=inv.opened_at,
             closed_at=inv.closed_at,
             created_at=inv.created_at,
             updated_at=inv.updated_at,
-            alert_count=len(inv.investigation_alerts),
-            finding_count=len(inv.findings),
+            alert_count=alert_count,
+            finding_count=finding_count,
         )
 
 
 class GraphNode(BaseModel):
     id: str
-    type: str
     label: str
-    data: dict[str, Any]
+    type: str
+    risk_score: float = 0.0
+    properties: dict = Field(default_factory=dict)
 
 
 class GraphEdge(BaseModel):
     id: str
     source: str
     target: str
-    label: str
+    relationship: str
+    evidence_count: int = 0
 
 
 class EvidenceGraph(BaseModel):
@@ -150,11 +160,14 @@ class EvidenceGraph(BaseModel):
     edges: list[GraphEdge]
 
 
+# ── Endpoints ────────────────────────────────────────────────────────────────
+
+
 @router.get("", response_model=list[InvestigationRead], summary="List investigations")
 async def list_investigations(
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
-    status_filter: InvestigationStatus | None = Query(default=None, alias="status"),
+    status: InvestigationStatus | None = None,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=25, ge=1, le=100),
 ) -> list[InvestigationRead]:
@@ -162,12 +175,21 @@ async def list_investigations(
         selectinload(Investigation.investigation_alerts),
         selectinload(Investigation.findings),
     )
-    if status_filter:
-        query = query.where(Investigation.status == status_filter)
+    if status:
+        query = query.where(Investigation.status == status)
     query = query.order_by(Investigation.created_at.desc())
     query = query.offset((page - 1) * page_size).limit(page_size)
+
     result = await db.execute(query)
-    return [InvestigationRead.from_orm(inv) for inv in result.scalars()]
+    invs = result.scalars().all()
+    return [
+        InvestigationRead.from_orm(
+            inv,
+            alert_count=len(inv.investigation_alerts),
+            finding_count=len(inv.findings),
+        )
+        for inv in invs
+    ]
 
 
 @router.post(
@@ -193,21 +215,13 @@ async def create_investigation(
     db.add(inv)
     await db.flush()
 
-    # Link alerts
     for alert_id_str in payload.alert_ids:
         try:
             aid = uuid.UUID(alert_id_str)
+            db.add(InvestigationAlert(investigation_id=inv.id, alert_id=aid))
         except ValueError:
             continue
-        result = await db.execute(select(Alert).where(Alert.id == aid))
-        alert = result.scalar_one_or_none()
-        if alert:
-            link = InvestigationAlert(investigation_id=inv.id, alert_id=aid)
-            db.add(link)
-            # Update alert status
-            alert.status = "investigating"
 
-    await db.flush()
     await record_audit_event(
         db,
         action=AuditAction.investigation_created,
@@ -215,19 +229,10 @@ async def create_investigation(
         actor_email=current_user.email,
         target_type="investigation",
         target_id=str(inv.id),
+        metadata={"alert_count": len(payload.alert_ids)},
     )
 
-    # Reload with relationships
-    result2 = await db.execute(
-        select(Investigation)
-        .where(Investigation.id == inv.id)
-        .options(
-            selectinload(Investigation.investigation_alerts),
-            selectinload(Investigation.findings),
-        )
-    )
-    inv = result2.scalar_one()
-    return InvestigationRead.from_orm(inv)
+    return InvestigationRead.from_orm(inv, alert_count=len(payload.alert_ids))
 
 
 @router.get("/{investigation_id}", response_model=InvestigationRead, summary="Get investigation")
@@ -243,95 +248,84 @@ async def get_investigation(
 
     result = await db.execute(
         select(Investigation)
-        .where(Investigation.id == iid)
         .options(
             selectinload(Investigation.investigation_alerts),
             selectinload(Investigation.findings),
         )
+        .where(Investigation.id == iid)
     )
     inv = result.scalar_one_or_none()
     if inv is None:
         raise HTTPException(status_code=404, detail="Investigation not found")
-    return InvestigationRead.from_orm(inv)
+
+    return InvestigationRead.from_orm(
+        inv,
+        alert_count=len(inv.investigation_alerts),
+        finding_count=len(inv.findings),
+    )
 
 
-@router.get(
-    "/{investigation_id}/graph",
-    response_model=EvidenceGraph,
-    summary="Get evidence graph for an investigation",
-)
-async def get_investigation_graph(
+@router.patch("/{investigation_id}", response_model=InvestigationRead, summary="Update investigation")
+async def update_investigation(
     investigation_id: str,
-    current_user: CurrentUser,
+    payload: InvestigationUpdate,
+    current_user: CurrentAnalyst,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> EvidenceGraph:
-    """Return the evidence graph (nodes + edges) for React Flow rendering."""
+) -> InvestigationRead:
     try:
         iid = uuid.UUID(investigation_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid investigation ID")
 
-    # Get all entity relationships scoped to this investigation
-    rel_result = await db.execute(
-        select(EntityRelationship)
-        .where(EntityRelationship.investigation_id == iid)
+    result = await db.execute(
+        select(Investigation)
         .options(
-            selectinload(EntityRelationship.source_entity),
-            selectinload(EntityRelationship.target_entity),
+            selectinload(Investigation.investigation_alerts),
+            selectinload(Investigation.findings),
         )
+        .where(Investigation.id == iid)
     )
-    relationships = rel_result.scalars().all()
+    inv = result.scalar_one_or_none()
+    if inv is None:
+        raise HTTPException(status_code=404, detail="Investigation not found")
 
-    # Build node + edge sets
-    nodes_dict: dict[str, GraphNode] = {}
-    edges: list[GraphEdge] = []
+    if payload.title is not None:
+        inv.title = payload.title
+    if payload.description is not None:
+        inv.description = payload.description
+    if payload.severity is not None:
+        inv.severity = payload.severity
+    if payload.notes is not None:
+        inv.notes = payload.notes
+    if payload.status is not None:
+        inv.status = payload.status
+        if payload.status == InvestigationStatus.closed:
+            inv.closed_at = datetime.now(timezone.utc)
 
-    for rel in relationships:
-        src = rel.source_entity
-        tgt = rel.target_entity
+    inv.updated_at = datetime.now(timezone.utc)
 
-        if str(src.id) not in nodes_dict:
-            nodes_dict[str(src.id)] = GraphNode(
-                id=str(src.id),
-                type=src.entity_type.value,
-                label=src.display_name or src.value,
-                data={
-                    "entity_type": src.entity_type.value,
-                    "value": src.value,
-                    "risk_score": src.risk_score,
-                    "is_malicious": src.is_malicious,
-                },
-            )
-        if str(tgt.id) not in nodes_dict:
-            nodes_dict[str(tgt.id)] = GraphNode(
-                id=str(tgt.id),
-                type=tgt.entity_type.value,
-                label=tgt.display_name or tgt.value,
-                data={
-                    "entity_type": tgt.entity_type.value,
-                    "value": tgt.value,
-                    "risk_score": tgt.risk_score,
-                    "is_malicious": tgt.is_malicious,
-                },
-            )
+    await record_audit_event(
+        db,
+        action=AuditAction.investigation_updated,
+        actor_id=str(current_user.id),
+        actor_email=current_user.email,
+        target_type="investigation",
+        target_id=investigation_id,
+        metadata={"status": inv.status.value},
+    )
 
-        edges.append(
-            GraphEdge(
-                id=str(rel.id),
-                source=str(src.id),
-                target=str(tgt.id),
-                label=rel.relationship_type.value.replace("_", " ").title(),
-            )
-        )
-
-    return EvidenceGraph(nodes=list(nodes_dict.values()), edges=edges)
+    return InvestigationRead.from_orm(
+        inv,
+        alert_count=len(inv.investigation_alerts),
+        finding_count=len(inv.findings),
+    )
 
 
 @router.post(
     "/{investigation_id}/findings",
     response_model=FindingRead,
     status_code=status.HTTP_201_CREATED,
-    summary="Add a finding to an investigation",
+    summary="Create finding with evidence backing",
 )
 async def create_finding(
     investigation_id: str,
@@ -341,8 +335,8 @@ async def create_finding(
 ) -> FindingRead:
     """Create an analyst finding backed by evidence.
 
-    A finding is a documented analytical conclusion. It must have a
-    description and confidence level. Supporting evidence is linked by ID.
+    A finding must be linked to at least one valid event or provide an explicit justification.
+    Relational associations are recorded in finding_events and finding_entities.
     """
     try:
         iid = uuid.UUID(investigation_id)
@@ -354,23 +348,38 @@ async def create_finding(
     if inv is None:
         raise HTTPException(status_code=404, detail="Investigation not found")
 
-    # Evidence-backed validation
-    valid_event_ids: list[str] = []
+    # Validate and collect supporting event records
+    valid_event_uuids: list[uuid.UUID] = []
     if payload.supporting_event_ids:
         for eid_str in payload.supporting_event_ids:
             try:
                 eid_uuid = uuid.UUID(eid_str)
                 evt = (await db.execute(select(Event).where(Event.id == eid_uuid))).scalar_one_or_none()
                 if evt:
-                    valid_event_ids.append(str(evt.id))
+                    valid_event_uuids.append(evt.id)
             except ValueError:
                 continue
 
-    if not valid_event_ids and not payload.justification:
+    # Validate supporting entities
+    valid_entity_uuids: list[uuid.UUID] = []
+    if payload.supporting_entity_ids:
+        for ent_str in payload.supporting_entity_ids:
+            try:
+                ent_uuid = uuid.UUID(ent_str)
+                entity = (await db.execute(select(Entity).where(Entity.id == ent_uuid))).scalar_one_or_none()
+                if entity:
+                    valid_entity_uuids.append(entity.id)
+            except ValueError:
+                continue
+
+    if not valid_event_uuids and not payload.justification:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Findings must either be backed by valid supporting event telemetry or include an explicit justification.",
         )
+
+    valid_event_strs = [str(u) for u in valid_event_uuids]
+    valid_entity_strs = [str(u) for u in valid_entity_uuids]
 
     finding = Finding(
         investigation_id=iid,
@@ -380,14 +389,20 @@ async def create_finding(
         confidence=payload.confidence,
         mitre_techniques=payload.mitre_techniques,
         mitre_tactics=payload.mitre_tactics,
-        supporting_event_ids=valid_event_ids,
-        supporting_entity_ids=payload.supporting_entity_ids,
+        supporting_event_ids=valid_event_strs,
+        supporting_entity_ids=valid_entity_strs,
         response_recommendations=payload.response_recommendations,
         extra_metadata={"justification": payload.justification} if payload.justification else {},
     )
 
     db.add(finding)
     await db.flush()
+
+    # Populate relational association tables
+    for eid in valid_event_uuids:
+        db.add(FindingEvent(finding_id=finding.id, event_id=eid))
+    for ent_id in valid_entity_uuids:
+        db.add(FindingEntity(finding_id=finding.id, entity_id=ent_id))
 
     await record_audit_event(
         db,
@@ -396,7 +411,7 @@ async def create_finding(
         actor_email=current_user.email,
         target_type="finding",
         target_id=str(finding.id),
-        metadata={"investigation_id": investigation_id},
+        metadata={"investigation_id": investigation_id, "evidence_count": len(valid_event_uuids)},
     )
 
     return FindingRead.from_orm(finding)
@@ -418,6 +433,72 @@ async def list_findings(
         raise HTTPException(status_code=400, detail="Invalid investigation ID")
 
     result = await db.execute(
-        select(Finding).where(Finding.investigation_id == iid).order_by(Finding.created_at.desc())
+        select(Finding)
+        .where(Finding.investigation_id == iid)
+        .order_by(Finding.created_at.asc())
     )
     return [FindingRead.from_orm(f) for f in result.scalars()]
+
+
+@router.get(
+    "/{investigation_id}/graph",
+    response_model=EvidenceGraph,
+    summary="Get the evidence graph for an investigation",
+)
+async def get_evidence_graph(
+    investigation_id: str,
+    current_user: CurrentUser,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> EvidenceGraph:
+    """Build the typed evidence graph for this investigation."""
+    try:
+        iid = uuid.UUID(investigation_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid investigation ID")
+
+    relationships_result = await db.execute(
+        select(EntityRelationship)
+        .options(
+            selectinload(EntityRelationship.source_entity),
+            selectinload(EntityRelationship.target_entity),
+        )
+        .where(EntityRelationship.investigation_id == iid)
+    )
+    rels = relationships_result.scalars().all()
+
+    nodes_map: dict[str, GraphNode] = {}
+    edges: list[GraphEdge] = []
+
+    for rel in rels:
+        src = rel.source_entity
+        tgt = rel.target_entity
+
+        if src and str(src.id) not in nodes_map:
+            nodes_map[str(src.id)] = GraphNode(
+                id=str(src.id),
+                label=src.display_name or src.value,
+                type=src.entity_type.value,
+                risk_score=src.risk_score or 0.0,
+                properties={"value": src.value},
+            )
+
+        if tgt and str(tgt.id) not in nodes_map:
+            nodes_map[str(tgt.id)] = GraphNode(
+                id=str(tgt.id),
+                label=tgt.display_name or tgt.value,
+                type=tgt.entity_type.value,
+                risk_score=tgt.risk_score or 0.0,
+                properties={"value": tgt.value},
+            )
+
+        edges.append(
+            GraphEdge(
+                id=str(rel.id),
+                source=str(rel.source_entity_id),
+                target=str(rel.target_entity_id),
+                relationship=rel.relationship_type.value,
+                evidence_count=len(rel.supporting_event_ids or []),
+            )
+        )
+
+    return EvidenceGraph(nodes=list(nodes_map.values()), edges=edges)

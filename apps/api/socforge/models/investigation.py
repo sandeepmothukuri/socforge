@@ -51,6 +51,11 @@ class Investigation(Base):
     severity: Mapped[str | None] = mapped_column(String(32))
     risk_score: Mapped[float | None] = mapped_column(Float, default=0.0)
 
+    # Workspace scoping
+    workspace_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workspaces.id", ondelete="SET NULL"), index=True
+    )
+
     # Assigned analyst
     assigned_to_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), index=True
@@ -87,6 +92,7 @@ class Investigation(Base):
     __table_args__ = (
         Index("ix_investigations_status", "status"),
         Index("ix_investigations_assigned_to", "assigned_to_id"),
+        Index("ix_investigations_workspace", "workspace_id"),
     )
 
     def __repr__(self) -> str:
@@ -128,9 +134,8 @@ class InvestigationAlert(Base):
 class Finding(Base):
     """An analyst conclusion backed by evidence.
 
-    Every finding must be linked to at least one event and optionally
-    to MITRE ATT&CK techniques. Findings are the bridge between
-    raw telemetry and detection engineering.
+    Every finding must be linked to at least one event or have an explicit justification.
+    Relational associations to events and entities are tracked in finding_events and finding_entities.
     """
 
     __tablename__ = "findings"
@@ -155,9 +160,8 @@ class Finding(Base):
     mitre_techniques: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
     mitre_tactics: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
 
-    # Supporting evidence: list of event IDs
+    # Supporting evidence: stored as JSON cache + relational association tables
     supporting_event_ids: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
-    # Supporting entities
     supporting_entity_ids: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
 
     # Response recommendations
@@ -177,6 +181,12 @@ class Finding(Base):
     )
 
     investigation: Mapped[Investigation] = relationship("Investigation", back_populates="findings")
+    finding_events: Mapped[list["FindingEvent"]] = relationship(
+        "FindingEvent", back_populates="finding", cascade="all, delete-orphan"
+    )
+    finding_entities: Mapped[list["FindingEntity"]] = relationship(
+        "FindingEntity", back_populates="finding", cascade="all, delete-orphan"
+    )
 
     __table_args__ = (
         Index("ix_findings_investigation", "investigation_id"),
@@ -187,5 +197,51 @@ class Finding(Base):
         return f"<Finding {self.id} [{self.confidence}] {self.title[:40]}>"
 
 
-# Resolve forward reference from alert.py
-from socforge.models.alert import Alert  # noqa: E402, F401
+class FindingEvent(Base):
+    """Relational association table linking findings to supporting events."""
+
+    __tablename__ = "finding_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
+    finding_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("findings.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    event_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, nullable=False
+    )
+
+    finding: Mapped[Finding] = relationship("Finding", back_populates="finding_events")
+
+    __table_args__ = (
+        Index("ix_finding_events_unique", "finding_id", "event_id", unique=True),
+    )
+
+
+class FindingEntity(Base):
+    """Relational association table linking findings to involved entities."""
+
+    __tablename__ = "finding_entities"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
+    finding_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("findings.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    entity_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("entities.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, nullable=False
+    )
+
+    finding: Mapped[Finding] = relationship("Finding", back_populates="finding_entities")
+
+    __table_args__ = (
+        Index("ix_finding_entities_unique", "finding_id", "entity_id", unique=True),
+    )
+
+
+# Resolve forward references
+from socforge.models.alert import Alert, Event, Entity  # noqa: E402, F401

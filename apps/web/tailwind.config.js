@@ -8,15 +8,33 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: "#090d16",
-        foreground: "#f3f4f6",
-        card: "#0f172a",
-        border: "#1e293b",
-        primary: "#3b82f6",
-        secondary: "#64748b",
-        danger: "#ef4444",
-        warning: "#f59e0b",
-        success: "#10b981",
+        bg: {
+          DEFAULT: "#0B1020",
+          secondary: "#111827",
+          elevated: "#172033",
+          card: "#151C2E",
+        },
+        border: {
+          DEFAULT: "#263248",
+          subtle: "#1E293B",
+        },
+        text: {
+          primary: "#F8FAFC",
+          secondary: "#A7B0C0",
+          muted: "#6B7280",
+        },
+        accent: {
+          DEFAULT: "#38BDF8",
+          primary: "#38BDF8",
+          secondary: "#22C55E",
+        },
+        severity: {
+          critical: "#EF4444",
+          high: "#F97316",
+          medium: "#F59E0B",
+          low: "#38BDF8",
+          informational: "#6B7280",
+        },
       },
     },
   },
