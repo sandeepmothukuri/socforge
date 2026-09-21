@@ -14,6 +14,7 @@ import {
   FileText,
   Home,
   ShieldCheck,
+  Laptop
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 
@@ -26,6 +27,7 @@ export default function AppShell({ children }: AppShellProps) {
 
   const navItems = [
     { href: "/dashboard", label: "Dashboard", icon: Activity },
+    { href: "/desktop", label: "Desktop App Guide", icon: Laptop },
     { href: "/alerts", label: "Alerts", icon: AlertTriangle },
     { href: "/investigations", label: "Investigations & Graph", icon: Share2 },
     { href: "/detections", label: "Detection Studio", icon: FileCode },
@@ -80,8 +82,8 @@ export default function AppShell({ children }: AppShellProps) {
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#0B1020]">
+      {/* Main Page Area */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {children}
       </main>
     </div>
