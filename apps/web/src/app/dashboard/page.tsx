@@ -20,7 +20,11 @@ import {
   FileCode, 
   Activity, 
   CheckCircle2, 
-  RefreshCw 
+  RefreshCw,
+  Server,
+  Lock,
+  Layers,
+  ChevronRight
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -29,6 +33,7 @@ export default function DashboardPage() {
   const [detections, setDetections] = useState<DetectionItem[]>([]);
   const [graphData, setGraphData] = useState<EvidenceGraphData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<"standard" | "tactical">("standard");
 
   async function loadDashboard() {
     setLoading(true);
@@ -64,7 +69,32 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col h-full overflow-y-auto">
         {/* Header */}
         <header className="h-16 border-b border-slate-800/80 bg-[#0a0f1a]/50 px-8 flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-white">Security Operations Console</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-semibold text-white">Security Operations Console</h1>
+            <div className="hidden sm:flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs font-mono">
+              <button
+                onClick={() => setViewMode("standard")}
+                className={`px-2.5 py-0.5 rounded transition ${
+                  viewMode === "standard"
+                    ? "bg-blue-600 text-white font-semibold shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Standard View
+              </button>
+              <button
+                onClick={() => setViewMode("tactical")}
+                className={`px-2.5 py-0.5 rounded transition ${
+                  viewMode === "tactical"
+                    ? "bg-cyan-600 text-white font-semibold shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Tactical View
+              </button>
+            </div>
+          </div>
+
           <div className="flex items-center gap-4 text-xs">
             <button
               onClick={loadDashboard}
@@ -73,9 +103,9 @@ export default function DashboardPage() {
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
               Refresh Console
             </button>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              PostgreSQL Evidence Store Connected
+              PostgreSQL Connected
             </span>
           </div>
         </header>
@@ -159,6 +189,80 @@ export default function DashboardPage() {
 
               <div className="text-xs text-slate-400 max-w-xl text-center leading-relaxed">
                 Relationship edges are stored as typed records in the <code className="text-slate-300 font-mono">entity_relationships</code> table, ensuring every analyst conclusion links directly to verifiable raw logs.
+              </div>
+            </div>
+          </div>
+
+          {/* Telemetry Connectors & Platform Health Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 rounded-xl border border-slate-800 bg-[#0f172a]/50 p-6 space-y-4 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Server className="w-4 h-4 text-blue-400" />
+                  <h3 className="text-sm font-bold text-white">Configured Telemetry Connectors</h3>
+                </div>
+                <Link href="/integrations" className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                  Manage Connectors <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white">Wazuh SIEM</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      Active
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">Endpoint EDR, syscheck, and agent vulnerability telemetry.</p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white">MS Sentinel</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                      Configured
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">Azure Log Analytics workspace query and alert sync.</p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white">Splunk REST</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                      Ready
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">Enterprise log aggregation and SPL search job dispatch.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-800 bg-[#0f172a]/50 p-6 space-y-4 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-purple-400" />
+                  <h3 className="text-sm font-bold text-white">Platform Governance</h3>
+                </div>
+                <Link href="/audit" className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1">
+                  Audit Log <ChevronRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                  <span className="text-slate-400">Audit Ledger</span>
+                  <span className="text-emerald-400 font-semibold font-mono">Immutable / PG</span>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                  <span className="text-slate-400">RBAC Enforcement</span>
+                  <span className="text-blue-400 font-semibold font-mono">5-Tier Hierarchy</span>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                  <span className="text-slate-400">AI Tool Sandbox</span>
+                  <span className="text-purple-400 font-semibold font-mono">Typed / No Shell</span>
+                </div>
               </div>
             </div>
           </div>

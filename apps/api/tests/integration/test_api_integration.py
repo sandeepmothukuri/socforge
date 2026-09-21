@@ -1,4 +1,4 @@
-﻿"""Comprehensive Integration Tests for SOCForge End-to-End Workflows.
+"""Comprehensive Integration Tests for SOCForge End-to-End Workflows.
 
 Tests full REST API workflows including:
 1. Health and probe readiness (/health, /metrics)
@@ -110,10 +110,11 @@ async def test_integrations_catalog_and_health():
         list_resp = await client.get("/api/v1/integrations", headers=headers)
         assert list_resp.status_code == 200
         connectors = list_resp.json()
-        assert len(connectors) >= 2
+        assert len(connectors) >= 3
         names = [c["name"] for c in connectors]
         assert "wazuh" in names
         assert "sentinel" in names
+        assert "splunk" in names
 
         # Test sentinel connector health check
         sentinel_test = await client.post("/api/v1/integrations/sentinel/health", headers=headers)
@@ -121,6 +122,13 @@ async def test_integrations_catalog_and_health():
         s_data = sentinel_test.json()
         assert s_data["name"] == "sentinel"
         assert s_data["status"] in ["planned", "healthy"]
+
+        # Test splunk connector health check
+        splunk_test = await client.post("/api/v1/integrations/splunk/health", headers=headers)
+        assert splunk_test.status_code == 200
+        sp_data = splunk_test.json()
+        assert sp_data["name"] == "splunk"
+        assert sp_data["status"] in ["ready", "healthy"]
 
 
 @pytest.mark.asyncio

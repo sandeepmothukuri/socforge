@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from socforge.auth.dependencies import CurrentAdminUser, CurrentUser
 from socforge.database import get_db
 from socforge.integrations.sentinel import SentinelIntegration
+from socforge.integrations.splunk import SplunkIntegration
 from socforge.integrations.wazuh import WazuhIntegration
 from socforge.models.operations import Integration
 
@@ -22,6 +23,7 @@ router = APIRouter(prefix="/integrations", tags=["Integrations"])
 CONNECTOR_REGISTRY = {
     "wazuh": WazuhIntegration,
     "sentinel": SentinelIntegration,
+    "splunk": SplunkIntegration,
 }
 
 
