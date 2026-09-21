@@ -8,13 +8,21 @@ Usage in routers:
     @router.get("/admin-only")
     async def admin_endpoint(current_user: CurrentAdminUser):
         ...
+
+    @router.get("/workspace-resource")
+    async def workspace_endpoint(
+        current_user: CurrentUser,
+        workspace: CurrentWorkspaceUser,
+    ):
+        ...
 """
 
 from __future__ import annotations
 
+import uuid
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Request, Security, status
+from fastapi import Depends, HTTPException, Query, Request, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy import select
@@ -22,6 +30,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from socforge.auth.security import decode_token, hash_token
 from socforge.database import get_db
+from socforge.models.operations import Workspace, WorkspaceMembership
 from socforge.models.user import APIKey, Role, User, UserSession
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
@@ -149,9 +158,60 @@ def require_role(minimum_role: str):
     return _check
 
 
+async def get_workspace_and_verify_member(
+    workspace_slug: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> Workspace:
+    """Dependency that resolves a workspace by slug and verifies the current user is a member.
+
+    Returns HTTP 404 if workspace doesn't exist (to avoid leaking workspace existence).
+    Returns HTTP 403 if user is not a member (unless superuser).
+
+    Usage:
+        @router.get("/{workspace_slug}/alerts")
+        async def list_alerts(workspace: WorkspaceMember):
+            ...
+    """
+    ws_result = await db.execute(
+        select(Workspace).where(
+            Workspace.slug == workspace_slug,
+            Workspace.is_active.is_(True),
+        )
+    )
+    workspace = ws_result.scalar_one_or_none()
+    if workspace is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Workspace not found",
+        )
+
+    # Superusers bypass membership check
+    if current_user.is_superuser:
+        return workspace
+
+    membership_result = await db.execute(
+        select(WorkspaceMembership).where(
+            WorkspaceMembership.workspace_id == workspace.id,
+            WorkspaceMembership.user_id == current_user.id,
+        )
+    )
+    membership = membership_result.scalar_one_or_none()
+    if membership is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not a member of this workspace",
+        )
+
+    return workspace
+
+
 # Convenience typed dependencies
 CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentAnalyst = Annotated[User, Depends(require_role("SOC Analyst"))]
 CurrentDetectionEngineer = Annotated[User, Depends(require_role("Detection Engineer"))]
 CurrentIncidentCommander = Annotated[User, Depends(require_role("Incident Commander"))]
 CurrentAdminUser = Annotated[User, Depends(require_role("Administrator"))]
+
+# Workspace-aware dependency
+WorkspaceMember = Annotated[Workspace, Depends(get_workspace_and_verify_member)]
