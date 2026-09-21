@@ -33,14 +33,17 @@ import {
   Terminal,
   AlertOctagon,
   ShieldCheck,
-  Zap
+  Zap,
+  Laptop
 } from "lucide-react";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { SeverityBadge } from "@/components/ui/SeverityBadge";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
+import { DesktopGuideModal } from "@/components/DesktopGuideModal";
 
 export default function DashboardPage() {
+  const [desktopGuideOpen, setDesktopGuideOpen] = useState(false);
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [investigations, setInvestigations] = useState<InvestigationItem[]>([]);
   const [detections, setDetections] = useState<DetectionItem[]>([]);
@@ -193,6 +196,16 @@ export default function DashboardPage() {
               </kbd>
             </button>
 
+            {/* Desktop App Instructions Button */}
+            <button
+              onClick={() => setDesktopGuideOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#38BDF8]/50 bg-[#38BDF8]/15 hover:bg-[#38BDF8]/25 text-[#38BDF8] transition font-semibold"
+              title="View instructions to run standalone Windows desktop app"
+            >
+              <Laptop className="w-3.5 h-3.5" />
+              <span>Desktop App Guide</span>
+            </button>
+
             {/* Run Demo Button */}
             <button
               onClick={handleRunDemo}
@@ -249,6 +262,21 @@ export default function DashboardPage() {
                   Auto-Triage Active
                 </span>
               </div>
+            </div>
+
+            {/* Tactical Desktop App Quick Access Bar */}
+            <div className="bg-[#111827] border border-[#263248] rounded-lg p-3 px-4 flex items-center justify-between gap-4 font-mono text-xs">
+              <div className="flex items-center gap-2 text-[#A7B0C0]">
+                <Laptop className="w-4 h-4 text-[#38BDF8]" />
+                <span>Native Desktop Operations: <strong>SOCForge-Window.exe</strong> & <strong>SOCForge-Operations.exe</strong> installed.</span>
+              </div>
+              <button
+                onClick={() => setDesktopGuideOpen(true)}
+                className="px-3 py-1 rounded bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20 border border-[#38BDF8]/30 text-[#38BDF8] font-bold text-[11px] transition flex items-center gap-1"
+              >
+                <span>Desktop Guide & Commands</span>
+                <ChevronRight className="w-3 h-3" />
+              </button>
             </div>
 
             {/* Tactical Rapid Response Grid */}
@@ -401,6 +429,38 @@ export default function DashboardPage() {
                   icon={Lock}
                 />
               </Link>
+            </div>
+
+            {/* SOCForge Windows Desktop App & Executables Banner */}
+            <div className="bg-[#111827] border border-[#263248] hover:border-[#38BDF8]/50 transition-all rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
+              <div className="flex items-center gap-3.5">
+                <div className="p-2.5 rounded-lg bg-[#38BDF8]/10 border border-[#38BDF8]/30 text-[#38BDF8]">
+                  <Laptop className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-[#F8FAFC]">
+                      SOCForge Native Windows Desktop App & Standalone Executables
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30">
+                      INSTALLED & READY
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#A7B0C0] mt-0.5">
+                    Launch SOCForge directly from your desktop as a standalone application using Microsoft Edge WebView2 or the Operations Control Center (.EXE).
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setDesktopGuideOpen(true)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#38BDF8] hover:bg-[#38BDF8]/90 text-[#0B1020] text-xs font-bold transition shadow-sm"
+                >
+                  <Laptop className="w-3.5 h-3.5" />
+                  <span>View Desktop App Instructions</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
             {/* Featured Investigation & Evidence Graph Centerpiece */}
@@ -719,6 +779,12 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Standalone Windows Desktop App & Mobile Suite Instructions Modal */}
+      <DesktopGuideModal
+        isOpen={desktopGuideOpen}
+        onClose={() => setDesktopGuideOpen(false)}
+      />
     </AppShell>
   );
 }
