@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "socforge-cli"
+version = "0.1.0"
+description = "SOCForge CLI — Command-line interface for SOCForge Security Operations Platform"
+authors = [{ name = "Sandeep Mothukuri" }]
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=13.9.0",
+    "httpx>=0.28.0",
+    "pydantic>=2.9.0",
+]
+
+[project.scripts]
+socforge = "socforge_cli.main:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["socforge_cli"]
