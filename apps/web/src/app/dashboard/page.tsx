@@ -85,12 +85,16 @@ export default function DashboardPage() {
         getInvestigations().catch(() => []),
         getDetections().catch(() => []),
       ]);
-      setAlerts(aData.items || []);
-      setInvestigations(iData);
-      setDetections(dData);
+      const alertItems = Array.isArray(aData) ? aData : aData?.items || [];
+      const invItems = Array.isArray(iData) ? iData : (iData as any)?.items || [];
+      const detItems = Array.isArray(dData) ? dData : (dData as any)?.items || [];
 
-      if (iData.length > 0) {
-        const g = await getInvestigationGraph(iData[0].id).catch(() => null);
+      setAlerts(alertItems);
+      setInvestigations(invItems);
+      setDetections(detItems);
+
+      if (invItems.length > 0) {
+        const g = await getInvestigationGraph(invItems[0].id).catch(() => null);
         setGraphData(g);
       }
     } catch (err) {
@@ -131,8 +135,11 @@ export default function DashboardPage() {
     }
   }
 
-  const featuredInv = investigations[0];
-  const criticalAlerts = alerts.filter((a) => a.severity === "critical");
+  const alertList = Array.isArray(alerts) ? alerts : (alerts as any)?.items || [];
+  const invList = Array.isArray(investigations) ? investigations : (investigations as any)?.items || [];
+  const detList = Array.isArray(detections) ? detections : (detections as any)?.items || [];
+  const featuredInv = invList[0];
+  const criticalAlerts = alertList.filter((a: any) => a?.severity === "critical");
 
   return (
     <AppShell>
@@ -266,7 +273,7 @@ export default function DashboardPage() {
                       No active critical threats. System operating in baseline parameters.
                     </div>
                   ) : (
-                    criticalAlerts.slice(0, 5).map((alert) => (
+                    criticalAlerts.slice(0, 5).map((alert: any) => (
                       <div
                         key={alert.id}
                         className="p-3.5 rounded bg-[#111827] border border-[#263248] flex flex-col md:flex-row md:items-center justify-between gap-3"
@@ -356,7 +363,7 @@ export default function DashboardPage() {
               <Link href="/alerts">
                 <MetricCard
                   title="Active Alerts"
-                  value={alerts.length}
+                  value={alertList.length}
                   badge={`${criticalAlerts.length} Critical`}
                   subtext="Requiring investigation"
                   change={criticalAlerts.length > 0 ? "Requires Triage" : "Normal"}
@@ -368,7 +375,7 @@ export default function DashboardPage() {
               <Link href="/investigations">
                 <MetricCard
                   title="Investigations"
-                  value={investigations.length}
+                  value={invList.length}
                   badge="Evidence Graph"
                   subtext="Correlated attack paths"
                   icon={Share2}
@@ -378,7 +385,7 @@ export default function DashboardPage() {
               <Link href="/detections">
                 <MetricCard
                   title="Detection Rules"
-                  value={detections.length}
+                  value={detList.length}
                   badge="Sigma • SPL • KQL"
                   subtext="Multi-format rule catalog"
                   icon={FileCode}

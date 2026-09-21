@@ -13,7 +13,8 @@ export default function AuditPage() {
     setLoading(true);
     try {
       const data = await getAuditLogs();
-      setLogs(data.items || []);
+      const items = Array.isArray(data) ? data : (data as any)?.items || [];
+      setLogs(items);
     } catch (err) {
       console.error("Failed to load audit logs:", err);
     } finally {
@@ -24,6 +25,8 @@ export default function AuditPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const logList = Array.isArray(logs) ? logs : (logs as any)?.items || [];
 
   return (
     <AppShell>
@@ -53,41 +56,35 @@ export default function AuditPage() {
 
           {loading ? (
             <div className="text-xs text-slate-500">Loading audit records from PostgreSQL...</div>
-          ) : logs.length === 0 ? (
+          ) : logList.length === 0 ? (
             <div className="p-8 border border-dashed border-slate-800 rounded-xl text-center text-xs text-slate-500">
               No audit records found.
             </div>
           ) : (
-            <div className="border border-slate-800 rounded-xl overflow-hidden bg-[#0f172a]/40">
-              <table className="w-full text-left text-xs font-mono">
-                <thead className="bg-[#0b101b] border-b border-slate-800 text-slate-400">
+            <div className="border border-slate-800 rounded-xl overflow-hidden bg-[#0f172a]/60">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-[#0a0f1a] border-b border-slate-800 text-slate-400 uppercase font-mono">
                   <tr>
-                    <th className="p-3">Timestamp</th>
-                    <th className="p-3">Action</th>
-                    <th className="p-3">Actor</th>
-                    <th className="p-3">Target</th>
-                    <th className="p-3">Status</th>
+                    <th className="px-6 py-3">Timestamp</th>
+                    <th className="px-6 py-3">Actor</th>
+                    <th className="px-6 py-3">Action</th>
+                    <th className="px-6 py-3">Target</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {logs.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-800/30">
-                      <td className="p-3 text-slate-400 whitespace-nowrap">
-                        {new Date(item.created_at).toLocaleString()}
+                <tbody className="divide-y divide-slate-800/50 font-mono">
+                  {logList.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-900/40">
+                      <td className="px-6 py-3 text-slate-400">
+                        {new Date(log.occurred_at).toLocaleString()}
                       </td>
-                      <td className="p-3 font-semibold text-white">{item.action}</td>
-                      <td className="p-3 text-slate-300">{item.actor_email || "System"}</td>
-                      <td className="p-3 text-slate-400">{item.target_type || "N/A"}</td>
-                      <td className="p-3">
-                        {item.success ? (
-                          <span className="inline-flex items-center gap-1 text-emerald-400 font-bold">
-                            <CheckCircle className="w-3.5 h-3.5" /> SUCCESS
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-red-400 font-bold">
-                            <XCircle className="w-3.5 h-3.5" /> FAILED
-                          </span>
-                        )}
+                      <td className="px-6 py-3 text-white">{log.actor_email || "System"}</td>
+                      <td className="px-6 py-3">
+                        <span className="px-2 py-0.5 rounded bg-slate-800 text-blue-400 text-[11px]">
+                          {log.action}
+                        </span>
+                      </td>
+                      <td className="px-6 py-3 text-slate-400">
+                        {log.target_type ? `${log.target_type}` : "Platform"}
                       </td>
                     </tr>
                   ))}

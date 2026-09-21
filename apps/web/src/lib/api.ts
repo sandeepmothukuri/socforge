@@ -106,13 +106,19 @@ export interface AlertItem {
 export async function getAlerts(severity?: string): Promise<{ items: AlertItem[]; total: number }> {
   try {
     const query = severity ? `?severity=${severity}` : "";
-    const res = await request<AlertItem[]>(`/alerts${query}`);
-    return { items: res, total: res.length };
+    const res = await request<any>(`/alerts${query}`);
+    if (Array.isArray(res)) {
+      return { items: res, total: res.length };
+    }
+    return { items: res?.items || [], total: res?.total || 0 };
   } catch {
     await login();
     const query = severity ? `?severity=${severity}` : "";
-    const res = await request<AlertItem[]>(`/alerts${query}`);
-    return { items: res, total: res.length };
+    const res = await request<any>(`/alerts${query}`);
+    if (Array.isArray(res)) {
+      return { items: res, total: res.length };
+    }
+    return { items: res?.items || [], total: res?.total || 0 };
   }
 }
 
@@ -133,10 +139,12 @@ export interface InvestigationItem {
 
 export async function getInvestigations(): Promise<InvestigationItem[]> {
   try {
-    return await request<InvestigationItem[]>("/investigations");
+    const res = await request<any>("/investigations");
+    return Array.isArray(res) ? res : res?.items || [];
   } catch {
     await login();
-    return await request<InvestigationItem[]>("/investigations");
+    const res = await request<any>("/investigations");
+    return Array.isArray(res) ? res : res?.items || [];
   }
 }
 
@@ -157,10 +165,12 @@ export interface FindingItem {
 
 export async function getInvestigationFindings(investigationId: string): Promise<FindingItem[]> {
   try {
-    return await request<FindingItem[]>(`/investigations/${investigationId}/findings`);
+    const res = await request<any>(`/investigations/${investigationId}/findings`);
+    return Array.isArray(res) ? res : res?.items || [];
   } catch {
     await login();
-    return await request<FindingItem[]>(`/investigations/${investigationId}/findings`);
+    const res = await request<any>(`/investigations/${investigationId}/findings`);
+    return Array.isArray(res) ? res : res?.items || [];
   }
 }
 
@@ -218,10 +228,12 @@ export interface ValidationReport {
 
 export async function getDetections(): Promise<DetectionItem[]> {
   try {
-    return await request<DetectionItem[]>("/detections");
+    const res = await request<any>("/detections");
+    return Array.isArray(res) ? res : res?.items || [];
   } catch {
     await login();
-    return await request<DetectionItem[]>("/detections");
+    const res = await request<any>("/detections");
+    return Array.isArray(res) ? res : res?.items || [];
   }
 }
 
@@ -279,10 +291,12 @@ export interface ResponseActionItem {
 
 export async function getResponseActions(): Promise<ResponseActionItem[]> {
   try {
-    return await request<ResponseActionItem[]>("/responses");
+    const res = await request<any>("/responses");
+    return Array.isArray(res) ? res : res?.items || [];
   } catch {
     await login();
-    return await request<ResponseActionItem[]>("/responses");
+    const res = await request<any>("/responses");
+    return Array.isArray(res) ? res : res?.items || [];
   }
 }
 
@@ -352,10 +366,12 @@ export interface HuntItem {
 
 export async function getHunts(): Promise<HuntItem[]> {
   try {
-    return await request<HuntItem[]>("/hunts");
+    const res = await request<any>("/hunts");
+    return Array.isArray(res) ? res : res?.items || [];
   } catch {
     await login();
-    return await request<HuntItem[]>("/hunts");
+    const res = await request<any>("/hunts");
+    return Array.isArray(res) ? res : res?.items || [];
   }
 }
 
@@ -374,10 +390,12 @@ export interface IncidentItem {
 
 export async function getIncidents(): Promise<IncidentItem[]> {
   try {
-    return await request<IncidentItem[]>("/incidents");
+    const res = await request<any>("/incidents");
+    return Array.isArray(res) ? res : res?.items || [];
   } catch {
     await login();
-    return await request<IncidentItem[]>("/incidents");
+    const res = await request<any>("/incidents");
+    return Array.isArray(res) ? res : res?.items || [];
   }
 }
 
@@ -396,10 +414,12 @@ export interface IntegrationItem {
 
 export async function getIntegrations(): Promise<IntegrationItem[]> {
   try {
-    return await request<IntegrationItem[]>("/integrations");
+    const res = await request<any>("/integrations");
+    return Array.isArray(res) ? res : res?.items || [];
   } catch {
     await login();
-    return await request<IntegrationItem[]>("/integrations");
+    const res = await request<any>("/integrations");
+    return Array.isArray(res) ? res : res?.items || [];
   }
 }
 
@@ -419,12 +439,20 @@ export interface AuditItem {
   occurred_at: string;
 }
 
-export async function getAuditLogs(): Promise<AuditItem[]> {
+export async function getAuditLogs(): Promise<{ items: AuditItem[]; total: number }> {
   try {
-    return await request<AuditItem[]>("/audit");
+    const res = await request<any>("/audit");
+    if (Array.isArray(res)) {
+      return { items: res, total: res.length };
+    }
+    return { items: res?.items || [], total: res?.total || 0 };
   } catch {
     await login();
-    return await request<AuditItem[]>("/audit");
+    const res = await request<any>("/audit");
+    if (Array.isArray(res)) {
+      return { items: res, total: res.length };
+    }
+    return { items: res?.items || [], total: res?.total || 0 };
   }
 }
 
