@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "SOCForge Mobile",
+    "slug": "socforge-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#030712"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sandeepmothukuri.socforge"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#030712"
+      },
+      "package": "com.sandeepmothukuri.socforge"
+    }
+  }
+}
