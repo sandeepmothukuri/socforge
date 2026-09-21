@@ -24,6 +24,9 @@ router = APIRouter(prefix="/alerts", tags=["Alerts"])
 # ── Schemas ──────────────────────────────────────────────────────────────────
 
 
+import ipaddress
+
+
 class AlertCreate(BaseModel):
     source: str = Field(..., max_length=128, description="Source system name (e.g. wazuh, splunk)")
     title: str = Field(..., max_length=512)
@@ -51,12 +54,15 @@ class AlertCreate(BaseModel):
     @field_validator("source_ip", "destination_ip", mode="before")
     @classmethod
     def validate_ip(cls, v: str | None) -> str | None:
-        if v is None:
+        if v is None or v == "":
             return None
-        # Basic length check — detailed validation would use ipaddress module
-        if len(v) > 45:
-            raise ValueError("IP address too long")
-        return v
+        try:
+            # Validate IPv4 or IPv6
+            ipaddress.ip_address(v.strip())
+            return v.strip()
+        except ValueError:
+            raise ValueError(f"Invalid IP address format: {v}")
+
 
 
 class AlertUpdate(BaseModel):
@@ -192,7 +198,20 @@ async def create_alert(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> AlertRead:
     """Create a single alert via the API."""
+    if payload.external_id:
+        existing = await db.execute(
+            select(Alert).where(
+                Alert.source == payload.source,
+                Alert.external_id == payload.external_id,
+            )
+        )
+        existing_alert = existing.scalar_one_or_none()
+        if existing_alert:
+            # Return existing alert (deduplication)
+            return AlertRead.from_orm(existing_alert)
+
     alert = Alert(
+
         source=payload.source,
         title=payload.title,
         description=payload.description,

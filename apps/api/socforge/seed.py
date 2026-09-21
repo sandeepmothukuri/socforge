@@ -7,11 +7,13 @@ from datetime import datetime, timezone
 import structlog
 from sqlalchemy import select
 from socforge.auth.security import hash_password
+from socforge.config import get_settings
 from socforge.database import AsyncSessionLocal
 from socforge.models.user import Role, User
 from socforge.models.alert import Alert, AlertSeverity, AlertStatus, Entity, EntityRelationship, EntityType, RelationshipType, Event
 from socforge.models.investigation import Investigation, InvestigationAlert, Finding, FindingConfidence
 from socforge.models.detection import Detection, DetectionVersion, RuleLanguage, ValidationState
+from socforge.models.operations import Workspace
 
 logger = structlog.get_logger(__name__)
 
@@ -20,10 +22,25 @@ async def seed_data():
     from socforge.database import Base, engine
     import socforge.models  # noqa: F401
 
+    settings = get_settings()
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
     async with AsyncSessionLocal() as db:
+        # 0. Seed Default Workspace
+        default_workspace = (await db.execute(select(Workspace).where(Workspace.slug == "default"))).scalar_one_or_none()
+        if not default_workspace:
+            default_workspace = Workspace(
+                name="Default SOC Operations",
+                slug="default",
+                description="Primary workspace for SOC operations, detection engineering, and threat response.",
+                is_active=True,
+            )
+            db.add(default_workspace)
+            await db.flush()
+            logger.info("created_default_workspace", slug="default")
+
         # 1. Seed Roles
         roles = [
             ("Administrator", "Full system and platform administration access"),
@@ -45,19 +62,22 @@ async def seed_data():
                 role_objs[name] = existing
 
         # 2. Seed Default Admin User
-        admin_user = (await db.execute(select(User).where(User.email == "admin@socforge.local"))).scalar_one_or_none()
+        admin_email = settings.first_admin_email
+        admin_pass = settings.first_admin_password
+        admin_user = (await db.execute(select(User).where(User.email == admin_email))).scalar_one_or_none()
         if not admin_user:
             admin_user = User(
-                email="admin@socforge.local",
+                email=admin_email,
                 full_name="Sandeep Mothukuri",
-                hashed_password=hash_password("admin12345!"),
+                hashed_password=hash_password(admin_pass),
                 role_id=role_objs["Administrator"].id,
                 is_active=True,
                 is_superuser=True,
             )
             db.add(admin_user)
             await db.flush()
-            logger.info("created_admin_user", email="admin@socforge.local")
+            logger.info("created_admin_user", email=admin_email)
+
 
         # 3. Seed Synthetic Security Telemetry & Alert
         existing_alert = (await db.execute(select(Alert).where(Alert.external_id == "DEMO-ALERT-001"))).scalar_one_or_none()

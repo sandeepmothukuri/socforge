@@ -280,3 +280,106 @@ class Integration(Base):
     )
 
     __table_args__ = (Index("ix_integrations_type", "integration_type"),)
+
+
+class Workspace(Base):
+    """Multi-tenant or team boundary isolating security operations assets."""
+
+    __tablename__ = "workspaces"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
+    name: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
+    slug: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    description: Mapped[str | None] = mapped_column(Text)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    settings: Mapped[dict | None] = mapped_column(JSONB, default=dict)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False
+    )
+
+    __table_args__ = (Index("ix_workspaces_slug_active", "slug", "is_active"),)
+
+    def __repr__(self) -> str:
+        return f"<Workspace {self.slug} [{self.name}]>"
+
+
+class ResponseActionStatus(str, PyEnum):
+    pending_approval = "pending_approval"
+    approved = "approved"
+    rejected = "rejected"
+    executing = "executing"
+    completed = "completed"
+    failed = "failed"
+    cancelled = "cancelled"
+
+
+class ResponseActionType(str, PyEnum):
+    isolate_host = "isolate_host"
+    unisolate_host = "unisolate_host"
+    block_ip = "block_ip"
+    unblock_ip = "unblock_ip"
+    block_domain = "block_domain"
+    disable_user = "disable_user"
+    revoke_session = "revoke_session"
+    kill_process = "kill_process"
+    quarantine_file = "quarantine_file"
+
+
+class ResponseAction(Base):
+    """A containment or mitigation action requiring authorized approval."""
+
+    __tablename__ = "response_actions"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
+    action_type: Mapped[ResponseActionType] = mapped_column(
+        Enum(ResponseActionType, name="response_action_type"), nullable=False
+    )
+    status: Mapped[ResponseActionStatus] = mapped_column(
+        Enum(ResponseActionStatus, name="response_action_status"),
+        nullable=False,
+        default=ResponseActionStatus.pending_approval,
+    )
+
+    # Target entity details
+    target_entity_type: Mapped[str] = mapped_column(String(64), nullable=False)
+    target_entity_value: Mapped[str] = mapped_column(String(512), nullable=False)
+    justification: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # Links
+    investigation_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("investigations.id", ondelete="SET NULL"), index=True
+    )
+    incident_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("incidents.id", ondelete="SET NULL"), index=True
+    )
+
+    # Actor lifecycle
+    requested_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    approved_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    execution_result: Mapped[dict | None] = mapped_column(JSONB, default=dict)
+    error_message: Mapped[str | None] = mapped_column(Text)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False
+    )
+
+    __table_args__ = (
+        Index("ix_response_actions_status", "status"),
+        Index("ix_response_actions_type", "action_type"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<ResponseAction {self.action_type} [{self.status}] on {self.target_entity_value}>"
+

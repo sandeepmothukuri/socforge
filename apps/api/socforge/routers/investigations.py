@@ -14,10 +14,11 @@ from sqlalchemy.orm import selectinload
 
 from socforge.auth.dependencies import CurrentAnalyst, CurrentUser
 from socforge.database import get_db
-from socforge.models.alert import Alert, Entity, EntityRelationship
+from socforge.models.alert import Alert, Entity, EntityRelationship, Event
 from socforge.models.investigation import Finding, FindingConfidence, Investigation, InvestigationAlert, InvestigationStatus
 from socforge.models.operations import AuditAction
 from socforge.services.audit import record_audit_event
+
 
 router = APIRouter(prefix="/investigations", tags=["Investigations"])
 
@@ -50,6 +51,8 @@ class FindingCreate(BaseModel):
     supporting_event_ids: list[str] = Field(default_factory=list)
     supporting_entity_ids: list[str] = Field(default_factory=list)
     response_recommendations: list[str] = Field(default_factory=list)
+    justification: str | None = Field(default=None, description="Required justification if no supporting events are linked")
+
 
 
 class FindingRead(BaseModel):
@@ -351,6 +354,24 @@ async def create_finding(
     if inv is None:
         raise HTTPException(status_code=404, detail="Investigation not found")
 
+    # Evidence-backed validation
+    valid_event_ids: list[str] = []
+    if payload.supporting_event_ids:
+        for eid_str in payload.supporting_event_ids:
+            try:
+                eid_uuid = uuid.UUID(eid_str)
+                evt = (await db.execute(select(Event).where(Event.id == eid_uuid))).scalar_one_or_none()
+                if evt:
+                    valid_event_ids.append(str(evt.id))
+            except ValueError:
+                continue
+
+    if not valid_event_ids and not payload.justification:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Findings must either be backed by valid supporting event telemetry or include an explicit justification.",
+        )
+
     finding = Finding(
         investigation_id=iid,
         created_by_id=current_user.id,
@@ -359,10 +380,12 @@ async def create_finding(
         confidence=payload.confidence,
         mitre_techniques=payload.mitre_techniques,
         mitre_tactics=payload.mitre_tactics,
-        supporting_event_ids=payload.supporting_event_ids,
+        supporting_event_ids=valid_event_ids,
         supporting_entity_ids=payload.supporting_entity_ids,
         response_recommendations=payload.response_recommendations,
+        extra_metadata={"justification": payload.justification} if payload.justification else {},
     )
+
     db.add(finding)
     await db.flush()
 

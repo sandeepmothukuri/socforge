@@ -10,6 +10,10 @@ from socforge.models.operations import (
     AuditEvent,
     Incident,
     Integration,
+    ResponseAction,
+    ResponseActionStatus,
+    ResponseActionType,
+    Workspace,
 )
 from socforge.models.user import APIKey, Role, User, UserSession
 
@@ -38,4 +42,9 @@ __all__ = [
     "AgentToolCall",
     "AuditEvent",
     "Integration",
+    "Workspace",
+    "ResponseAction",
+    "ResponseActionStatus",
+    "ResponseActionType",
 ]
+

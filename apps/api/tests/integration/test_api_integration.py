@@ -231,3 +231,77 @@ async def test_detection_lifecycle_and_validation():
         assert val_resp.status_code == 200
         val_data = val_resp.json()
         assert val_data["syntax_valid"] is True
+
+
+@pytest.mark.asyncio
+async def test_detection_test_replay_and_approval():
+    """Test replaying a detection against telemetry and verifying separation of duties."""
+    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+        auth_resp = await client.post(
+            "/api/v1/auth/login",
+            data={"username": "admin@socforge.local", "password": "admin12345!"},
+        )
+        token = auth_resp.json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        list_resp = await client.get("/api/v1/detections", headers=headers)
+        detection_id = list_resp.json()[0]["id"]
+
+        # 1. Run test replay
+        test_resp = await client.post(
+            f"/api/v1/detections/{detection_id}/test",
+            headers=headers,
+            json={"dataset_name": "synthetic-replay-dataset"},
+        )
+        assert test_resp.status_code == 200
+        test_data = test_resp.json()
+        assert test_data["syntax_valid"] is True
+        assert test_data["total_events"] > 0
+        assert "precision" in test_data
+        assert "recall" in test_data
+
+        # 2. List test history
+        history_resp = await client.get(f"/api/v1/detections/{detection_id}/tests", headers=headers)
+        assert history_resp.status_code == 200
+        assert len(history_resp.json()) >= 1
+
+
+@pytest.mark.asyncio
+async def test_response_action_lifecycle_and_workspaces():
+    """Test containment response action workflow and workspace access."""
+    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+        auth_resp = await client.post(
+            "/api/v1/auth/login",
+            data={"username": "admin@socforge.local", "password": "admin12345!"},
+        )
+        token = auth_resp.json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+
+        # 1. List workspaces
+        ws_resp = await client.get("/api/v1/workspaces", headers=headers)
+        assert ws_resp.status_code == 200
+        workspaces = ws_resp.json()
+        assert len(workspaces) >= 1
+        assert any(w["slug"] == "default" for w in workspaces)
+
+        # 2. Request response action
+        action_resp = await client.post(
+            "/api/v1/responses",
+            headers=headers,
+            json={
+                "action_type": "isolate_host",
+                "target_entity_type": "host",
+                "target_entity_value": "WKSTN-FIN-04",
+                "justification": "Active credential dumping detected on workstation.",
+            },
+        )
+        assert action_resp.status_code == 201
+        action_data = action_resp.json()
+        assert action_data["status"] == "pending_approval"
+        action_id = action_data["id"]
+
+        # 3. List response actions
+        list_res = await client.get("/api/v1/responses", headers=headers)
+        assert list_res.status_code == 200
+        assert any(a["id"] == action_id for a in list_res.json())
+

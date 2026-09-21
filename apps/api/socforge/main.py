@@ -155,6 +155,9 @@ def create_app() -> FastAPI:
     app.include_router(agents.router, prefix=API_PREFIX)
     app.include_router(integrations.router, prefix=API_PREFIX)
     app.include_router(audit.router, prefix=API_PREFIX)
+    app.include_router(audit.responses_router, prefix=API_PREFIX)
+    app.include_router(audit.workspaces_router, prefix=API_PREFIX)
+
 
     @app.get("/", include_in_schema=False)
     async def root():

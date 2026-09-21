@@ -123,6 +123,42 @@ def list_detections():
         console.print(f"[bold red]Error: {e}[/bold red]")
 
 
+@detections_app.command("validate")
+def validate_detection_cli(detection_id: str):
+    """Validate a detection rule's syntax."""
+    url = f"{API_BASE_URL}/detections/{detection_id}/validate"
+    try:
+        resp = httpx.post(url, headers=get_headers())
+        if resp.status_code == 200:
+            res = resp.json()
+            if res["syntax_valid"]:
+                console.print(f"[bold green][PASS] Rule syntax is valid ({res['rule_language']})[/bold green]")
+            else:
+                console.print(f"[bold red][FAIL] Rule syntax errors:[/bold red] {res.get('errors')}")
+        else:
+            console.print(f"[bold red]Failed: {resp.text}[/bold red]")
+    except Exception as e:
+        console.print(f"[bold red]Error: {e}[/bold red]")
+
+
+@detections_app.command("test")
+def test_detection_cli(detection_id: str, dataset: str = "synthetic-soc-v1"):
+    """Execute detection rule test replay against telemetry."""
+    url = f"{API_BASE_URL}/detections/{detection_id}/test"
+    try:
+        resp = httpx.post(url, headers=get_headers(), json={"dataset_name": dataset})
+        if resp.status_code == 200:
+            res = resp.json()
+            console.print(f"[bold green][OK] Detection test completed in {res.get('duration_ms')}ms[/bold green]")
+            console.print(f"Events: {res.get('total_events')} | Matched: {res.get('matched_events')}")
+            console.print(f"Precision: {res.get('precision')} | Recall: {res.get('recall')}")
+        else:
+            console.print(f"[bold red]Failed: {resp.text}[/bold red]")
+    except Exception as e:
+        console.print(f"[bold red]Error: {e}[/bold red]")
+
+
+
 @app.command()
 def demo():
     """Initialize synthetic security operations demo dataset."""
