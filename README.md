@@ -59,56 +59,109 @@ flowchart TD
 
 ## 2. Platform Architecture
 
-`mermaid
-graph TB
-    subgraph Clients ["Presentation Tier"]
-        WEB["Next.js 14 Web Application\n(Tailwind CSS, Canvas Graph, SSE)"]
-        CLI["SOCForge Typer CLI\n(Rich Formatting, Headless Triage)"]
-    end
+### Component & Dataflow Overview
+The architecture is structured around strict separation of concerns, non-root isolated containers, an authoritative relational evidence store, and approval-gated containment workflows.
 
-    subgraph Gateway ["Application Gateway & Security"]
-        FASTAPI["FastAPI 0.115 Async REST API\n(JWT Authentication, Role Hierarchy RBAC)"]
-    end
+![SOCForge Architecture Diagram](docs/assets/socforge-architecture-diagram.png)
 
-    subgraph CoreServices ["Application & Domain Services"]
-        AUTH["Auth & Identity\n(Bcrypt, API Keys sf_...)"]
-        GRAPH["Evidence Graph Engine\n(Deduplicated Entities & Typed Edges)"]
-        VALIDATOR["Detection Rule Validator\n(Sigma Parser, SPL, KQL Grammar)"]
-        AGENT["Controlled Agent Sandbox\n(Pydantic Tools, LLM / Offline Fallback)"]
-        RESPONSE["Response Policy Gate\n(Analyst Authorization Signature)"]
-    end
+### High-Level Service Interaction
+```mermaid
+flowchart LR
+    Browser["Browser Client"] --> Web["Next.js Web Console\n(:3000)"]
+    Web --> API["FastAPI REST Engine\n(:8000)"]
+    API --> Redis[("Redis 7 Broker\n(Internal)")]
+    API --> PG[("PostgreSQL 16\n(Internal)")]
+    Worker["Celery Worker"] --> Redis
+    Worker --> PG
 
-    subgraph DataTier ["Persistence & Messaging Tier"]
-        PG[("PostgreSQL 16\nRelational Schema\nEntities, Relationships,\nAlerts, Detections, Audits")]
-        REDIS[("Redis 7\nQueue Broker & Cache")]
-        WORKER["Celery 5 Worker\nAsync Ingestion & Rule Testing"]
-    end
+    style Browser fill:#0f172a,stroke:#3b82f6,color:#fff
+    style Web fill:#0f172a,stroke:#3b82f6,color:#fff
+    style API fill:#0f172a,stroke:#10b981,color:#fff
+    style Worker fill:#0f172a,stroke:#f59e0b,color:#fff
+    style Redis fill:#0f172a,stroke:#ef4444,color:#fff
+    style PG fill:#0f172a,stroke:#6366f1,color:#fff
+```
 
-    subgraph Connectors ["Vendor Adapters"]
-        WAZUH["Wazuh SIEM API"]
-        SENTINEL["Microsoft Sentinel KQL"]
-        SPLUNK["Splunk REST API"]
-    end
+![SOCForge Component Interaction Flow](docs/assets/socforge-architecture-flow.png)
 
-    WEB -->|HTTP / JSON| FASTAPI
-    CLI -->|HTTP / JSON| FASTAPI
-
-    FASTAPI --> AUTH
-    FASTAPI --> GRAPH
-    FASTAPI --> VALIDATOR
-    FASTAPI --> AGENT
-    FASTAPI --> RESPONSE
-
-    GRAPH --> PG
-    AUTH --> PG
-    RESPONSE --> PG
-    FASTAPI --> REDIS
-    REDIS --> WORKER
-    WORKER --> PG
-
-    AGENT --> Connectors
-    RESPONSE --> Connectors
-`
+### Repository Directory Layout
+```
+socforge/
+│
+├── apps/
+│   ├── api/
+│   │   ├── socforge/
+│   │   │   ├── auth/
+│   │   │   ├── agents/
+│   │   │   ├── integrations/
+│   │   │   ├── models/
+│   │   │   ├── routers/
+│   │   │   ├── schemas/
+│   │   │   ├── services/
+│   │   │   ├── policies/
+│   │   │   ├── repositories/
+│   │   │   ├── normalization/
+│   │   │   ├── detection/
+│   │   │   ├── investigations/
+│   │   │   ├── response/
+│   │   │   ├── config.py
+│   │   │   ├── database.py
+│   │   │   └── main.py
+│   │   ├── alembic/
+│   │   ├── tests/
+│   │   └── pyproject.toml
+│   │
+│   ├── web/
+│   │   ├── src/
+│   │   │   ├── app/
+│   │   │   ├── components/
+│   │   │   ├── lib/
+│   │   │   └── hooks/
+│   │   ├── public/
+│   │   ├── package.json
+│   │   └── package-lock.json
+│   │
+│   └── cli/
+│
+├── workers/
+│
+├── detections/
+│   ├── sigma/
+│   ├── spl/
+│   ├── kql/
+│   └── test-cases/
+│
+├── datasets/
+│
+├── docs/
+│   ├── architecture/
+│   ├── api/
+│   ├── deployment/
+│   ├── security/
+│   ├── integrations/
+│   └── development/
+│
+├── deployments/
+│   ├── docker/
+│   ├── compose/
+│   └── kubernetes/
+│
+├── scripts/
+│
+├── .github/
+│   └── workflows/
+│
+├── docker-compose.yml
+├── docker-compose.prod.yml
+├── Makefile
+├── .env.example
+├── README.md
+├── ARCHITECTURE.md
+├── SECURITY.md
+├── CONTRIBUTING.md
+├── CHANGELOG.md
+└── LICENSE
+```
 
 ---
 
