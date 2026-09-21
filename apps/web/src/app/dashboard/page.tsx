@@ -34,7 +34,8 @@ import {
   AlertOctagon,
   ShieldCheck,
   Zap,
-  Laptop
+  Laptop,
+  ExternalLink
 } from "lucide-react";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { SeverityBadge } from "@/components/ui/SeverityBadge";
@@ -431,35 +432,138 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            {/* SOCForge Windows Desktop App & Executables Banner */}
-            <div className="bg-[#111827] border border-[#263248] hover:border-[#38BDF8]/50 transition-all rounded-xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg">
-              <div className="flex items-center gap-3.5">
-                <div className="p-2.5 rounded-lg bg-[#38BDF8]/10 border border-[#38BDF8]/30 text-[#38BDF8]">
-                  <Laptop className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-bold text-[#F8FAFC]">
-                      SOCForge Native Windows Desktop App & Standalone Executables
-                    </h3>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30">
-                      INSTALLED & READY
-                    </span>
+            {/* ── INLINE RUNNING DESKTOP APP INSTRUCTIONS ─────────────────────────────── */}
+            <div className="bg-[#111827] border border-[#38BDF8]/40 rounded-xl overflow-hidden shadow-2xl">
+              {/* Header */}
+              <div className="p-5 border-b border-[#263248] bg-[#0E1626] flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-lg bg-[#38BDF8]/15 border border-[#38BDF8]/30 text-[#38BDF8]">
+                    <Laptop className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-[#A7B0C0] mt-0.5">
-                    Launch SOCForge directly from your desktop as a standalone application using Microsoft Edge WebView2 or the Operations Control Center (.EXE).
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm font-bold text-[#F8FAFC]">
+                        Running SOCForge Desktop App on Windows
+                      </h2>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30">
+                        READY & INSTALLED
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#A7B0C0] mt-0.5">
+                      Follow any of the 4 verified methods below to run SOCForge locally as a native Windows desktop application.
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
+
                 <button
                   onClick={() => setDesktopGuideOpen(true)}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#38BDF8] hover:bg-[#38BDF8]/90 text-[#0B1020] text-xs font-bold transition shadow-sm"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#38BDF8]/40 bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20 text-[#38BDF8] text-xs font-semibold transition whitespace-nowrap self-start md:self-auto"
                 >
-                  <Laptop className="w-3.5 h-3.5" />
-                  <span>View Desktop App Instructions</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
+                  <span>Detailed Multi-Tab Guide</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </button>
+              </div>
+
+              {/* 4 Methods Grid */}
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0B1020]/70">
+                {/* Method 1 */}
+                <div className="p-4 rounded-lg bg-[#151C2E] border border-[#263248] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-xs text-[#38BDF8]">
+                      <span className="w-5 h-5 rounded-full bg-[#38BDF8]/20 text-[#38BDF8] flex items-center justify-center text-[11px]">1</span>
+                      <span>Windows Desktop Shortcut (Fastest)</span>
+                    </div>
+                    <span className="text-[10px] text-[#22C55E] font-mono">1-Click Launch</span>
+                  </div>
+                  <p className="text-xs text-[#A7B0C0]">
+                    Shortcuts are ready on your Windows Desktop. Double-click either icon to run:
+                  </p>
+                  <div className="space-y-1.5 font-mono text-[11px]">
+                    <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#38BDF8] flex items-center justify-between">
+                      <span>🖥️ SOCForge Console Window.lnk</span>
+                      <span className="text-[10px] text-[#6B7280]">WebView2 Window</span>
+                    </div>
+                    <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#22C55E] flex items-center justify-between">
+                      <span>⚙️ SOCForge Operations.lnk</span>
+                      <span className="text-[10px] text-[#6B7280]">Control Center</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Method 2 */}
+                <div className="p-4 rounded-lg bg-[#151C2E] border border-[#263248] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-xs text-[#22C55E]">
+                      <span className="w-5 h-5 rounded-full bg-[#22C55E]/20 text-[#22C55E] flex items-center justify-center text-[11px]">2</span>
+                      <span>Standalone Executable (.EXE)</span>
+                    </div>
+                    <span className="text-[10px] text-[#22C55E] font-mono">No Python Required</span>
+                  </div>
+                  <p className="text-xs text-[#A7B0C0]">
+                    Run the pre-compiled portable binaries in the repository root or dist folder:
+                  </p>
+                  <div className="space-y-1.5 font-mono text-[11px]">
+                    <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#22C55E] flex items-center justify-between">
+                      <span>.\SOCForge-Window.exe</span>
+                      <span className="text-[10px] text-[#A7B0C0]">18.07 MB</span>
+                    </div>
+                    <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#38BDF8] flex items-center justify-between">
+                      <span>.\SOCForge-Operations.exe</span>
+                      <span className="text-[10px] text-[#A7B0C0]">11.60 MB</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Method 3 */}
+                <div className="p-4 rounded-lg bg-[#151C2E] border border-[#263248] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-xs text-[#F59E0B]">
+                      <span className="w-5 h-5 rounded-full bg-[#F59E0B]/20 text-[#F59E0B] flex items-center justify-center text-[11px]">3</span>
+                      <span>Double-Click Batch Launcher</span>
+                    </div>
+                    <span className="text-[10px] text-[#F59E0B] font-mono">File Explorer</span>
+                  </div>
+                  <p className="text-xs text-[#A7B0C0]">
+                    Double-click the batch launcher script in the repository root directory:
+                  </p>
+                  <div className="p-2 rounded bg-[#0B1020] border border-[#263248] font-mono text-[11px] text-[#F59E0B] flex items-center justify-between">
+                    <span>.\SOCForge-Launcher.bat</span>
+                    <span className="text-[10px] text-[#6B7280]">Batch Script</span>
+                  </div>
+                </div>
+
+                {/* Method 4 */}
+                <div className="p-4 rounded-lg bg-[#151C2E] border border-[#263248] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-bold text-xs text-[#A855F7]">
+                      <span className="w-5 h-5 rounded-full bg-[#A855F7]/20 text-[#A855F7] flex items-center justify-center text-[11px]">4</span>
+                      <span>Terminal / PowerShell Commands</span>
+                    </div>
+                    <span className="text-[10px] text-[#A855F7] font-mono">CLI Command</span>
+                  </div>
+                  <p className="text-xs text-[#A7B0C0]">
+                    Run directly via Python in your terminal:
+                  </p>
+                  <div className="space-y-1.5 font-mono text-[11px]">
+                    <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#F8FAFC]">
+                      <code>python apps\desktop\socforge_desktop_window.py</code>
+                    </div>
+                    <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#F8FAFC]">
+                      <code>python apps\desktop\socforge_app.py</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Footer */}
+              <div className="p-3 px-6 bg-[#0E1626] border-t border-[#263248] flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] font-mono text-[#A7B0C0]">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-[#22C55E]" />
+                  <span>Local Stack Health: Ports 3000, 8000, 5432, 6379 operational</span>
+                </div>
+                <div className="text-[#6B7280]">
+                  Author: Sandeep Mothukuri • Binaries available in project root & dist/
+                </div>
               </div>
             </div>
 
