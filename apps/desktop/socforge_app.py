@@ -3,7 +3,7 @@
 Provides native Windows management for the SOCForge platform:
 - Service health & port monitoring (API, Web, Postgres, Redis, Celery)
 - 1-Click service lifecycle management (Docker Compose Start/Stop/Restart)
-- Fast browser launch for Web Console and API documentation
+- Fast browser launch for Web Console, Detection Studio, Connectors, and API documentation
 - Live interactive execution of the deterministic security operations demo
 - Built-in detection replay testing directly against synthetic-soc-v1.json
 """
@@ -44,8 +44,8 @@ class SOCForgeDesktopApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("SOCForge — Security Operations Control Center")
-        self.geometry("900x650")
-        self.minsize(800, 550)
+        self.geometry("960x700")
+        self.minsize(850, 600)
         self.configure(bg=BG_DARK)
 
         # Apply dark theme styling
@@ -186,10 +186,17 @@ class SOCForgeDesktopApp(tk.Tk):
         self._add_btn(btn_bar, "⚡ Interactive API Docs", self._open_docs, "#172033", TEXT_PRIMARY, 0, 1)
         self._add_btn(btn_bar, "🎯 Run SOCForge Demo", self._run_demo_thread, ACCENT_GREEN, "#0B1020", 0, 2)
 
-        # Row 2: Service & CLI actions
-        self._add_btn(btn_bar, "🚀 Start Docker Stack", self._start_docker, "#172033", TEXT_PRIMARY, 1, 0)
-        self._add_btn(btn_bar, "🛑 Stop Docker Stack", self._stop_docker, "#172033", TEXT_PRIMARY, 1, 1)
-        self._add_btn(btn_bar, "💻 Open PowerShell CLI", self._open_cli, "#172033", TEXT_PRIMARY, 1, 2)
+        # Row 2: Deep Link Direct Modules
+        self._add_btn(btn_bar, "📊 Detection Studio", lambda: self._open_route("/detections"), "#172033", ACCENT_CYAN, 1, 0)
+        self._add_btn(btn_bar, "🔌 Connectors Hub", lambda: self._open_route("/integrations"), "#172033", ACCENT_CYAN, 1, 1)
+        self._add_btn(btn_bar, "🛡️ Response Ledger", lambda: self._open_route("/responses"), "#172033", ACCENT_CYAN, 1, 2)
+        self._add_btn(btn_bar, "🚨 Tactical View", lambda: self._open_route("/dashboard?view=tactical"), "#172033", ACCENT_RED, 1, 3)
+
+        # Row 3: Service & CLI actions
+        self._add_btn(btn_bar, "🚀 Start Docker Stack", self._start_docker, "#172033", TEXT_PRIMARY, 2, 0)
+        self._add_btn(btn_bar, "🛑 Stop Docker Stack", self._stop_docker, "#172033", TEXT_PRIMARY, 2, 1)
+        self._add_btn(btn_bar, "🔄 Restart Web Stack", self._restart_web, "#172033", TEXT_PRIMARY, 2, 2)
+        self._add_btn(btn_bar, "💻 Open PowerShell CLI", self._open_cli, "#172033", TEXT_PRIMARY, 2, 3)
 
     def _add_btn(self, parent, text, command, bg, fg, row, col):
         btn = tk.Button(
@@ -203,11 +210,11 @@ class SOCForgeDesktopApp(tk.Tk):
             activeforeground="#0B1020",
             relief="flat",
             bd=0,
-            padx=12,
-            pady=7,
+            padx=10,
+            pady=6,
             cursor="hand2",
         )
-        btn.grid(row=row, column=col, padx=4, pady=4, sticky="nsew")
+        btn.grid(row=row, column=col, padx=3, pady=3, sticky="nsew")
         parent.grid_columnconfigure(col, weight=1)
 
     def _build_terminal_output(self):
@@ -263,13 +270,9 @@ class SOCForgeDesktopApp(tk.Tk):
 
     def _health_probe_loop(self):
         while self.running:
-            # Probe Web (3000)
             web_ok = self._check_port("localhost", 3000)
-            # Probe API (8000)
             api_ok = self._check_http("http://localhost:8000/health")
-            # Probe Postgres (5432)
             pg_ok = self._check_port("localhost", 5432)
-            # Probe Redis (6379)
             redis_ok = self._check_port("localhost", 6379)
 
             self.after(0, self._update_statuses, web_ok, api_ok, pg_ok, redis_ok)
@@ -307,6 +310,11 @@ class SOCForgeDesktopApp(tk.Tk):
     def _open_web(self):
         self.log(f"[*] Opening browser to {WEB_URL}...")
         webbrowser.open(WEB_URL)
+
+    def _open_route(self, route: str):
+        target = f"{WEB_URL}{route}"
+        self.log(f"[*] Opening browser to {target}...")
+        webbrowser.open(target)
 
     def _open_docs(self):
         docs_url = f"{API_URL}/docs"
@@ -347,6 +355,13 @@ class SOCForgeDesktopApp(tk.Tk):
         self.log("[*] Executing: docker compose down...")
         threading.Thread(
             target=lambda: self._run_subproc(["docker", "compose", "down"]),
+            daemon=True,
+        ).start()
+
+    def _restart_web(self):
+        self.log("[*] Restarting web container: docker compose restart web...")
+        threading.Thread(
+            target=lambda: self._run_subproc(["docker", "compose", "restart", "web"]),
             daemon=True,
         ).start()
 

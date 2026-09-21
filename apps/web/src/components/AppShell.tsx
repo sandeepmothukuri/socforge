@@ -13,6 +13,7 @@ import {
   Database, 
   FileText,
   Home,
+  ShieldCheck,
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 
@@ -30,6 +31,7 @@ export default function AppShell({ children }: AppShellProps) {
     { href: "/detections", label: "Detection Studio", icon: FileCode },
     { href: "/hunts", label: "Threat Hunting", icon: Crosshair },
     { href: "/incidents", label: "Incidents", icon: ShieldAlert },
+    { href: "/responses", label: "Response Ledger", icon: ShieldCheck },
     { href: "/integrations", label: "Connectors", icon: Database },
     { href: "/audit", label: "Audit Log", icon: FileText },
   ];

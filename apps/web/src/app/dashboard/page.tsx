@@ -54,6 +54,15 @@ export default function DashboardPage() {
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("view") === "tactical") {
+        setViewMode("tactical");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -226,10 +235,10 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="flex items-center gap-2 font-mono text-xs">
-                <span className="px-2 py-1 rounded bg-[#EF4444]/15 border border-[#EF4444]/40 text-[#EF4444] font-bold">
+                <span className="px-2.5 py-1 rounded bg-[#EF4444]/15 border border-[#EF4444]/40 text-[#EF4444] font-bold">
                   {criticalAlerts.length} Critical Threats
                 </span>
-                <span className="px-2 py-1 rounded bg-[#38BDF8]/15 border border-[#38BDF8]/40 text-[#38BDF8]">
+                <span className="px-2.5 py-1 rounded bg-[#38BDF8]/15 border border-[#38BDF8]/40 text-[#38BDF8]">
                   Auto-Triage Active
                 </span>
               </div>
@@ -689,8 +698,14 @@ export default function DashboardPage() {
                 <Link href="/detections" onClick={() => setSearchOpen(false)} className="p-2 rounded bg-[#151C2E] hover:bg-[#172033] text-[#F8FAFC]">
                   → Detection Studio (/detections)
                 </Link>
+                <Link href="/responses" onClick={() => setSearchOpen(false)} className="p-2 rounded bg-[#151C2E] hover:bg-[#172033] text-[#F8FAFC]">
+                  → Response Ledger (/responses)
+                </Link>
                 <Link href="/integrations" onClick={() => setSearchOpen(false)} className="p-2 rounded bg-[#151C2E] hover:bg-[#172033] text-[#F8FAFC]">
                   → Connectors (/integrations)
+                </Link>
+                <Link href="/dashboard?view=tactical" onClick={() => { setViewMode("tactical"); setSearchOpen(false); }} className="p-2 rounded bg-[#151C2E] hover:bg-[#172033] text-[#EF4444]">
+                  → Tactical Operations Mode
                 </Link>
               </div>
             </div>

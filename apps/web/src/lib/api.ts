@@ -316,6 +316,19 @@ export async function executeResponseAction(
   }
 }
 
+export async function approveResponseAction(id: string): Promise<any> {
+  try {
+    return await request<any>(`/responses/${id}/approve`, {
+      method: "POST",
+    });
+  } catch {
+    await login();
+    return await request<any>(`/responses/${id}/approve`, {
+      method: "POST",
+    });
+  }
+}
+
 // ── Threat Hunts ────────────────────────────────────────────────────────────
 export interface HuntItem {
   id: string;
