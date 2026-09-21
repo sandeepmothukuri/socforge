@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY apps/api/ /app/
 COPY workers/ /app/workers/
+COPY datasets/ /app/datasets/
+
 RUN pip install --no-cache-dir hatchling && \
     pip install --no-cache-dir .
 

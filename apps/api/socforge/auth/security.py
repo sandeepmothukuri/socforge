@@ -1,19 +1,20 @@
-"""Authentication utilities — password hashing, JWT tokens, current user."""
+"""Authentication utilities — password hashing, JWT tokens, secret encryption."""
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import bcrypt
+from cryptography.fernet import Fernet, InvalidToken
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from socforge.config import get_settings
-
-import bcrypt
 
 ALGORITHM = "HS256"
 TOKEN_TYPE = "Bearer"
@@ -86,3 +87,33 @@ def decode_token(token: str) -> dict[str, Any]:
     """Decode and verify a JWT. Raises JWTError on failure."""
     settings = get_settings()
     return jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
+
+
+# ── Secret Encryption for Integrations & Credentials ─────────────────────────
+
+
+def _get_fernet() -> Fernet:
+    """Derive a 32-byte Fernet key deterministically from settings.SECRET_KEY."""
+    settings = get_settings()
+    key_bytes = hashlib.sha256(settings.secret_key.encode("utf-8")).digest()
+    b64_key = base64.urlsafe_b64encode(key_bytes)
+    return Fernet(b64_key)
+
+
+def encrypt_secret(plain: str) -> str:
+    """Encrypt a sensitive secret string (e.g. API key, token, password)."""
+    if not plain:
+        return ""
+    f = _get_fernet()
+    return f.encrypt(plain.encode("utf-8")).decode("utf-8")
+
+
+def decrypt_secret(cipher: str) -> str:
+    """Decrypt an encrypted secret string. Returns empty string if invalid."""
+    if not cipher:
+        return ""
+    try:
+        f = _get_fernet()
+        return f.decrypt(cipher.encode("utf-8")).decode("utf-8")
+    except (InvalidToken, Exception):
+        return ""
