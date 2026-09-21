@@ -49,7 +49,7 @@ class AuditEventRead(BaseModel):
             actor_email=a.actor_email,
             target_type=a.target_type,
             target_id=a.target_id,
-            metadata=a.metadata or {},
+            metadata=a.extra_metadata or {},
             occurred_at=a.occurred_at,
         )
 

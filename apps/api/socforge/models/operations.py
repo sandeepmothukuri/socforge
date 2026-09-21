@@ -190,7 +190,8 @@ class AuditEvent(Base):
     target_type: Mapped[str | None] = mapped_column(String(64))
     target_id: Mapped[str | None] = mapped_column(String(256), index=True)
 
-    metadata: Mapped[dict | None] = mapped_column(JSONB, default=dict)
+    # Mapped to 'metadata' column in database while avoiding reserved name collision in DeclarativeBase
+    extra_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, default=dict)
 
     request_id: Mapped[str | None] = mapped_column(String(128))
     source_ip: Mapped[str | None] = mapped_column(String(45))
@@ -226,7 +227,6 @@ class Integration(Base):
     config: Mapped[dict | None] = mapped_column(JSONB, default=dict)
 
     # Encrypted secret blob (AES-256-GCM encrypted JSON of secret fields)
-    # Format: base64(nonce + ciphertext). Key managed by settings.SECRET_KEY.
     encrypted_secrets: Mapped[str | None] = mapped_column(Text)
 
     workspace_id: Mapped[uuid.UUID | None] = mapped_column(

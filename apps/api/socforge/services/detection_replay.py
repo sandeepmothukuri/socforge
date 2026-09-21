@@ -19,8 +19,24 @@ from typing import Any
 
 from socforge.models.detection import RuleLanguage
 
-# Path to the bundled labeled dataset (relative to repo root, resolved at runtime)
-_DATASET_DIR = Path(__file__).resolve().parents[5] / "datasets"
+
+def _find_dataset_dir() -> Path:
+    """Dynamically locate the datasets directory in both host and container environments."""
+    curr = Path(__file__).resolve().parent
+    for _ in range(6):
+        cand = curr / "datasets"
+        if cand.exists() and cand.is_dir():
+            return cand
+        curr = curr.parent
+
+    for fallback in [Path("/app/datasets"), Path("datasets")]:
+        if fallback.exists():
+            return fallback
+
+    return Path("datasets")
+
+
+_DATASET_DIR = _find_dataset_dir()
 _BUILTIN_DATASET = "synthetic-soc-v1"
 
 
@@ -88,12 +104,13 @@ def replay_detection(
 def _load_dataset(name: str) -> tuple[list[dict], str | None]:
     """Load a labeled dataset by name.
 
-    Searches: datasets/<name>.json relative to the repo root.
+    Searches: datasets/<name>.json relative to detected dataset directories.
     Returns (events, error_message). events is empty list on error.
     """
     candidates = [
         _DATASET_DIR / f"{name}.json",
-        Path(f"/app/datasets/{name}.json"),  # container path
+        Path(f"/app/datasets/{name}.json"),
+        Path(f"datasets/{name}.json"),
     ]
     for path in candidates:
         if path.exists():
@@ -124,18 +141,12 @@ def _build_matcher(language: RuleLanguage, rule_content: str):
     elif language == RuleLanguage.kql:
         return _kql_matcher(rule_content)
     else:
-        # Fallback: never match
         return lambda _: False
 
 
 def _sigma_matcher(rule_content: str):
-    """Build a field-based matcher from a Sigma rule.
-
-    Parses the detection section and applies keyword / field-value matching
-    against normalized event fields. This is a structural implementation —
-    it handles the most common Sigma detection patterns.
-    """
-    import yaml  # safe_load only
+    """Build a field-based matcher from a Sigma rule."""
+    import yaml
 
     try:
         parsed = yaml.safe_load(rule_content) or {}
@@ -145,32 +156,24 @@ def _sigma_matcher(rule_content: str):
     detection = parsed.get("detection", {})
     condition = detection.get("condition", "selection")
 
-    # Build keyword sets per selection
     selections: dict[str, Any] = {k: v for k, v in detection.items() if k != "condition"}
 
     def _match_selection(event: dict, sel: Any) -> bool:
-        """Check if the event matches a Sigma selection block."""
         if isinstance(sel, list):
-            # List of dicts (OR of conditions)
             return any(_match_selection(event, item) for item in sel)
         if isinstance(sel, dict):
-            # All key-value pairs must match (AND)
             return all(_match_field(event, k, v) for k, v in sel.items())
         if isinstance(sel, str):
-            # Plain keyword — search all string fields
             return _keyword_in_event(event, sel)
         return False
 
     def _match_field(event: dict, field_expr: str, value: Any) -> bool:
-        """Match a Sigma field expression against an event."""
-        # Handle pipe modifiers: field|contains, field|startswith, field|endswith, field|re
         parts = field_expr.split("|")
         field_name = _sigma_field_to_event_field(parts[0])
         modifier = parts[1] if len(parts) > 1 else "exact"
 
         field_val = event.get(field_name)
         if field_val is None:
-            # Also check common aliases
             for alias in _FIELD_ALIASES.get(field_name, []):
                 field_val = event.get(alias)
                 if field_val is not None:
@@ -182,7 +185,6 @@ def _sigma_matcher(rule_content: str):
         field_str = str(field_val).lower()
 
         if isinstance(value, list):
-            # OR: any value matches
             return any(_apply_modifier(field_str, str(v).lower(), modifier) for v in value)
         return _apply_modifier(field_str, str(value).lower(), modifier)
 
@@ -200,7 +202,6 @@ def _sigma_matcher(rule_content: str):
             except re.error:
                 return False
         elif modifier == "exact":
-            # Wildcard glob support
             if "*" in pattern or "?" in pattern:
                 regex = re.escape(pattern).replace(r"\*", ".*").replace(r"\?", ".")
                 return bool(re.search(regex, field_str, re.IGNORECASE))
@@ -217,17 +218,13 @@ def _sigma_matcher(rule_content: str):
         return False
 
     def matcher(event: dict) -> bool:
-        """Evaluate one event against this Sigma rule."""
         cond = condition.lower().strip()
-        # Supported: "selection", "selection1 and selection2", "selection1 or not filter"
         if cond == "selection":
             sel = selections.get("selection")
             return sel is not None and _match_selection(event, sel)
-        # Parse simple conditions
         for name, sel in selections.items():
             if cond == name:
                 return _match_selection(event, sel)
-        # Complex condition: evaluate token by token
         return _eval_condition(cond, event, selections, _match_selection)
 
     return matcher
@@ -239,9 +236,7 @@ def _eval_condition(
     selections: dict,
     match_fn,
 ) -> bool:
-    """Evaluate a simple Sigma condition string (and/or/not + selection names)."""
     tokens = condition.split()
-    # Build truth map
     truths = {name: match_fn(event, sel) for name, sel in selections.items()}
     result = None
     negate_next = False
@@ -268,7 +263,6 @@ def _eval_condition(
 
 
 def _sigma_field_to_event_field(sigma_field: str) -> str:
-    """Map Sigma field names to our normalized event field names."""
     mapping = {
         "CommandLine": "process_command_line",
         "Image": "process_name",
@@ -304,24 +298,16 @@ _FIELD_ALIASES: dict[str, list[str]] = {
 
 
 def _spl_matcher(rule_content: str):
-    """Build a basic SPL keyword matcher.
-
-    Extracts quoted strings, field=value pairs, and keywords from the SPL
-    query and applies them to event fields.
-    """
     keywords: list[str] = []
     field_values: list[tuple[str, str]] = []
 
-    # Extract field=value pairs
     for match in re.finditer(r'(\w+)=("[^"]+"|[^\s"]+)', rule_content):
         f, v = match.group(1), match.group(2).strip('"')
         field_values.append((f.lower(), v.lower()))
 
-    # Extract quoted search terms
     for match in re.finditer(r'"([^"]+)"', rule_content):
         keywords.append(match.group(1).lower())
 
-    # Extract bare keywords (words after search/where/NOT)
     for match in re.finditer(r'(?:search|where)\s+([\w]+)', rule_content, re.IGNORECASE):
         keywords.append(match.group(1).lower())
 
@@ -340,11 +326,9 @@ def _spl_matcher(rule_content: str):
 
 
 def _kql_matcher(rule_content: str):
-    """Build a basic KQL keyword/field matcher."""
     keywords: list[str] = []
     field_values: list[tuple[str, str]] = []
 
-    # field == "value" or field contains "value"
     for match in re.finditer(
         r'(\w+)\s*(?:==|contains|startswith|endswith)\s*["\']([^"\']+)["\']',
         rule_content,
@@ -352,7 +336,6 @@ def _kql_matcher(rule_content: str):
     ):
         field_values.append((match.group(1).lower(), match.group(2).lower()))
 
-    # Bare quoted terms
     for match in re.finditer(r'"([^"]+)"', rule_content):
         keywords.append(match.group(1).lower())
 
@@ -374,7 +357,6 @@ def _kql_matcher(rule_content: str):
 
 
 def _evaluate(events: list[dict], matcher, dataset_name: str) -> ReplayResult:
-    """Apply matcher to all events and compute confusion matrix."""
     tp = fp = fn = tn = 0
     matched_samples: list[dict] = []
     unmatched_expected: list[dict] = []
@@ -395,7 +377,7 @@ def _evaluate(events: list[dict], matcher, dataset_name: str) -> ReplayResult:
             fn += 1
             if len(unmatched_expected) < 5:
                 unmatched_expected.append(_safe_sample(event))
-        else:  # not matched and not malicious
+        else:
             tn += 1
 
     total = len(events)
@@ -428,7 +410,6 @@ def _evaluate(events: list[dict], matcher, dataset_name: str) -> ReplayResult:
 
 
 def _safe_sample(event: dict) -> dict:
-    """Return a safe subset of event fields for analyst review."""
     keys = [
         "id", "event_type", "source", "source_ip", "source_host",
         "username", "process_name", "process_command_line",
