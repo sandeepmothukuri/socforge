@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import AppShell from "@/components/AppShell";
 import { 
@@ -8,12 +8,14 @@ import {
   getInvestigations, 
   getDetections, 
   getInvestigationGraph,
+  getInvestigationFindings,
   runDemoWorkflow,
   executeResponseAction,
   AlertItem, 
   InvestigationItem, 
   DetectionItem, 
-  EvidenceGraphData 
+  EvidenceGraphData,
+  FindingItem 
 } from "@/lib/api";
 import { 
   ArrowUpRight, 
@@ -35,21 +37,45 @@ import {
   ShieldCheck,
   Zap,
   Laptop,
-  ExternalLink
+  ExternalLink,
+  AlertCircle,
+  FolderSearch,
+  ChevronDown
 } from "lucide-react";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { SeverityBadge } from "@/components/ui/SeverityBadge";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 import { DesktopGuideModal } from "@/components/DesktopGuideModal";
+import { EvidenceGraphVisualizer } from "@/components/dashboard/EvidenceGraphVisualizer";
 
 export default function DashboardPage() {
   const [desktopGuideOpen, setDesktopGuideOpen] = useState(false);
+
+  // Granular State Management
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
+  const [alertsLoading, setAlertsLoading] = useState(true);
+  const [alertsError, setAlertsError] = useState<string | null>(null);
+
   const [investigations, setInvestigations] = useState<InvestigationItem[]>([]);
+  const [investigationsLoading, setInvestigationsLoading] = useState(true);
+  const [investigationsError, setInvestigationsError] = useState<string | null>(null);
+
   const [detections, setDetections] = useState<DetectionItem[]>([]);
+  const [detectionsLoading, setDetectionsLoading] = useState(true);
+  const [detectionsError, setDetectionsError] = useState<string | null>(null);
+
+  // Selected Investigation & Relational Artifacts
+  const [selectedInvestigationId, setSelectedInvestigationId] = useState<string | null>(null);
   const [graphData, setGraphData] = useState<EvidenceGraphData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [graphLoading, setGraphLoading] = useState(false);
+  const [graphError, setGraphError] = useState<string | null>(null);
+
+  const [findings, setFindings] = useState<FindingItem[]>([]);
+  const [findingsLoading, setFindingsLoading] = useState(false);
+  const [findingsError, setFindingsError] = useState<string | null>(null);
+
+  // View & UI controls
   const [viewMode, setViewMode] = useState<"standard" | "tactical">("standard");
   const [searchOpen, setSearchOpen] = useState(false);
   const [demoRunning, setDemoRunning] = useState(false);
@@ -62,6 +88,10 @@ export default function DashboardPage() {
       const params = new URLSearchParams(window.location.search);
       if (params.get("view") === "tactical") {
         setViewMode("tactical");
+      }
+      const invParam = params.get("inv");
+      if (invParam) {
+        setSelectedInvestigationId(invParam);
       }
     }
   }, []);
@@ -81,36 +111,107 @@ export default function DashboardPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  async function loadDashboard() {
-    setLoading(true);
+  // 1. Fetch Alerts
+  const fetchAlerts = useCallback(async () => {
+    setAlertsLoading(true);
+    setAlertsError(null);
     try {
-      const [aData, iData, dData] = await Promise.all([
-        getAlerts().catch(() => ({ items: [], total: 0 })),
-        getInvestigations().catch(() => []),
-        getDetections().catch(() => []),
-      ]);
-      const alertItems = Array.isArray(aData) ? aData : aData?.items || [];
-      const invItems = Array.isArray(iData) ? iData : (iData as any)?.items || [];
-      const detItems = Array.isArray(dData) ? dData : (dData as any)?.items || [];
-
-      setAlerts(alertItems);
-      setInvestigations(invItems);
-      setDetections(detItems);
-
-      if (invItems.length > 0) {
-        const g = await getInvestigationGraph(invItems[0].id).catch(() => null);
-        setGraphData(g);
-      }
-    } catch (err) {
-      console.error("Failed to load dashboard data:", err);
+      const aData = await getAlerts();
+      const items = Array.isArray(aData) ? aData : aData?.items || [];
+      setAlerts(items);
+    } catch (err: any) {
+      console.error("Failed to load alerts:", err);
+      setAlertsError(err.message || "Failed to fetch alerts queue from API");
     } finally {
-      setLoading(false);
+      setAlertsLoading(false);
     }
-  }
+  }, []);
+
+  // 2. Fetch Investigations
+  const fetchInvestigations = useCallback(async () => {
+    setInvestigationsLoading(true);
+    setInvestigationsError(null);
+    try {
+      const iData = await getInvestigations();
+      const items = Array.isArray(iData) ? iData : (iData as any)?.items || [];
+      setInvestigations(items);
+      if (items.length > 0) {
+        setSelectedInvestigationId((prev) => prev || items[0].id);
+      }
+    } catch (err: any) {
+      console.error("Failed to load investigations:", err);
+      setInvestigationsError(err.message || "Failed to fetch investigations from API");
+    } finally {
+      setInvestigationsLoading(false);
+    }
+  }, []);
+
+  // 3. Fetch Detections
+  const fetchDetections = useCallback(async () => {
+    setDetectionsLoading(true);
+    setDetectionsError(null);
+    try {
+      const dData = await getDetections();
+      const items = Array.isArray(dData) ? dData : (dData as any)?.items || [];
+      setDetections(items);
+    } catch (err: any) {
+      console.error("Failed to load detections:", err);
+      setDetectionsError(err.message || "Failed to fetch detections catalog from API");
+    } finally {
+      setDetectionsLoading(false);
+    }
+  }, []);
+
+  // 4. Fetch Graph & Findings for Selected Investigation
+  const fetchInvestigationDetails = useCallback(async (invId: string) => {
+    if (!invId) return;
+
+    setGraphLoading(true);
+    setGraphError(null);
+    setFindingsLoading(true);
+    setFindingsError(null);
+
+    try {
+      const [gData, fData] = await Promise.all([
+        getInvestigationGraph(invId).catch((err) => {
+          setGraphError(err.message || "Failed to load evidence graph");
+          return null;
+        }),
+        getInvestigationFindings(invId).catch((err) => {
+          setFindingsError(err.message || "Failed to load findings");
+          return [];
+        }),
+      ]);
+
+      if (gData) setGraphData(gData);
+      if (fData) setFindings(fData);
+    } catch (err: any) {
+      console.error("Failed to fetch investigation details:", err);
+    } finally {
+      setGraphLoading(false);
+      setFindingsLoading(false);
+    }
+  }, []);
+
+  // Synchronize when selectedInvestigationId changes
+  useEffect(() => {
+    if (selectedInvestigationId) {
+      fetchInvestigationDetails(selectedInvestigationId);
+    }
+  }, [selectedInvestigationId, fetchInvestigationDetails]);
+
+  // Master load dashboard
+  const loadDashboard = useCallback(async () => {
+    await Promise.allSettled([
+      fetchAlerts(),
+      fetchInvestigations(),
+      fetchDetections(),
+    ]);
+  }, [fetchAlerts, fetchInvestigations, fetchDetections]);
 
   useEffect(() => {
     loadDashboard();
-  }, []);
+  }, [loadDashboard]);
 
   async function handleRunDemo() {
     setDemoRunning(true);
@@ -139,11 +240,12 @@ export default function DashboardPage() {
     }
   }
 
-  const alertList = Array.isArray(alerts) ? alerts : (alerts as any)?.items || [];
-  const invList = Array.isArray(investigations) ? investigations : (investigations as any)?.items || [];
-  const detList = Array.isArray(detections) ? detections : (detections as any)?.items || [];
-  const featuredInv = invList[0];
+  const alertList = alerts || [];
+  const invList = investigations || [];
+  const detList = detections || [];
+  const selectedInv = invList.find((i) => i.id === selectedInvestigationId) || invList[0];
   const criticalAlerts = alertList.filter((a: any) => a?.severity === "critical");
+  const isGlobalLoading = alertsLoading && investigationsLoading && detectionsLoading;
 
   return (
     <AppShell>
@@ -167,6 +269,7 @@ export default function DashboardPage() {
                     ? "bg-[#38BDF8] text-[#0B1020] font-bold shadow-sm"
                     : "text-[#A7B0C0] hover:text-[#F8FAFC]"
                 }`}
+                aria-pressed={viewMode === "standard"}
               >
                 Standard View
               </button>
@@ -177,6 +280,7 @@ export default function DashboardPage() {
                     ? "bg-[#EF4444] text-white font-bold shadow-sm animate-pulse"
                     : "text-[#A7B0C0] hover:text-[#F8FAFC]"
                 }`}
+                aria-pressed={viewMode === "tactical"}
               >
                 <Radio className="w-3 h-3" />
                 Tactical View
@@ -189,6 +293,7 @@ export default function DashboardPage() {
             <button
               onClick={() => setSearchOpen(true)}
               className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#263248] bg-[#151C2E] text-[#A7B0C0] hover:text-[#F8FAFC] transition font-mono"
+              aria-label="Open Quick Pivot Palette"
             >
               <Search className="w-3.5 h-3.5 text-[#38BDF8]" />
               <span>Quick Pivot...</span>
@@ -202,6 +307,7 @@ export default function DashboardPage() {
               onClick={() => setDesktopGuideOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#38BDF8]/50 bg-[#38BDF8]/15 hover:bg-[#38BDF8]/25 text-[#38BDF8] transition font-semibold"
               title="View instructions to run standalone Windows desktop app"
+              aria-label="Open Desktop App Guide"
             >
               <Laptop className="w-3.5 h-3.5" />
               <span>Desktop App Guide</span>
@@ -212,6 +318,7 @@ export default function DashboardPage() {
               onClick={handleRunDemo}
               disabled={demoRunning}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#38BDF8]/40 bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20 text-[#38BDF8] transition font-semibold"
+              aria-label="Run SOCForge Deterministic Demo"
             >
               <Play className={`w-3.5 h-3.5 ${demoRunning ? "animate-spin" : ""}`} />
               <span>Run SOCForge Demo</span>
@@ -221,8 +328,9 @@ export default function DashboardPage() {
             <button
               onClick={loadDashboard}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#263248] bg-[#151C2E] text-[#A7B0C0] hover:text-[#F8FAFC] transition"
+              aria-label="Refresh Dashboard Data"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#38BDF8]" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isGlobalLoading ? "animate-spin text-[#38BDF8]" : ""}`} />
               <span>Refresh</span>
             </button>
           </div>
@@ -230,7 +338,11 @@ export default function DashboardPage() {
 
         {/* Action Notice Notification */}
         {actionNotice && (
-          <div className="bg-[#151C2E] border-b border-[#38BDF8]/40 px-6 py-2.5 text-xs text-[#38BDF8] flex items-center justify-between font-mono animate-in fade-in duration-150">
+          <div 
+            className="bg-[#151C2E] border-b border-[#38BDF8]/40 px-6 py-2.5 text-xs text-[#38BDF8] flex items-center justify-between font-mono animate-in fade-in duration-150"
+            role="status"
+            aria-live="polite"
+          >
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-[#38BDF8]" />
               <span>{actionNotice}</span>
@@ -297,7 +409,22 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="space-y-3">
-                  {criticalAlerts.length === 0 ? (
+                  {alertsLoading ? (
+                    <div className="p-8 text-center text-xs text-[#38BDF8] font-mono animate-pulse" role="status">
+                      Refreshing critical intrusion stream...
+                    </div>
+                  ) : alertsError ? (
+                    <div className="p-6 rounded bg-red-950/20 border border-red-500/40 text-center space-y-2" role="alert">
+                      <div className="text-xs text-red-400 font-bold">Failed to load critical alerts</div>
+                      <p className="text-[11px] text-red-300 font-mono">{alertsError}</p>
+                      <button
+                        onClick={fetchAlerts}
+                        className="px-3 py-1 rounded bg-red-500/20 text-red-300 border border-red-500/40 text-xs font-semibold hover:bg-red-500/30 transition"
+                      >
+                        Retry Alerts
+                      </button>
+                    </div>
+                  ) : criticalAlerts.length === 0 ? (
                     <div className="p-8 text-center text-xs text-[#6B7280] font-mono">
                       No active critical threats. System operating in baseline parameters.
                     </div>
@@ -389,38 +516,78 @@ export default function DashboardPage() {
           <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
             {/* Operational Status Metric Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <Link href="/alerts">
-                <MetricCard
-                  title="Active Alerts"
-                  value={alertList.length}
-                  badge={`${criticalAlerts.length} Critical`}
-                  subtext="Requiring investigation"
-                  change={criticalAlerts.length > 0 ? "Requires Triage" : "Normal"}
-                  isPositive={criticalAlerts.length === 0}
-                  icon={ShieldAlert}
-                />
-              </Link>
+              {/* Active Alerts Card */}
+              <div className="relative">
+                {alertsError ? (
+                  <div className="p-4 rounded-xl bg-red-950/20 border border-red-500/40 text-xs space-y-2">
+                    <div className="flex items-center justify-between text-red-400 font-bold">
+                      <span className="flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5" /> Alerts Error</span>
+                      <button onClick={fetchAlerts} className="underline text-[11px] hover:text-white">Retry</button>
+                    </div>
+                    <p className="text-[10px] text-red-300 truncate">{alertsError}</p>
+                  </div>
+                ) : (
+                  <Link href="/alerts">
+                    <MetricCard
+                      title="Active Alerts"
+                      value={alertsLoading ? "..." : alertList.length}
+                      badge={`${criticalAlerts.length} Critical`}
+                      subtext="Requiring investigation"
+                      change={criticalAlerts.length > 0 ? "Requires Triage" : "Normal"}
+                      isPositive={criticalAlerts.length === 0}
+                      icon={ShieldAlert}
+                    />
+                  </Link>
+                )}
+              </div>
 
-              <Link href="/investigations">
-                <MetricCard
-                  title="Investigations"
-                  value={invList.length}
-                  badge="Evidence Graph"
-                  subtext="Correlated attack paths"
-                  icon={Share2}
-                />
-              </Link>
+              {/* Investigations Card */}
+              <div className="relative">
+                {investigationsError ? (
+                  <div className="p-4 rounded-xl bg-red-950/20 border border-red-500/40 text-xs space-y-2">
+                    <div className="flex items-center justify-between text-red-400 font-bold">
+                      <span className="flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5" /> Cases Error</span>
+                      <button onClick={fetchInvestigations} className="underline text-[11px] hover:text-white">Retry</button>
+                    </div>
+                    <p className="text-[10px] text-red-300 truncate">{investigationsError}</p>
+                  </div>
+                ) : (
+                  <Link href="/investigations">
+                    <MetricCard
+                      title="Investigations"
+                      value={investigationsLoading ? "..." : invList.length}
+                      badge="Evidence Graph"
+                      subtext="Correlated attack paths"
+                      icon={Share2}
+                    />
+                  </Link>
+                )}
+              </div>
 
-              <Link href="/detections">
-                <MetricCard
-                  title="Detection Rules"
-                  value={detList.length}
-                  badge="Sigma • SPL • KQL"
-                  subtext="Multi-format rule catalog"
-                  icon={FileCode}
-                />
-              </Link>
+              {/* Detections Card */}
+              <div className="relative">
+                {detectionsError ? (
+                  <div className="p-4 rounded-xl bg-red-950/20 border border-red-500/40 text-xs space-y-2">
+                    <div className="flex items-center justify-between text-red-400 font-bold">
+                      <span className="flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5" /> Rules Error</span>
+                      <button onClick={fetchDetections} className="underline text-[11px] hover:text-white">Retry</button>
+                    </div>
+                    <p className="text-[10px] text-red-300 truncate">{detectionsError}</p>
+                  </div>
+                ) : (
+                  <Link href="/detections">
+                    <MetricCard
+                      title="Detection Rules"
+                      value={detectionsLoading ? "..." : detList.length}
+                      badge="Sigma • SPL • KQL"
+                      subtext="Multi-format rule catalog"
+                      icon={FileCode}
+                    />
+                  </Link>
+                )}
+              </div>
 
+              {/* Containment Policy Card */}
               <Link href="/responses">
                 <MetricCard
                   title="Containment Policy"
@@ -450,42 +617,50 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <p className="text-xs text-[#A7B0C0] mt-0.5">
-                      Follow any of the 4 verified methods below to run SOCForge locally as a native Windows desktop application.
+                      4 validated ways to launch your native desktop application locally on Windows.
                     </p>
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setDesktopGuideOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#38BDF8]/40 bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20 text-[#38BDF8] text-xs font-semibold transition whitespace-nowrap self-start md:self-auto"
-                >
-                  <span>Detailed Multi-Tab Guide</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/desktop"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20 border border-[#38BDF8]/30 text-[#38BDF8] text-xs font-semibold transition"
+                  >
+                    <span>Full Desktop Guide Page</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Link>
+                  <button
+                    onClick={() => setDesktopGuideOpen(true)}
+                    className="px-3 py-1.5 rounded-lg bg-[#38BDF8] hover:bg-[#38BDF8]/90 text-[#0B1020] text-xs font-bold transition shadow-sm"
+                  >
+                    Open Instructions
+                  </button>
+                </div>
               </div>
 
-              {/* 4 Methods Grid */}
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0B1020]/70">
+              {/* 4 Launch Options Grid */}
+              <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 bg-[#0B1020]">
                 {/* Method 1 */}
-                <div className="p-4 rounded-lg bg-[#151C2E] border border-[#263248] space-y-2.5">
+                <div className="p-4 rounded-lg bg-[#151C2E] border border-[#38BDF8]/30 space-y-2.5 relative">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 font-bold text-xs text-[#38BDF8]">
                       <span className="w-5 h-5 rounded-full bg-[#38BDF8]/20 text-[#38BDF8] flex items-center justify-center text-[11px]">1</span>
-                      <span>Windows Desktop Shortcut (Fastest)</span>
+                      <span>Windows Desktop Shortcut</span>
                     </div>
-                    <span className="text-[10px] text-[#22C55E] font-mono">1-Click Launch</span>
+                    <span className="text-[10px] text-[#38BDF8] font-mono">Fastest</span>
                   </div>
                   <p className="text-xs text-[#A7B0C0]">
-                    Shortcuts are ready on your Windows Desktop. Double-click either icon to run:
+                    Double-click the shortcut already created on your Windows desktop:
                   </p>
                   <div className="space-y-1.5 font-mono text-[11px]">
-                    <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#38BDF8] flex items-center justify-between">
-                      <span>🖥️ SOCForge Console Window.lnk</span>
-                      <span className="text-[10px] text-[#6B7280]">WebView2 Window</span>
+                    <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#F8FAFC] flex items-center justify-between">
+                      <span>• SOCForge Console Window.lnk</span>
+                      <span className="text-[10px] text-[#22C55E]">Installed</span>
                     </div>
-                    <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#22C55E] flex items-center justify-between">
-                      <span>⚙️ SOCForge Operations.lnk</span>
-                      <span className="text-[10px] text-[#6B7280]">Control Center</span>
+                    <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#F8FAFC] flex items-center justify-between">
+                      <span>• ⚙️ SOCForge Operations.lnk</span>
+                      <span className="text-[10px] text-[#22C55E]">Installed</span>
                     </div>
                   </div>
                 </div>
@@ -567,56 +742,141 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Featured Investigation & Evidence Graph Centerpiece */}
-            <div className="bg-[#151C2E] border border-[#263248] rounded-xl overflow-hidden shadow-xl">
-              <div className="p-5 border-b border-[#263248] flex items-center justify-between bg-[#111827]/80">
-                <div>
-                  <h2 className="text-sm font-bold text-[#F8FAFC]">
-                    Featured Investigation: {featuredInv?.title || "LSASS Memory Access on DC-PRIMARY-01"}
-                  </h2>
-                  <p className="text-xs text-[#A7B0C0] font-mono mt-0.5">
-                    MITRE ATT&CK: {featuredInv?.mitre_techniques?.join(", ") || "T1003.001"} • Relational Graph Model
-                  </p>
+            {/* ── INVESTIGATION SELECTION & EVIDENCE GRAPH CENTERPIECE ────────────────── */}
+            <div className="space-y-4">
+              {/* Investigation Selector Bar */}
+              <div className="p-4 rounded-xl bg-[#151C2E] border border-[#263248] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-[#38BDF8]/15 text-[#38BDF8]">
+                    <FolderSearch className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-[#F8FAFC]">
+                      Active Investigation Workspace
+                    </h2>
+                    <p className="text-[11px] text-[#A7B0C0]">
+                      Select an investigation case to view its live relational Evidence Graph & documented findings.
+                    </p>
+                  </div>
                 </div>
-                <Link 
-                  href="/investigations" 
-                  className="text-xs font-semibold text-[#38BDF8] hover:text-[#38BDF8]/80 flex items-center gap-1"
-                >
-                  Open Investigation Studio <ArrowUpRight className="w-3.5 h-3.5" />
-                </Link>
+
+                {/* Dropdown Selector */}
+                <div className="flex items-center gap-3">
+                  {investigationsLoading ? (
+                    <div className="text-xs font-mono text-[#38BDF8] animate-pulse">
+                      Loading cases...
+                    </div>
+                  ) : investigationsError ? (
+                    <div className="flex items-center gap-2 text-xs text-red-400">
+                      <span>Cases error: {investigationsError}</span>
+                      <button onClick={fetchInvestigations} className="underline text-white font-bold">Retry</button>
+                    </div>
+                  ) : invList.length === 0 ? (
+                    <span className="text-xs text-[#6B7280] font-mono">No investigations found</span>
+                  ) : (
+                    <div className="relative flex items-center">
+                      <select
+                        id="investigationSelector"
+                        name="investigationSelector"
+                        value={selectedInvestigationId || ""}
+                        onChange={(e) => setSelectedInvestigationId(e.target.value)}
+                        className="appearance-none bg-[#0B1020] border border-[#38BDF8]/40 hover:border-[#38BDF8] text-[#F8FAFC] text-xs rounded-lg px-4 py-2 pr-8 font-mono outline-none focus:ring-2 focus:ring-[#38BDF8] transition cursor-pointer"
+                        aria-label="Select Investigation Case"
+                      >
+                        {invList.map((inv) => (
+                          <option key={inv.id} value={inv.id}>
+                            [{inv.severity?.toUpperCase() || "MED"}] {inv.title}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 text-[#38BDF8] absolute right-2.5 pointer-events-none" />
+                    </div>
+                  )}
+
+                  <Link 
+                    href="/investigations" 
+                    className="text-xs font-semibold text-[#38BDF8] hover:text-[#38BDF8]/80 flex items-center gap-1 shrink-0"
+                  >
+                    Full Studio <ArrowUpRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
               </div>
 
-              {/* Evidence Graph Visual Representation */}
-              <div className="p-8 bg-[#0B1020] flex flex-col items-center justify-center space-y-6">
-                <div className="text-[11px] uppercase tracking-wider text-[#6B7280] font-mono">
-                  Authoritative Evidence Graph (PostgreSQL Schema)
-                </div>
-                
-                <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-mono">
-                  <div className="p-3 bg-[#151C2E] border border-[#38BDF8]/50 rounded-lg text-[#F8FAFC] shadow-md">
-                    <span className="text-[#38BDF8] block text-[10px] uppercase font-bold">USER ENTITY</span>
-                    svc_backup
+              {/* Dynamic Evidence Graph Visualizer */}
+              <EvidenceGraphVisualizer
+                data={graphData}
+                loading={graphLoading}
+                error={graphError}
+                onRetry={() => selectedInvestigationId && fetchInvestigationDetails(selectedInvestigationId)}
+                investigationTitle={selectedInv?.title}
+              />
+
+              {/* Documented Findings Panel for Selected Investigation */}
+              <div className="rounded-xl border border-[#263248] bg-[#151C2E] p-6 space-y-4 shadow-xl">
+                <div className="flex items-center justify-between border-b border-[#263248] pb-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#22C55E]" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#F8FAFC]">
+                      Evidence-Backed Analyst Findings ({findings.length})
+                    </h3>
                   </div>
-                  <span className="text-[#6B7280]">─[AUTHENTICATED_TO]─►</span>
-                  <div className="p-3 bg-[#EF4444]/15 border border-[#EF4444]/50 rounded-lg text-red-200 shadow-md">
-                    <span className="text-[#EF4444] block text-[10px] uppercase font-bold">HOST ENTITY</span>
-                    DC-PRIMARY-01
-                  </div>
-                  <span className="text-[#6B7280]">─[RAN_PROCESS]─►</span>
-                  <div className="p-3 bg-[#F59E0B]/15 border border-[#F59E0B]/50 rounded-lg text-amber-200 shadow-md">
-                    <span className="text-[#F59E0B] block text-[10px] uppercase font-bold">PROCESS ENTITY</span>
-                    powershell.exe (PID 4912)
-                  </div>
-                  <span className="text-[#6B7280]">─[MAPS_TO]─►</span>
-                  <div className="p-3 bg-indigo-950/40 border border-indigo-500/50 rounded-lg text-indigo-200 shadow-md">
-                    <span className="text-indigo-400 block text-[10px] uppercase font-bold">ATT&CK TECHNIQUE</span>
-                    T1003.001 (LSASS Dump)
-                  </div>
+                  {selectedInv && (
+                    <span className="text-[11px] font-mono text-[#A7B0C0]">
+                      Case ID: {selectedInv.id.slice(0, 8)}... • Status: <strong className="text-white uppercase">{selectedInv.status}</strong>
+                    </span>
+                  )}
                 </div>
 
-                <div className="text-xs text-[#A7B0C0] max-w-xl text-center leading-relaxed">
-                  Relationship edges are persisted in PostgreSQL with strict foreign keys to raw events, ensuring verifiable audit trails for detection engineers and responders.
-                </div>
+                {findingsLoading ? (
+                  <div className="p-6 text-center text-xs text-[#38BDF8] font-mono animate-pulse" role="status">
+                    Loading findings from database...
+                  </div>
+                ) : findingsError ? (
+                  <div className="p-4 rounded bg-red-950/20 border border-red-500/40 text-center space-y-2" role="alert">
+                    <p className="text-xs text-red-300 font-mono">{findingsError}</p>
+                    <button
+                      onClick={() => selectedInvestigationId && fetchInvestigationDetails(selectedInvestigationId)}
+                      className="px-3 py-1 rounded bg-red-500/20 text-red-300 border border-red-500/40 text-xs font-semibold hover:bg-red-500/30 transition"
+                    >
+                      Retry Findings
+                    </button>
+                  </div>
+                ) : findings.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-[#6B7280] font-mono">
+                    No findings recorded for this investigation yet. Run detection workflows or generate hypotheses.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {findings.map((f) => (
+                      <div
+                        key={f.id}
+                        className="p-4 rounded-lg bg-[#111827] border border-[#263248] space-y-2 text-xs"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-white truncate max-w-xs">{f.title}</h4>
+                          <span className="px-2 py-0.5 rounded bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30 text-[10px] font-mono uppercase font-bold">
+                            {f.confidence}
+                          </span>
+                        </div>
+                        <p className="text-[#A7B0C0] text-[11px] leading-relaxed line-clamp-2">
+                          {f.description}
+                        </p>
+                        {f.mitre_techniques?.length > 0 && (
+                          <div className="flex items-center gap-1.5 pt-1">
+                            {f.mitre_techniques.map((t) => (
+                              <span
+                                key={t}
+                                className="px-1.5 py-0.5 rounded bg-[#172033] border border-[#263248] text-[10px] font-mono text-[#38BDF8]"
+                              >
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
