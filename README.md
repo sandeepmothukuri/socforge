@@ -20,7 +20,7 @@ SOCForge is a vendor-neutral security operations engineering platform that trans
 
 Traditional security operations platforms act as passive alert viewers or unindexed log searchers. SOCForge closes the operational gap between triage, investigation, and detection engineering:
 
-`mermaid
+```mermaid
 flowchart TD
     subgraph Ingestion ["1. Multi-Source Ingestion & Adapters"]
         T1["Wazuh SIEM / EDR"] --> N["Normalization Engine"]
@@ -39,8 +39,8 @@ flowchart TD
         INV --> HYP["Analyst Finding & Detection Hypothesis"]
         HYP --> RUL["Rule Formulator\n(Sigma YAML • Splunk SPL • Sentinel KQL)"]
         RUL --> VAL["Multi-Format Grammar Validator\n(services/detection_validator.py)"]
-        VAL --> REP["Baseline Telemetry Replay & Precision Testing"]
-        REP --> APP["Analyst Peer Review & Approval Gating"]
+        VAL --> REP["Baseline Telemetry Replay & Precision Testing\n(services/detection_replay.py)"]
+        REP --> APP["Analyst Peer Review & Approval Gating\n(Separation of Duties Enforced)"]
     end
 
     subgraph Execution ["4. Integrations & Response"]
@@ -53,7 +53,7 @@ flowchart TD
     style CoreEngine fill:#0f172a,stroke:#10b981,stroke-width:1px,color:#f8fafc
     style DetectionLifecycle fill:#0f172a,stroke:#f59e0b,stroke-width:1px,color:#f8fafc
     style Execution fill:#0f172a,stroke:#8b5cf6,stroke-width:1px,color:#f8fafc
-`
+```
 
 ---
 
@@ -87,135 +87,96 @@ flowchart LR
 ### Repository Directory Layout
 ```
 socforge/
-│
 ├── apps/
 │   ├── api/
 │   │   ├── socforge/
-│   │   │   ├── auth/
-│   │   │   ├── agents/
-│   │   │   ├── integrations/
-│   │   │   ├── models/
-│   │   │   ├── routers/
-│   │   │   ├── schemas/
-│   │   │   ├── services/
-│   │   │   ├── policies/
-│   │   │   ├── repositories/
-│   │   │   ├── normalization/
-│   │   │   ├── detection/
-│   │   │   ├── investigations/
-│   │   │   ├── response/
-│   │   │   ├── config.py
-│   │   │   ├── database.py
-│   │   │   └── main.py
-│   │   ├── alembic/
-│   │   ├── tests/
+│   │   │   ├── auth/            # JWT, API keys, RBAC, workspace auth, secret encryption
+│   │   │   ├── agents/          # Controlled AI agents, typed Pydantic contracts, tools
+│   │   │   ├── integrations/    # SIEM/EDR connectors (Wazuh, Splunk, Sentinel)
+│   │   │   ├── models/          # SQLAlchemy 2.0 async models
+│   │   │   ├── routers/         # FastAPI endpoint routers (Alerts, Invs, Detections, etc.)
+│   │   │   ├── schemas/         # Shared Pydantic validation schemas
+│   │   │   ├── services/        # Replay engine, rule validators, audit logging
+│   │   │   ├── policies/        # Response containment & approval policies
+│   │   │   ├── repositories/    # Database query abstraction
+│   │   │   ├── normalization/   # Telemetry normalizer
+│   │   │   ├── detection/       # Rule formulation logic
+│   │   │   ├── investigations/  # Evidence graph builders
+│   │   │   ├── response/        # Response adapters & execution dispatcher
+│   │   │   ├── config.py        # Settings with production credential validators
+│   │   │   ├── database.py      # Async engine & session lifecycle
+│   │   │   └── main.py          # FastAPI application factory
+│   │   ├── alembic/             # Version-controlled database migrations
+│   │   ├── tests/               # Unit and integration test suites
 │   │   └── pyproject.toml
 │   │
-│   ├── web/
+│   ├── web/                     # Next.js 14 Web Console
 │   │   ├── src/
-│   │   │   ├── app/
-│   │   │   ├── components/
-│   │   │   ├── lib/
-│   │   │   └── hooks/
-│   │   ├── public/
-│   │   ├── package.json
-│   │   └── package-lock.json
+│   │   │   ├── app/             # App Router pages (Dashboard, Alerts, Invs, etc.)
+│   │   │   ├── components/      # UI component library, AppShell, Graph visualizers
+│   │   │   ├── lib/             # API client & data fetchers
+│   │   │   ├── hooks/           # Custom React hooks
+│   │   │   └── types/           # TypeScript contracts
+│   │   └── package.json
 │   │
-│   └── cli/
+│   └── cli/                     # SOCForge Terminal CLI (Typer & Rich)
 │
-├── workers/
-│
-├── detections/
-│   ├── sigma/
-│   ├── spl/
-│   ├── kql/
-│   └── test-cases/
-│
-├── datasets/
-│
-├── docs/
-│   ├── architecture/
-│   ├── api/
-│   ├── deployment/
-│   ├── security/
-│   ├── integrations/
-│   └── development/
-│
-├── deployments/
-│   ├── docker/
-│   ├── compose/
-│   └── kubernetes/
-│
-├── scripts/
-│
-├── .github/
-│   └── workflows/
-│
-├── docker-compose.yml
-├── docker-compose.prod.yml
-├── Makefile
-├── .env.example
-├── README.md
-├── ARCHITECTURE.md
-├── SECURITY.md
-├── CONTRIBUTING.md
-├── CHANGELOG.md
-└── LICENSE
+├── workers/                     # Celery background workers
+├── detections/                  # Sigma, SPL, KQL detection rules & test cases
+├── datasets/                    # Labeled telemetry datasets (synthetic-soc-v1.json)
+├── deployments/                 # Hardened Dockerfiles (API & Web non-root)
+└── docs/                        # Architecture, API, deployment, security guides
 ```
 
 ---
 
-## 3. UI & Feature Showcase
+## 3. Platform Verification & Screenshots
 
-### Security Operations Command Console
-Real-time operational overview featuring live alert posture, active investigations, MITRE ATT&CK coverage matrix heatmap, and configured telemetry connectors.
-![SOCForge Dashboard](docs/assets/socforge_dashboard.png)
-
----
-
-### Global Command Palette (`Cmd+K` / `Ctrl+K`) Spotlight Search
-Instant tactical navigation across hosts, compromised service identities, live MITRE techniques, and telemetry connectors with keyboard-driven pivots.
-![SOCForge Spotlight Command Palette](docs/assets/socforge_command_palette.png)
+### Security Operations Command Center
+High-density tactical operations dashboard tracking MTTD, MTTR, high-risk entity pivots, active investigations, and MITRE ATT&CK technique matrix.
+![SOCForge Dashboard Overview](docs/assets/socforge_dashboard.png)
 
 ---
 
-### Authoritative Evidence Graph & Investigation Studio
-Interactive relational graph canvas correlating users, hosts, processes, and MITRE ATT&CK techniques with live entity inspectors and one-click detection formulation.
-![SOCForge Investigation Graph](docs/assets/socforge_investigations.png)
+### Interactive Evidence Graph
+Typed graph visualizer mapping directed entity relationships (`User` → `Host` → `Process` → `Domain` → `MITRE ATT&CK`) with supporting event backing.
+![SOCForge Evidence Graph](docs/assets/socforge_graph.png)
 
 ---
 
 ### Detection Engineering Studio
-Closed-loop detection repository supporting Sigma, Splunk SPL, and Sentinel KQL with multi-format syntax validation and peer review workflows.
+Lifecycle management for Sigma YAML, Splunk SPL, and Microsoft Sentinel KQL detection rules with AST grammar validation, separation-of-duties approval gating, and confusion-matrix replay testing.
 ![SOCForge Detection Studio](docs/assets/socforge_detections.png)
 
 ---
 
 ### Security Connectors & Integrations Hub
-Vendor-neutral adapters connecting external SIEM, EDR, and log analytics platforms into SOCForge normalized schemas with live connectivity diagnostics.
+Vendor-neutral adapters connecting external SIEM, EDR, and log analytics platforms into SOCForge normalized schemas with live connectivity diagnostics and AES-256 secret encryption.
 ![SOCForge Integrations Hub](docs/assets/socforge_integrations.png)
 
 ---
 
-## 4. Key Capabilities
+## 4. Capability Implementation Status
 
-- **Authoritative Evidence Graph**: PostgreSQL-persisted entity relationships connecting alerts, users, hosts, IPs, processes, files, and MITRE ATT&CK techniques.
-- **Closed Detection Lifecycle**: Derive Sigma, Splunk SPL, or Microsoft Sentinel KQL directly from findings; validate grammar; test against baseline datasets; measure precision/recall.
-- **Controlled AI Augmentation**: AI agents (Triage, Investigation, Detection Engineer) operate only through strictly typed and audited Pydantic tools. **Zero arbitrary command execution or unconstrained shell access.**
-- **Safe Response Advisor**: Containment recommendations (isolate_host, disable_user, lock_ip) are dual-gated behind human-in-the-loop analyst review and policy validation.
-- **Deterministic Offline Mode**: Full system functions without cloud dependencies using deterministic rule generators and offline heuristics.
-- **Full-Stack & CLI**: Responsive Next.js 14 console and full-featured terminal CLI (socforge).
+To ensure complete transparency and technical credibility, platform capabilities are classified into four explicit tiers:
+
+| Tier | Capabilities |
+|---|---|
+| **Implemented (Verified in CI & Tests)** | • **Server-Side Workspace Isolation**: Multi-tenant database boundary via `WorkspaceMembership`, role-based access control, and workspace-scoped queries.<br>• **Relational Evidence Graph**: Entity relationships backed by PostgreSQL foreign keys and `finding_events` / `finding_entities` association tables.<br>• **Detection Replay Engine**: Real confusion-matrix evaluation against `synthetic-soc-v1.json` computing true TP, FP, FN, TN, Precision, Recall, and F1.<br>• **Separation of Duties**: Author cannot approve their own detection rule; requester cannot approve their own response action.<br>• **Typed AI Contracts**: Sandboxed AI agents returning strictly validated Pydantic schemas (`TriageResult`, `InvestigationResult`, `FindingProposal`, `DetectionProposal`, `ThreatHuntResult`, `ReportResult`).<br>• **Connector Secret Encryption**: In-database AES-256 (Fernet) encryption for SIEM/EDR API keys and passwords; secrets stripped from API responses.<br>• **Simulated Response Execution**: Containment actions execute via `MockResponseAdapter` clearly marked as `SIMULATED` with dry-run parameters.<br>• **Alembic Migrations**: All schema modifications managed exclusively through versioned migrations (`0001_initial_schema`, `0002_finding_evidence_tables`).<br>• **Non-Root Containers**: Docker builds for API and Web run under dedicated unprivileged users (`appuser` UID 1000, `nextjs` UID 1001). |
+| **Supported (Integrated & Extensible)** | • **Wazuh SIEM / EDR**: Health checks, event querying, and active response via REST API.<br>• **Splunk Enterprise / Cloud**: HTTP Event Collector (HEC) ingestion and search API query translation.<br>• **Microsoft Sentinel**: Log Analytics workspace queries and incident correlation.<br>• **Custom Dataset Evaluation**: Detection testing accepts arbitrary labeled JSON telemetry datasets. |
+| **Experimental** | • **Live AI Provider Integration**: Anthropic Claude, OpenAI, and local Ollama integrations for automated hypothesis drafting.<br>• **Automated Attack Path Inferences**: Graph traversal heuristics for lateral movement sequence generation. |
+| **Planned** | • **STIX 2.1 / TAXII Feed Ingestion**: Ingest external threat intelligence IOCs directly into the entity repository.<br>• **Kubernetes Helm Charts**: Production deployment manifests for HA PostgreSQL and clustered Celery workers. |
 
 ---
 
 ## 5. Quick Start (One Command)
 
-`ash
-git clone https://github.com/sandeepmothukuri/SOCForge.git
-cd SOCForge
+```bash
+git clone https://github.com/sandeepmothukuri/socforge.git
+cd socforge
 cp .env.example .env
 docker compose up -d
-`
+```
 
 ### Access Endpoints:
 - **Web Console**: [http://localhost:3000](http://localhost:3000)
@@ -225,23 +186,24 @@ docker compose up -d
 
 ---
 
-## 6. Deterministic Demo Mode
+## 6. Deterministic Demo Workflow
 
-Experience the complete end-to-end investigation and detection workflow immediately with realistic synthetic SOC telemetry:
+Experience the complete end-to-end investigation and detection workflow immediately with realistic synthetic SOC telemetry via live API operations:
 
-`ash
-# Seed demo dataset
+```bash
+# Seed demo database
 docker compose exec api python -m socforge.seed
 
-# Or use the SOCForge CLI
+# Run end-to-end demo workflow via the SOCForge CLI
 socforge demo
-`
+```
 
-This loads:
-1. **Sysmon Event 10**: LSASS memory dumping telemetry.
-2. **Active Investigation**: Correlated 5-node Evidence Graph (svc_backup -> DC-PRIMARY-01 -> powershell.exe -> T1003.001).
-3. **Analyst Finding**: Formulated MITRE technique attribution.
-4. **Detection Rule**: Approved Sigma rule candidate for LSASS process access.
+The demo workflow executes real API calls:
+1. Connects to the API and authenticates as the administrator.
+2. Ingests a critical **Mimikatz LSASS process creation alert** mapped to `T1003.001`.
+3. Creates an active **Investigation** linked to the alert.
+4. Generates an evidence-backed **Finding** with explicit technical justification.
+5. Formulates a **Sigma detection rule**, performs syntax validation, and runs the **Detection Replay Engine** against `synthetic-soc-v1.json` to compute precision and recall metrics.
 
 ---
 
