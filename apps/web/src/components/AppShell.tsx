@@ -14,6 +14,7 @@ import {
   FileText,
   Home,
 } from "lucide-react";
+import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -26,10 +27,10 @@ export default function AppShell({ children }: AppShellProps) {
     { href: "/dashboard", label: "Dashboard", icon: Activity },
     { href: "/alerts", label: "Alerts", icon: AlertTriangle },
     { href: "/investigations", label: "Investigations & Graph", icon: Share2 },
-    { href: "/detections", label: "Detection Engineering", icon: FileCode },
+    { href: "/detections", label: "Detection Studio", icon: FileCode },
     { href: "/hunts", label: "Threat Hunting", icon: Crosshair },
     { href: "/incidents", label: "Incidents", icon: ShieldAlert },
-    { href: "/integrations", label: "Integrations", icon: Database },
+    { href: "/integrations", label: "Connectors", icon: Database },
     { href: "/audit", label: "Audit Log", icon: FileText },
   ];
 
@@ -37,16 +38,11 @@ export default function AppShell({ children }: AppShellProps) {
     <div className="flex h-screen bg-[#0B1020] text-[#F8FAFC] overflow-hidden font-sans">
       {/* Sidebar */}
       <aside className="w-64 border-r border-[#263248] bg-[#111827] flex flex-col flex-shrink-0">
-        <div className="h-14 border-b border-[#263248] px-5 flex items-center justify-between bg-[#0B1020]">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="h-7 w-7 bg-[#38BDF8] text-[#0B1020] rounded flex items-center justify-center font-bold text-xs tracking-tighter">
-              SF
-            </div>
-            <span className="font-bold text-sm tracking-tight text-[#F8FAFC]">
-              SOC<span className="text-[#38BDF8]">Forge</span>
-            </span>
+        <div className="h-16 border-b border-[#263248] px-4 flex items-center justify-between bg-[#0B1020]">
+          <Link href="/" className="hover:opacity-90 transition">
+            <SocForgeLogo size="sm" showWordmark={true} />
           </Link>
-          <Link href="/" title="Home" className="text-[#6B7280] hover:text-[#A7B0C0] transition">
+          <Link href="/" title="Home" className="text-[#6B7280] hover:text-[#A7B0C0] transition p-1">
             <Home className="w-4 h-4" />
           </Link>
         </div>
@@ -59,7 +55,7 @@ export default function AppShell({ children }: AppShellProps) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded transition font-medium ${
+                className={`flex items-center gap-2.5 px-3 py-2.5 rounded transition font-medium ${
                   isActive
                     ? "bg-[#172033] text-[#38BDF8] border border-[#263248] font-semibold"
                     : "text-[#A7B0C0] hover:bg-[#151C2E] hover:text-[#F8FAFC]"
@@ -75,7 +71,7 @@ export default function AppShell({ children }: AppShellProps) {
         {/* User / Workspace Footer */}
         <div className="p-3 border-t border-[#263248] bg-[#0B1020] flex items-center justify-between text-xs">
           <div className="flex flex-col">
-            <span className="font-semibold text-[#F8FAFC]">Workspace</span>
+            <span className="font-semibold text-[#F8FAFC]">Active Workspace</span>
             <span className="text-[11px] text-[#A7B0C0] font-mono">default (Production)</span>
           </div>
           <span className="h-2 w-2 rounded-full bg-[#22C55E]" title="Workspace Active" />
