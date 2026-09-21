@@ -140,6 +140,30 @@ export async function getInvestigations(): Promise<InvestigationItem[]> {
   }
 }
 
+export interface FindingItem {
+  id: string;
+  investigation_id: string;
+  title: string;
+  description: string;
+  confidence: string;
+  mitre_techniques: string[];
+  mitre_tactics: string[];
+  supporting_event_ids: string[];
+  supporting_entity_ids: string[];
+  response_recommendations: string[];
+  has_detection_hypothesis: boolean;
+  created_at: string;
+}
+
+export async function getInvestigationFindings(investigationId: string): Promise<FindingItem[]> {
+  try {
+    return await request<FindingItem[]>(`/investigations/${investigationId}/findings`);
+  } catch {
+    await login();
+    return await request<FindingItem[]>(`/investigations/${investigationId}/findings`);
+  }
+}
+
 export interface EvidenceGraphNode {
   id: string;
   label: string;
@@ -185,6 +209,13 @@ export interface DetectionItem {
   created_at: string;
 }
 
+export interface ValidationReport {
+  syntax_valid: boolean;
+  errors?: string[];
+  warnings?: string[];
+  rule_language?: string;
+}
+
 export async function getDetections(): Promise<DetectionItem[]> {
   try {
     return await request<DetectionItem[]>("/detections");
@@ -194,11 +225,45 @@ export async function getDetections(): Promise<DetectionItem[]> {
   }
 }
 
+export async function validateDetection(id: string): Promise<ValidationReport> {
+  try {
+    return await request<ValidationReport>(`/detections/${id}/validate`, {
+      method: "POST",
+    });
+  } catch {
+    await login();
+    return await request<ValidationReport>(`/detections/${id}/validate`, {
+      method: "POST",
+    });
+  }
+}
+
+export async function approveDetection(id: string): Promise<any> {
+  try {
+    return await request<any>(`/detections/${id}/approve`, {
+      method: "POST",
+    });
+  } catch {
+    await login();
+    return await request<any>(`/detections/${id}/approve`, {
+      method: "POST",
+    });
+  }
+}
+
 export async function testDetectionRule(id: string, datasetName: string = "synthetic-soc-v1"): Promise<any> {
-  return await request<any>(`/detections/${id}/test`, {
-    method: "POST",
-    body: JSON.stringify({ dataset_name: datasetName }),
-  });
+  try {
+    return await request<any>(`/detections/${id}/test`, {
+      method: "POST",
+      body: JSON.stringify({ dataset_name: datasetName }),
+    });
+  } catch {
+    await login();
+    return await request<any>(`/detections/${id}/test`, {
+      method: "POST",
+      body: JSON.stringify({ dataset_name: datasetName }),
+    });
+  }
 }
 
 // ── Containment Response Actions ────────────────────────────────────────────
