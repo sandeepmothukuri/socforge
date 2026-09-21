@@ -162,6 +162,10 @@ class AgentRun(Base):
         DateTime(timezone=True), default=_utcnow, nullable=False
     )
 
+    tool_calls: Mapped[list["AgentToolCall"]] = relationship(
+        "AgentToolCall", back_populates="agent_run", cascade="all, delete-orphan"
+    )
+
     __table_args__ = (
         Index("ix_agent_runs_status", "status"),
         Index("ix_agent_runs_target", "target_type", "target_id"),
@@ -169,6 +173,30 @@ class AgentRun(Base):
 
     def __repr__(self) -> str:
         return f"<AgentRun {self.agent_type} [{self.status}]>"
+
+
+class AgentToolCall(Base):
+    """Records a single tool call made by an AI agent."""
+
+    __tablename__ = "agent_tool_calls"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
+    agent_run_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("agent_runs.id", ondelete="CASCADE"), nullable=False
+    )
+    tool_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    tool_input: Mapped[dict | None] = mapped_column(JSONB)
+    tool_output: Mapped[dict | None] = mapped_column(JSONB)
+    success: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    duration_ms: Mapped[int | None] = mapped_column(Integer)
+    called_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, nullable=False
+    )
+
+    agent_run: Mapped[AgentRun] = relationship("AgentRun", back_populates="tool_calls")
+
+    __table_args__ = (Index("ix_agent_tool_calls_run", "agent_run_id"),)
 
 
 class AuditEvent(Base):
@@ -184,11 +212,17 @@ class AuditEvent(Base):
     action: Mapped[AuditAction] = mapped_column(
         Enum(AuditAction, name="audit_action"), nullable=False
     )
-    actor_id: Mapped[str | None] = mapped_column(String(256), index=True)
+    actor_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
     actor_email: Mapped[str | None] = mapped_column(String(256), index=True)
 
     target_type: Mapped[str | None] = mapped_column(String(64))
-    target_id: Mapped[str | None] = mapped_column(String(256), index=True)
+    target_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+
+    # Context & Results
+    success: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    ip_address: Mapped[str | None] = mapped_column(String(45))
+    user_agent: Mapped[str | None] = mapped_column(String(512))
 
     # Mapped to 'metadata' column in database while avoiding reserved name collision in DeclarativeBase
     extra_metadata: Mapped[dict | None] = mapped_column("metadata", JSONB, default=dict)
