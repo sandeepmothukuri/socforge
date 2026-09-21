@@ -75,7 +75,8 @@ async def seed_data():
                 role_map[name] = existing
 
         # 2. Seed Admin User
-        admin_email = settings.default_admin_email
+        admin_email = getattr(settings, "default_admin_email", getattr(settings, "first_admin_email", "admin@socforge.local"))
+        admin_password = getattr(settings, "default_admin_password", getattr(settings, "first_admin_password", "admin12345!"))
         admin_role = role_map.get("Administrator")
         existing_admin = (
             await db.execute(select(User).where(User.email == admin_email))
@@ -84,7 +85,7 @@ async def seed_data():
         if not existing_admin and admin_role:
             admin = User(
                 email=admin_email,
-                hashed_password=hash_password(settings.default_admin_password),
+                hashed_password=hash_password(admin_password),
                 full_name="SOCForge Administrator",
                 role_id=admin_role.id,
                 is_active=True,

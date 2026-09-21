@@ -107,10 +107,11 @@ def _load_dataset(name: str) -> tuple[list[dict], str | None]:
     Searches: datasets/<name>.json relative to detected dataset directories.
     Returns (events, error_message). events is empty list on error.
     """
+    lookup_name = "synthetic-soc-v1" if name in ("synthetic-replay-dataset", "default") else name
     candidates = [
-        _DATASET_DIR / f"{name}.json",
-        Path(f"/app/datasets/{name}.json"),
-        Path(f"datasets/{name}.json"),
+        _DATASET_DIR / f"{lookup_name}.json",
+        Path(f"/app/datasets/{lookup_name}.json"),
+        Path(f"datasets/{lookup_name}.json"),
     ]
     for path in candidates:
         if path.exists():

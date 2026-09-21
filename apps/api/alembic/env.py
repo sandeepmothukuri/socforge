@@ -22,13 +22,12 @@ if config.config_file_name is not None:
 
 target_metadata = Base.metadata
 
-# Override sqlalchemy.url with DATABASE_URL env variable if present
+# Set sqlalchemy.url with DATABASE_URL env variable if present
 database_url = os.environ.get("DATABASE_URL", "")
-# asyncpg is not supported by Alembic's sync runner — use psycopg2-style URL
-if database_url.startswith("postgresql+asyncpg"):
-    database_url = database_url.replace("postgresql+asyncpg", "postgresql+psycopg2", 1)
-
 if database_url:
+    # Ensure postgresql+asyncpg is used for async migrations
+    if database_url.startswith("postgresql://"):
+        database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
     config.set_main_option("sqlalchemy.url", database_url)
 
 

@@ -456,6 +456,11 @@ async def get_evidence_graph(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid investigation ID")
 
+    # Verify investigation exists
+    inv = (await db.execute(select(Investigation).where(Investigation.id == iid))).scalar_one_or_none()
+    if not inv:
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
     relationships_result = await db.execute(
         select(EntityRelationship)
         .options(
@@ -500,5 +505,88 @@ async def get_evidence_graph(
                 evidence_count=len(rel.supporting_event_ids or []),
             )
         )
+
+    # If no explicit EntityRelationships are bound directly to this investigation ID,
+    # enrich the graph from the investigation's attached alerts, entities, and MITRE techniques
+    if not nodes_map:
+        ia_result = await db.execute(
+            select(InvestigationAlert)
+            .options(selectinload(InvestigationAlert.alert))
+            .where(InvestigationAlert.investigation_id == iid)
+        )
+        for ia in ia_result.scalars().all():
+            alert = ia.alert
+            if not alert:
+                continue
+
+            user_node_id = None
+            host_node_id = None
+            proc_node_id = None
+
+            if alert.username:
+                user_node_id = f"user-{alert.username}"
+                if user_node_id not in nodes_map:
+                    nodes_map[user_node_id] = GraphNode(
+                        id=user_node_id,
+                        label=alert.username,
+                        type="user",
+                        risk_score=alert.risk_score or 0.5,
+                        properties={"username": alert.username},
+                    )
+
+            if alert.source_host:
+                host_node_id = f"host-{alert.source_host}"
+                if host_node_id not in nodes_map:
+                    nodes_map[host_node_id] = GraphNode(
+                        id=host_node_id,
+                        label=alert.source_host,
+                        type="host",
+                        risk_score=alert.risk_score or 0.5,
+                        properties={"hostname": alert.source_host},
+                    )
+
+            if alert.process_name:
+                proc_node_id = f"proc-{alert.process_name}"
+                if proc_node_id not in nodes_map:
+                    nodes_map[proc_node_id] = GraphNode(
+                        id=proc_node_id,
+                        label=alert.process_name,
+                        type="process",
+                        risk_score=alert.risk_score or 0.7,
+                        properties={"process_name": alert.process_name},
+                    )
+
+            if user_node_id and host_node_id:
+                edges.append(
+                    GraphEdge(
+                        id=f"edge-{user_node_id}-{host_node_id}",
+                        source=user_node_id,
+                        target=host_node_id,
+                        relationship="USER_AUTHENTICATED_TO_HOST",
+                        evidence_count=1,
+                    )
+                )
+
+            if proc_node_id and host_node_id:
+                edges.append(
+                    GraphEdge(
+                        id=f"edge-{proc_node_id}-{host_node_id}",
+                        source=proc_node_id,
+                        target=host_node_id,
+                        relationship="PROCESS_RAN_ON_HOST",
+                        evidence_count=1,
+                    )
+                )
+
+        for tech in (inv.mitre_techniques or []):
+            tech_node_id = f"tech-{tech}"
+            if tech_node_id not in nodes_map:
+                nodes_map[tech_node_id] = GraphNode(
+                    id=tech_node_id,
+                    label=tech,
+                    type="technique",
+                    risk_score=inv.risk_score or 0.8,
+                    properties={"technique": tech},
+                )
 
     return EvidenceGraph(nodes=list(nodes_map.values()), edges=edges)
