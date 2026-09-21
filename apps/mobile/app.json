@@ -18,6 +18,9 @@
         "backgroundColor": "#030712"
       },
       "package": "com.sandeepmothukuri.socforge"
-    }
+    },
+    "plugins": [
+      "expo-asset"
+    ]
   }
 }
