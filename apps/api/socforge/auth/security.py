@@ -76,6 +76,7 @@ def create_refresh_token(subject: str) -> str:
         "sub": subject,
         "exp": expire,
         "iat": datetime.now(timezone.utc),
+        "jti": secrets.token_hex(16),
         "type": "refresh",
     }
     return jwt.encode(payload, settings.secret_key, algorithm=ALGORITHM)
