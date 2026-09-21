@@ -163,7 +163,7 @@ export default function InvestigationsPage() {
                       >
                         <div className="flex items-center justify-between mb-1 text-[10px] uppercase font-mono font-bold tracking-wider opacity-80">
                           <span>{node.type}</span>
-                          {node.data.risk_score && <span>Risk: {node.data.risk_score}</span>}
+                          {node.risk_score ? <span>Risk: {(node.risk_score * (node.risk_score <= 1 ? 100 : 1)).toFixed(0)}%</span> : null}
                         </div>
                         <div className="text-xs font-semibold truncate">
                           {node.label}
@@ -179,10 +179,12 @@ export default function InvestigationsPage() {
                     </div>
                     <div className="space-y-1 text-slate-300 text-[11px]">
                       {graphData.edges.map((e) => (
-                        <div key={e.id} className="flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                          <span className="text-slate-400 font-semibold">{e.label}</span>
-                          <span className="text-slate-600 font-mono">({e.id.slice(0, 8)})</span>
+                        <div key={e.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                            <span className="text-slate-300 font-semibold">{e.relationship || (e as any).label}</span>
+                          </div>
+                          <span className="text-slate-500 font-mono text-[10px]">{e.evidence_count} evidence</span>
                         </div>
                       ))}
                     </div>
@@ -240,8 +242,8 @@ export default function InvestigationsPage() {
                   </div>
                   <div className="space-y-1 font-mono text-[11px] text-slate-300">
                     <div>Type: <span className="text-blue-400 uppercase">{selectedNode.type}</span></div>
-                    <div>Value: <span className="text-slate-200">{selectedNode.data.value}</span></div>
-                    <div>Risk: <span className="text-red-400 font-bold">{selectedNode.data.risk_score || "None"}</span></div>
+                    <div>Value: <span className="text-slate-200">{selectedNode.properties?.value || selectedNode.properties?.username || selectedNode.properties?.hostname || selectedNode.properties?.process_name || selectedNode.label}</span></div>
+                    <div>Risk: <span className="text-red-400 font-bold">{selectedNode.risk_score ? `${(selectedNode.risk_score * (selectedNode.risk_score <= 1 ? 100 : 1)).toFixed(0)}%` : "None"}</span></div>
                   </div>
                 </div>
               ) : (

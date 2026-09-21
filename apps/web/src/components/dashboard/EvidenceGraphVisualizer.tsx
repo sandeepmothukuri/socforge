@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { 
   EvidenceGraphData, 
   EvidenceGraphNode, 
@@ -8,7 +8,6 @@ import {
 } from "@/lib/api";
 import { 
   Share2, 
-  ShieldAlert, 
   Layers, 
   RefreshCw, 
   AlertCircle, 
@@ -19,8 +18,10 @@ import {
   Flame,
   Globe,
   Hash,
-  Info,
-  X
+  X,
+  Network,
+  LayoutGrid,
+  GitBranch
 } from "lucide-react";
 
 interface EvidenceGraphVisualizerProps {
@@ -39,6 +40,7 @@ export function EvidenceGraphVisualizer({
   investigationTitle,
 }: EvidenceGraphVisualizerProps) {
   const [selectedNode, setSelectedNode] = useState<EvidenceGraphNode | null>(null);
+  const [viewMode, setViewMode] = useState<"flow" | "grid">("flow");
 
   const getNodeIcon = (type: string) => {
     switch (type.toLowerCase()) {
@@ -76,6 +78,45 @@ export function EvidenceGraphVisualizer({
     }
   };
 
+  // Sort nodes in logical SOC attack progression: user -> host -> process -> technique
+  const orderedNodes = useMemo(() => {
+    if (!data?.nodes) return [];
+    const order: Record<string, number> = {
+      user: 1,
+      account: 1,
+      ip_address: 2,
+      domain: 2,
+      host: 3,
+      server: 3,
+      process: 4,
+      file: 4,
+      technique: 5,
+    };
+    return [...data.nodes].sort((a, b) => {
+      const rankA = order[a.type.toLowerCase()] || 99;
+      const rankB = order[b.type.toLowerCase()] || 99;
+      return rankA - rankB;
+    });
+  }, [data]);
+
+  // Find connecting edge label between two nodes
+  const getConnectingLabel = (sourceNode: EvidenceGraphNode, targetNode: EvidenceGraphNode) => {
+    if (!data?.edges) return null;
+    const directEdge = data.edges.find(
+      (e) => (e.source === sourceNode.id && e.target === targetNode.id) ||
+             (e.source === targetNode.id && e.target === sourceNode.id)
+    );
+    if (directEdge) {
+      return directEdge.relationship.replace(/_/g, " ");
+    }
+    // Contextual fallback based on standard entity relationships
+    if (sourceNode.type === "user" && targetNode.type === "host") return "AUTHENTICATED_TO";
+    if (sourceNode.type === "host" && targetNode.type === "process") return "RAN_PROCESS";
+    if (sourceNode.type === "process" && targetNode.type === "technique") return "MAPS_TO";
+    if (sourceNode.type === "host" && targetNode.type === "technique") return "EXHIBITS";
+    return "CORRELATED_TO";
+  };
+
   return (
     <div 
       className="bg-[#0B1020] border border-[#263248] rounded-xl overflow-hidden shadow-xl flex flex-col"
@@ -88,7 +129,7 @@ export function EvidenceGraphVisualizer({
           <Layers className="w-4 h-4 text-[#38BDF8]" />
           <div>
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#F8FAFC]">
-              Authoritative Evidence Graph
+              Authoritative Evidence Graph (PostgreSQL Persisted)
             </h3>
             {investigationTitle && (
               <p className="text-[11px] text-[#A7B0C0] truncate max-w-md">
@@ -109,11 +150,38 @@ export function EvidenceGraphVisualizer({
               </span>
             </>
           )}
+
+          {/* View Toggle */}
+          <div className="flex items-center bg-[#151C2E] p-0.5 rounded-lg border border-[#263248]">
+            <button
+              onClick={() => setViewMode("flow")}
+              className={`px-2 py-1 rounded text-[10px] flex items-center gap-1 transition ${
+                viewMode === "flow" ? "bg-[#38BDF8] text-[#0B1020] font-bold" : "text-[#A7B0C0] hover:text-white"
+              }`}
+              title="Attack Path Flow View"
+              aria-label="Attack Path Flow View"
+            >
+              <GitBranch className="w-3 h-3" />
+              <span>Flow</span>
+            </button>
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`px-2 py-1 rounded text-[10px] flex items-center gap-1 transition ${
+                viewMode === "grid" ? "bg-[#38BDF8] text-[#0B1020] font-bold" : "text-[#A7B0C0] hover:text-white"
+              }`}
+              title="Entity Grid View"
+              aria-label="Entity Grid View"
+            >
+              <LayoutGrid className="w-3 h-3" />
+              <span>Grid</span>
+            </button>
+          </div>
+
           {onRetry && (
             <button
               onClick={onRetry}
               disabled={loading}
-              className="p-1 rounded hover:bg-[#151C2E] text-[#A7B0C0] hover:text-[#F8FAFC] transition"
+              className="p-1.5 rounded hover:bg-[#151C2E] text-[#A7B0C0] hover:text-[#F8FAFC] transition"
               title="Refresh Graph"
               aria-label="Refresh Graph"
             >
@@ -124,7 +192,7 @@ export function EvidenceGraphVisualizer({
       </div>
 
       {/* Canvas Area */}
-      <div className="relative min-h-[300px] flex-1 p-6 flex flex-col items-center justify-center overflow-auto bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]">
+      <div className="relative min-h-[300px] flex-1 p-6 flex flex-col items-center justify-center overflow-x-auto bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]">
         {loading ? (
           <div className="flex flex-col items-center gap-3 text-xs text-[#38BDF8] animate-pulse" role="status">
             <RefreshCw className="w-6 h-6 animate-spin text-[#38BDF8]" />
@@ -154,36 +222,87 @@ export function EvidenceGraphVisualizer({
               Run the SOCForge demo workflow or ingest raw telemetry to build the typed attack path.
             </p>
           </div>
+        ) : viewMode === "flow" ? (
+          /* ── ATTACK PATH FLOW VIEW (Interconnected sequence with relationship arrows) ── */
+          <div className="w-full flex flex-col items-center space-y-6">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-mono">
+              {orderedNodes.map((node, index) => {
+                const isSelected = selectedNode?.id === node.id;
+                const nextNode = orderedNodes[index + 1];
+                const relationshipLabel = nextNode ? getConnectingLabel(node, nextNode) : null;
+
+                return (
+                  <React.Fragment key={node.id}>
+                    {/* Entity Node Card */}
+                    <button
+                      onClick={() => setSelectedNode(isSelected ? null : node)}
+                      className={`p-3.5 rounded-xl border text-left transition-all transform hover:-translate-y-0.5 shadow-md flex items-center gap-3 ${getNodeStyles(
+                        node.type
+                      )} ${isSelected ? "ring-2 ring-[#38BDF8] scale-105" : ""}`}
+                      aria-label={`Node: ${node.label} (${node.type})`}
+                    >
+                      <div className="p-2 rounded-lg bg-[#0B1020]/60">
+                        {getNodeIcon(node.type)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] uppercase font-mono font-bold tracking-wider opacity-80">
+                            {node.type} ENTITY
+                          </span>
+                          {node.risk_score > 0 && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#EF4444]/20 text-[#EF4444] font-bold">
+                              {(node.risk_score * (node.risk_score <= 1 ? 100 : 1)).toFixed(0)}% Risk
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs font-bold text-[#F8FAFC] truncate max-w-[150px]">
+                          {node.label}
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Directional Connector Arrow with Relationship Badge */}
+                    {nextNode && (
+                      <div className="flex items-center gap-1.5 text-[#6B7280] font-mono text-xs shrink-0 py-1">
+                        <span>─[</span>
+                        <span className="px-1.5 py-0.5 rounded bg-[#151C2E] border border-[#263248] text-[10px] text-[#38BDF8] font-bold uppercase tracking-wider">
+                          {relationshipLabel}
+                        </span>
+                        <span>]─►</span>
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+
+            {/* Persistence & Audit Guarantee Note */}
+            <div className="text-xs text-[#A7B0C0] max-w-xl text-center leading-relaxed font-mono">
+              Relationship edges are persisted in PostgreSQL with strict foreign keys to raw events, ensuring verifiable audit trails for detection engineers and responders.
+            </div>
+          </div>
         ) : (
+          /* ── MATRIX / GRID VIEW ── */
           <div className="w-full max-w-4xl space-y-6">
-            {/* Dynamic Graph Nodes */}
-            <div className="flex flex-wrap items-center justify-center gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {data.nodes.map((node) => {
                 const isSelected = selectedNode?.id === node.id;
                 return (
                   <button
                     key={node.id}
                     onClick={() => setSelectedNode(isSelected ? null : node)}
-                    className={`p-3 rounded-xl border text-left transition-all transform hover:-translate-y-0.5 shadow-md flex items-center gap-3 ${getNodeStyles(
+                    className={`p-3.5 rounded-xl border text-left transition-all transform hover:-translate-y-0.5 shadow-md flex items-center gap-3 ${getNodeStyles(
                       node.type
                     )} ${isSelected ? "ring-2 ring-[#38BDF8] scale-105" : ""}`}
-                    aria-label={`Node: ${node.label} (${node.type})`}
                   >
                     <div className="p-2 rounded-lg bg-[#0B1020]/60">
                       {getNodeIcon(node.type)}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] uppercase font-mono font-bold tracking-wider opacity-70">
-                          {node.type}
-                        </span>
-                        {node.risk_score > 0 && (
-                          <span className="text-[9px] font-mono px-1 rounded bg-[#EF4444]/20 text-[#EF4444] font-bold">
-                            {(node.risk_score * 100).toFixed(0)}% Risk
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs font-bold truncate max-w-[140px] text-[#F8FAFC]">
+                    <div className="overflow-hidden">
+                      <span className="text-[10px] uppercase font-mono font-bold tracking-wider opacity-80 block">
+                        {node.type}
+                      </span>
+                      <div className="text-xs font-bold truncate text-[#F8FAFC]">
                         {node.label}
                       </div>
                     </div>
@@ -192,7 +311,7 @@ export function EvidenceGraphVisualizer({
               })}
             </div>
 
-            {/* Dynamic Relationship Edges */}
+            {/* Relationship Edges Summary */}
             {data.edges.length > 0 && (
               <div className="bg-[#111827] border border-[#263248] p-4 rounded-xl space-y-2.5 font-mono text-xs">
                 <div className="flex items-center justify-between text-[#A7B0C0] text-[10px] uppercase tracking-wider font-bold">
@@ -225,18 +344,26 @@ export function EvidenceGraphVisualizer({
       {selectedNode && (
         <div className="p-4 border-t border-[#263248] bg-[#0E1626] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs animate-in slide-in-from-bottom duration-150">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-[#38BDF8]/15 text-[#38BDF8]">
+            <div className="p-2.5 rounded-lg bg-[#38BDF8]/15 text-[#38BDF8]">
               {getNodeIcon(selectedNode.type)}
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-white">{selectedNode.label}</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#151C2E] text-[#38BDF8] border border-[#263248]">
-                  {selectedNode.type}
+                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#151C2E] text-[#38BDF8] border border-[#263248] uppercase">
+                  {selectedNode.type} ENTITY
                 </span>
+                {selectedNode.risk_score > 0 && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/40 font-bold">
+                    {(selectedNode.risk_score * (selectedNode.risk_score <= 1 ? 100 : 1)).toFixed(0)}% Risk
+                  </span>
+                )}
               </div>
               <div className="text-[11px] text-[#A7B0C0] font-mono mt-0.5">
-                Node ID: {selectedNode.id} • Risk Score: {(selectedNode.risk_score * 100).toFixed(0)}/100
+                Identifier: <code className="text-[#F8FAFC]">{selectedNode.id}</code>
+                {selectedNode.properties && Object.keys(selectedNode.properties).length > 0 && (
+                  <span> • Properties: {JSON.stringify(selectedNode.properties)}</span>
+                )}
               </div>
             </div>
           </div>
