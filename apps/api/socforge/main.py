@@ -53,7 +53,12 @@ def _configure_logging() -> None:
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Application lifespan handler — startup and shutdown."""
+    """Application lifespan handler — startup and shutdown.
+
+    Database schema is managed exclusively by Alembic migrations.
+    The application does NOT call Base.metadata.create_all() at startup.
+    Run `alembic upgrade head` before starting the application.
+    """
     settings = get_settings()
     logger.info(
         "socforge_starting",
@@ -62,13 +67,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         ai_provider=settings.ai_provider.value,
     )
 
-    # Run database schema initialization
+    # Verify database connectivity (does NOT create or modify schema)
     try:
-        from socforge.database import Base, engine
-        import socforge.models  # noqa: F401
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        logger.info("database_connected_and_schema_initialized")
+        from socforge.database import engine
+        from sqlalchemy import text
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        logger.info("database_connected")
     except Exception as e:
         logger.error("database_connection_failed", error=str(e))
         # Don't fail startup — health endpoint will report degraded
@@ -97,7 +102,7 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # ── Middleware ───────────────────────────────────────────
+    # ── Middleware ───────────────────────────────────────────────────────────
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,
@@ -120,7 +125,7 @@ def create_app() -> FastAPI:
             )
         return response
 
-    # ── Exception handlers ───────────────────────────────────
+    # ── Exception handlers ───────────────────────────────────────────────────────
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         logger.error(
@@ -140,7 +145,7 @@ def create_app() -> FastAPI:
             },
         )
 
-    # ── Routers ──────────────────────────────────────────────
+    # ── Routers ───────────────────────────────────────────────────────────────
     API_PREFIX = "/api/v1"
 
     app.include_router(health.router)  # /health, /ready, /metrics (no prefix)
@@ -157,7 +162,6 @@ def create_app() -> FastAPI:
     app.include_router(audit.router, prefix=API_PREFIX)
     app.include_router(audit.responses_router, prefix=API_PREFIX)
     app.include_router(audit.workspaces_router, prefix=API_PREFIX)
-
 
     @app.get("/", include_in_schema=False)
     async def root():

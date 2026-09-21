@@ -24,12 +24,13 @@ from socforge.models.detection import (
 )
 from socforge.models.operations import AuditAction
 from socforge.services.audit import record_audit_event
+from socforge.services.detection_replay import replay_detection
 from socforge.services.detection_validator import validate_rule
 
 router = APIRouter(prefix="/detections", tags=["Detections"])
 
 
-# ── Schemas ─────────────────────────────────────────────────────────────────
+# ── Schemas ───────────────────────────────────────────────────────────────────
 
 
 class DetectionCreate(BaseModel):
@@ -115,6 +116,8 @@ class TestRunResult(BaseModel):
     detection_version: int
     dataset_name: str
     total_events: int
+    expected_true_positives: int
+    expected_true_negatives: int
     matched_events: int
     true_positives: int
     false_positives: int
@@ -122,14 +125,18 @@ class TestRunResult(BaseModel):
     true_negatives: int
     precision: float | None
     recall: float | None
+    f1: float | None
     syntax_valid: bool
     syntax_errors: list[str]
+    matched_samples: list[dict]
+    unmatched_expected_samples: list[dict]
+    replay_error: str | None
     started_at: datetime
     completed_at: datetime | None
     duration_ms: int | None
 
 
-# ── Endpoints ────────────────────────────────────────────────────────────────
+# ── Endpoints ──────────────────────────────────────────────────────────────────
 
 
 @router.get("", response_model=list[DetectionRead], summary="List detections")
@@ -332,7 +339,7 @@ async def approve_detection(
 @router.post(
     "/{detection_id}/test",
     response_model=TestRunResult,
-    summary="Replay/test detection rule against telemetry dataset",
+    summary="Replay detection rule against a labeled telemetry dataset",
 )
 async def test_detection(
     detection_id: str,
@@ -340,11 +347,11 @@ async def test_detection(
     current_user: CurrentDetectionEngineer,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> TestRunResult:
-    """Execute detection rule testing against candidate telemetry.
+    """Execute detection rule against a labeled dataset to compute real confusion-matrix metrics.
 
-    Calculates deterministic confusion matrix metrics:
-    True Positives, False Positives, False Negatives, True Negatives,
-    Precision and Recall.
+    Computes deterministic TP / FP / FN / TN, Precision, Recall, and F1
+    by replaying the rule against the synthetic-soc-v1 dataset (or a
+    named alternative). No metrics are hardcoded.
     """
     try:
         did = uuid.UUID(detection_id)
@@ -357,49 +364,39 @@ async def test_detection(
         raise HTTPException(status_code=404, detail="Detection not found")
 
     started_at = datetime.now(timezone.utc)
+
+    # Run syntax validation first
     validation = validate_rule(detection.rule_language, detection.rule_content)
 
-    # Calculate replay matching
-    total_events = 100
-    expected_tp = 10
-    expected_tn = 90
-
-    if validation.syntax_valid:
-        tp = expected_tp
-        fp = 1
-        fn = 0
-        tn = 89
-        matched = tp + fp
-        precision = round(tp / (tp + fp), 4) if (tp + fp) > 0 else 0.0
-        recall = round(tp / (tp + fn), 4) if (tp + fn) > 0 else 0.0
-    else:
-        tp = 0
-        fp = 0
-        fn = expected_tp
-        tn = expected_tn
-        matched = 0
-        precision = 0.0
-        recall = 0.0
+    # Run real replay engine against the labeled dataset
+    replay = replay_detection(
+        rule_language=detection.rule_language,
+        rule_content=detection.rule_content,
+        dataset_name=payload.dataset_name,
+    )
 
     completed_at = datetime.now(timezone.utc)
-    duration_ms = int((completed_at - started_at).total_seconds() * 1000) + 12
+    duration_ms = max(1, int((completed_at - started_at).total_seconds() * 1000))
 
+    # Persist test run
     test_run = DetectionTestRun(
         detection_id=detection.id,
         detection_version=detection.version,
         dataset_name=payload.dataset_name,
-        total_events=total_events,
-        expected_true_positives=expected_tp,
-        expected_true_negatives=expected_tn,
-        matched_events=matched,
-        true_positives=tp,
-        false_positives=fp,
-        false_negatives=fn,
-        true_negatives=tn,
-        precision=precision,
-        recall=recall,
+        total_events=replay.total_events,
+        expected_true_positives=replay.expected_true_positives,
+        expected_true_negatives=replay.expected_true_negatives,
+        matched_events=replay.matched_events,
+        true_positives=replay.true_positives,
+        false_positives=replay.false_positives,
+        false_negatives=replay.false_negatives,
+        true_negatives=replay.true_negatives,
+        precision=replay.precision,
+        recall=replay.recall,
         syntax_valid=validation.syntax_valid,
         syntax_errors=validation.errors,
+        matched_samples=replay.matched_samples,
+        unmatched_expected_samples=replay.unmatched_expected_samples,
         ran_by_id=current_user.id,
         started_at=started_at,
         completed_at=completed_at,
@@ -407,7 +404,11 @@ async def test_detection(
     )
     db.add(test_run)
 
-    if validation.syntax_valid and detection.validation_state in (ValidationState.pending, ValidationState.syntax_valid):
+    # Advance validation state if valid and tested
+    if validation.syntax_valid and detection.validation_state in (
+        ValidationState.pending,
+        ValidationState.syntax_valid,
+    ):
         detection.validation_state = ValidationState.tested
 
     await record_audit_event(
@@ -417,9 +418,19 @@ async def test_detection(
         actor_email=current_user.email,
         target_type="detection",
         target_id=detection_id,
-        metadata={"precision": precision, "recall": recall, "syntax_valid": validation.syntax_valid},
+        metadata={
+            "dataset": payload.dataset_name,
+            "precision": replay.precision,
+            "recall": replay.recall,
+            "f1": replay.f1,
+            "tp": replay.true_positives,
+            "fp": replay.false_positives,
+            "fn": replay.false_negatives,
+            "tn": replay.true_negatives,
+            "syntax_valid": validation.syntax_valid,
+            "replay_error": replay.error,
+        },
     )
-
 
     await db.flush()
 
@@ -428,16 +439,22 @@ async def test_detection(
         detection_id=str(detection.id),
         detection_version=detection.version,
         dataset_name=payload.dataset_name,
-        total_events=total_events,
-        matched_events=matched,
-        true_positives=tp,
-        false_positives=fp,
-        false_negatives=fn,
-        true_negatives=tn,
-        precision=precision,
-        recall=recall,
+        total_events=replay.total_events,
+        expected_true_positives=replay.expected_true_positives,
+        expected_true_negatives=replay.expected_true_negatives,
+        matched_events=replay.matched_events,
+        true_positives=replay.true_positives,
+        false_positives=replay.false_positives,
+        false_negatives=replay.false_negatives,
+        true_negatives=replay.true_negatives,
+        precision=replay.precision,
+        recall=replay.recall,
+        f1=replay.f1,
         syntax_valid=validation.syntax_valid,
         syntax_errors=validation.errors,
+        matched_samples=replay.matched_samples,
+        unmatched_expected_samples=replay.unmatched_expected_samples,
+        replay_error=replay.error,
         started_at=started_at,
         completed_at=completed_at,
         duration_ms=duration_ms,
@@ -471,6 +488,8 @@ async def list_detection_tests(
             detection_version=r.detection_version,
             dataset_name=r.dataset_name,
             total_events=r.total_events,
+            expected_true_positives=r.expected_true_positives or 0,
+            expected_true_negatives=r.expected_true_negatives or 0,
             matched_events=r.matched_events,
             true_positives=r.true_positives,
             false_positives=r.false_positives,
@@ -478,13 +497,15 @@ async def list_detection_tests(
             true_negatives=r.true_negatives,
             precision=r.precision,
             recall=r.recall,
+            f1=None,  # Compute on the fly if needed
             syntax_valid=r.syntax_valid,
             syntax_errors=r.syntax_errors or [],
+            matched_samples=r.matched_samples or [],
+            unmatched_expected_samples=r.unmatched_expected_samples or [],
+            replay_error=None,
             started_at=r.started_at,
             completed_at=r.completed_at,
             duration_ms=r.duration_ms,
         )
         for r in runs.scalars()
     ]
-
-
