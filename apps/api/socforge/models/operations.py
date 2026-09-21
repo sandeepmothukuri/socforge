@@ -1,4 +1,4 @@
-"""SQLAlchemy models — Incidents, Agent Runs, Audit Events, Integrations."""
+"""SQLAlchemy models — Incidents, Agent Runs, Audit Events, Integrations, Workspaces."""
 
 from __future__ import annotations
 
@@ -74,6 +74,9 @@ class AuditAction(str, PyEnum):
     user_created = "USER_CREATED"
     user_updated = "USER_UPDATED"
     config_changed = "CONFIG_CHANGED"
+    workspace_created = "WORKSPACE_CREATED"
+    workspace_member_added = "WORKSPACE_MEMBER_ADDED"
+    workspace_member_removed = "WORKSPACE_MEMBER_REMOVED"
 
 
 class Incident(Base):
@@ -83,37 +86,27 @@ class Incident(Base):
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     severity: Mapped[IncidentSeverity] = mapped_column(
-        Enum(IncidentSeverity, name="incident_severity"),
-        nullable=False,
-        default=IncidentSeverity.medium,
+        Enum(IncidentSeverity, name="incident_severity"), nullable=False, default=IncidentSeverity.medium
     )
     status: Mapped[IncidentStatus] = mapped_column(
-        Enum(IncidentStatus, name="incident_status"),
-        nullable=False,
-        default=IncidentStatus.open,
+        Enum(IncidentStatus, name="incident_status"), nullable=False, default=IncidentStatus.open
     )
 
-    # Summary fields
-    executive_summary: Mapped[str | None] = mapped_column(Text)
-    technical_summary: Mapped[str | None] = mapped_column(Text)
-    timeline: Mapped[list[dict] | None] = mapped_column(JSONB, default=list)
-    affected_systems: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
-    affected_users: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
-
-    # Investigation links
-    investigation_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("investigations.id", ondelete="SET NULL")
+    # Workspace scoping
+    workspace_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workspaces.id", ondelete="SET NULL"), index=True
     )
 
-    # MITRE ATT&CK
-    mitre_techniques: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
-
-    assigned_to_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    commander_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), index=True
     )
     created_by_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
     )
+
+    mitre_techniques: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
+    mitre_tactics: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
+    extra_metadata: Mapped[dict | None] = mapped_column(JSONB, default=dict)
 
     opened_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, nullable=False
@@ -129,11 +122,15 @@ class Incident(Base):
     __table_args__ = (
         Index("ix_incidents_status", "status"),
         Index("ix_incidents_severity", "severity"),
+        Index("ix_incidents_workspace", "workspace_id"),
     )
+
+    def __repr__(self) -> str:
+        return f"<Incident {self.id} [{self.severity}] {self.title[:40]}>"
 
 
 class AgentRun(Base):
-    """Records an AI agent execution with its tool calls and results."""
+    """Record of a single AI agent invocation."""
 
     __tablename__ = "agent_runs"
 
@@ -145,41 +142,24 @@ class AgentRun(Base):
         default=AgentRunStatus.queued,
     )
 
-    # What this agent was given
-    input_context: Mapped[dict | None] = mapped_column(JSONB)
-
-    # Target object (investigation, alert, etc.)
+    # Polymorphic target: alert, investigation, hunt, etc.
     target_type: Mapped[str | None] = mapped_column(String(64))
     target_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
 
-    # AI provider info
-    ai_provider: Mapped[str | None] = mapped_column(String(64))
-    ai_model: Mapped[str | None] = mapped_column(String(128))
-
-    # Results
-    output: Mapped[dict | None] = mapped_column(JSONB)
-    error_message: Mapped[str | None] = mapped_column(Text)
-
-    # Timing
-    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    duration_ms: Mapped[int | None] = mapped_column(Integer)
-
-    # Token usage (when available)
-    prompt_tokens: Mapped[int | None] = mapped_column(Integer)
-    completion_tokens: Mapped[int | None] = mapped_column(Integer)
-
-    initiated_by_id: Mapped[uuid.UUID | None] = mapped_column(
+    triggered_by_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
     )
-    celery_task_id: Mapped[str | None] = mapped_column(String(256))
 
+    # Result storage
+    input_payload: Mapped[dict | None] = mapped_column(JSONB)
+    output_payload: Mapped[dict | None] = mapped_column(JSONB)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    tool_calls_log: Mapped[list[dict] | None] = mapped_column(JSONB, default=list)
+
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, nullable=False
-    )
-
-    tool_calls: Mapped[list["AgentToolCall"]] = relationship(
-        "AgentToolCall", back_populates="agent_run"
     )
 
     __table_args__ = (
@@ -187,33 +167,16 @@ class AgentRun(Base):
         Index("ix_agent_runs_target", "target_type", "target_id"),
     )
 
-
-class AgentToolCall(Base):
-    """Records a single tool call made by an AI agent."""
-
-    __tablename__ = "agent_tool_calls"
-
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
-    agent_run_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("agent_runs.id", ondelete="CASCADE"), nullable=False
-    )
-    tool_name: Mapped[str] = mapped_column(String(128), nullable=False)
-    tool_input: Mapped[dict | None] = mapped_column(JSONB)
-    tool_output: Mapped[dict | None] = mapped_column(JSONB)
-    success: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    error_message: Mapped[str | None] = mapped_column(Text)
-    duration_ms: Mapped[int | None] = mapped_column(Integer)
-    called_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_utcnow, nullable=False
-    )
-
-    agent_run: Mapped[AgentRun] = relationship("AgentRun", back_populates="tool_calls")
-
-    __table_args__ = (Index("ix_agent_tool_calls_run", "agent_run_id"),)
+    def __repr__(self) -> str:
+        return f"<AgentRun {self.agent_type} [{self.status}]>"
 
 
 class AuditEvent(Base):
-    """Append-only audit log. Never updated, only inserted."""
+    """Immutable audit trail for every sensitive action in SOCForge.
+
+    Records WHO did WHAT to WHICH resource and WHEN.
+    Records are write-once — never updated or deleted.
+    """
 
     __tablename__ = "audit_events"
 
@@ -221,90 +184,159 @@ class AuditEvent(Base):
     action: Mapped[AuditAction] = mapped_column(
         Enum(AuditAction, name="audit_action"), nullable=False
     )
+    actor_id: Mapped[str | None] = mapped_column(String(256), index=True)
+    actor_email: Mapped[str | None] = mapped_column(String(256), index=True)
 
-    # Who performed the action
-    actor_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
-    actor_email: Mapped[str | None] = mapped_column(String(254))
-
-    # What was affected
     target_type: Mapped[str | None] = mapped_column(String(64))
-    target_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    target_id: Mapped[str | None] = mapped_column(String(256), index=True)
 
-    # Result
-    success: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
-    error_message: Mapped[str | None] = mapped_column(Text)
+    metadata: Mapped[dict | None] = mapped_column(JSONB, default=dict)
 
-    # Context
-    ip_address: Mapped[str | None] = mapped_column(String(45))
-    user_agent: Mapped[str | None] = mapped_column(String(512))
-    extra_metadata: Mapped[dict | None] = mapped_column(JSONB)
+    request_id: Mapped[str | None] = mapped_column(String(128))
+    source_ip: Mapped[str | None] = mapped_column(String(45))
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=_utcnow, nullable=False
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, nullable=False, index=True
     )
 
     __table_args__ = (
         Index("ix_audit_events_action", "action"),
-        Index("ix_audit_events_actor", "actor_id"),
-        Index("ix_audit_events_created_at", "created_at"),
-        Index("ix_audit_events_target", "target_type", "target_id"),
+        Index("ix_audit_events_occurred_at", "occurred_at"),
     )
+
+    def __repr__(self) -> str:
+        return f"<AuditEvent {self.action} by {self.actor_email} at {self.occurred_at}>"
 
 
 class Integration(Base):
-    """Registered security data source / SIEM integration."""
+    """External tool integration configuration.
+
+    Secrets are stored encrypted (key: encrypted_secret_blob).
+    Plain text credentials must NEVER be stored in this table.
+    """
 
     __tablename__ = "integrations"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
-    name: Mapped[str] = mapped_column(String(128), unique=True, nullable=False)
-    display_name: Mapped[str] = mapped_column(String(256), nullable=False)
-    integration_type: Mapped[str] = mapped_column(String(64), nullable=False)
-    enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    integration_type: Mapped[str] = mapped_column(String(64), nullable=False)  # e.g. "splunk", "elastic"
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    # Encrypted configuration (secrets redacted from logs)
+    # Configuration (non-secret fields: host, port, index, etc.)
     config: Mapped[dict | None] = mapped_column(JSONB, default=dict)
 
-    # Capabilities this integration supports
-    capabilities: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
+    # Encrypted secret blob (AES-256-GCM encrypted JSON of secret fields)
+    # Format: base64(nonce + ciphertext). Key managed by settings.SECRET_KEY.
+    encrypted_secrets: Mapped[str | None] = mapped_column(Text)
 
-    last_health_check_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    last_health_status: Mapped[str | None] = mapped_column(String(32))
-    last_error: Mapped[str | None] = mapped_column(Text)
-
+    workspace_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workspaces.id", ondelete="SET NULL"), index=True
+    )
+    created_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False
     )
+    last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_check_ok: Mapped[bool | None] = mapped_column(Boolean)
+    last_check_error: Mapped[str | None] = mapped_column(Text)
 
-    __table_args__ = (Index("ix_integrations_type", "integration_type"),)
+    __table_args__ = (
+        Index("ix_integrations_type", "integration_type"),
+        Index("ix_integrations_workspace", "workspace_id"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<Integration {self.name} [{self.integration_type}]>"
 
 
 class Workspace(Base):
-    """Multi-tenant or team boundary isolating security operations assets."""
+    """Workspace — a multi-tenant isolation boundary for SOCForge.
+
+    All security resources (alerts, investigations, detections, incidents,
+    hunts, response actions) are scoped to a workspace.
+    Members are tracked via WorkspaceMembership.
+    """
 
     __tablename__ = "workspaces"
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
-    name: Mapped[str] = mapped_column(String(128), unique=True, nullable=False, index=True)
-    slug: Mapped[str] = mapped_column(String(64), unique=True, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String(128), nullable=False)
+    slug: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    settings: Mapped[dict | None] = mapped_column(JSONB, default=dict)
+
+    owner_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False
+    )
+
+    members: Mapped[list["WorkspaceMembership"]] = relationship(
+        "WorkspaceMembership", back_populates="workspace", cascade="all, delete-orphan"
     )
 
     __table_args__ = (Index("ix_workspaces_slug_active", "slug", "is_active"),)
 
     def __repr__(self) -> str:
         return f"<Workspace {self.slug} [{self.name}]>"
+
+
+class WorkspaceMemberRole(str, PyEnum):
+    owner = "owner"
+    admin = "admin"
+    analyst = "analyst"
+    detection_engineer = "detection_engineer"
+    incident_commander = "incident_commander"
+    viewer = "viewer"
+
+
+class WorkspaceMembership(Base):
+    """User membership in a workspace with a role.
+
+    This is the authoritative record of who can access which workspace.
+    Every workspace-scoped API query must JOIN on this table.
+    """
+
+    __tablename__ = "workspace_memberships"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
+    workspace_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    role: Mapped[WorkspaceMemberRole] = mapped_column(
+        Enum(WorkspaceMemberRole, name="workspace_member_role"),
+        nullable=False,
+        default=WorkspaceMemberRole.analyst,
+    )
+    added_by_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    added_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_utcnow, nullable=False
+    )
+
+    workspace: Mapped[Workspace] = relationship("Workspace", back_populates="members")
+
+    __table_args__ = (
+        Index("ix_workspace_memberships_unique", "workspace_id", "user_id", unique=True),
+        Index("ix_workspace_memberships_user", "user_id"),
+    )
+
+    def __repr__(self) -> str:
+        return f"<WorkspaceMembership user={self.user_id} workspace={self.workspace_id} role={self.role}>"
 
 
 class ResponseActionStatus(str, PyEnum):
@@ -330,7 +362,11 @@ class ResponseActionType(str, PyEnum):
 
 
 class ResponseAction(Base):
-    """A containment or mitigation action requiring authorized approval."""
+    """A containment or mitigation action requiring authorized approval.
+
+    Implements four-eyes principle: the requester cannot approve their own action.
+    Execution is SIMULATED unless a real connector is configured.
+    """
 
     __tablename__ = "response_actions"
 
@@ -342,6 +378,11 @@ class ResponseAction(Base):
         Enum(ResponseActionStatus, name="response_action_status"),
         nullable=False,
         default=ResponseActionStatus.pending_approval,
+    )
+
+    # Workspace scoping
+    workspace_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workspaces.id", ondelete="SET NULL"), index=True
     )
 
     # Target entity details
@@ -378,8 +419,8 @@ class ResponseAction(Base):
     __table_args__ = (
         Index("ix_response_actions_status", "status"),
         Index("ix_response_actions_type", "action_type"),
+        Index("ix_response_actions_workspace", "workspace_id"),
     )
 
     def __repr__(self) -> str:
         return f"<ResponseAction {self.action_type} [{self.status}] on {self.target_entity_value}>"
-
