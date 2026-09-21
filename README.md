@@ -1,4 +1,4 @@
-﻿# SOCForge
+# SOCForge
 
 > **Evidence-Driven Security Operations Platform for Investigation, Threat Hunting, and Detection Engineering**
 
@@ -115,8 +115,14 @@ graph TB
 ## 3. UI & Feature Showcase
 
 ### Security Operations Command Console
-Real-time operational overview featuring live alert posture, active investigations, queued detection rules, and the human response gate status.
+Real-time operational overview featuring live alert posture, active investigations, MITRE ATT&CK coverage matrix heatmap, and configured telemetry connectors.
 ![SOCForge Dashboard](docs/assets/socforge_dashboard.png)
+
+---
+
+### Global Command Palette (`Cmd+K` / `Ctrl+K`) Spotlight Search
+Instant tactical navigation across hosts, compromised service identities, live MITRE techniques, and telemetry connectors with keyboard-driven pivots.
+![SOCForge Spotlight Command Palette](docs/assets/socforge_command_palette.png)
 
 ---
 
