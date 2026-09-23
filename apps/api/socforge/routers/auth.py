@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,15 +15,14 @@ from socforge.auth.dependencies import CurrentUser
 from socforge.auth.security import (
     create_access_token,
     create_refresh_token,
-    hash_password,
     hash_token,
     verify_password,
 )
 from socforge.config import get_settings
 from socforge.database import get_db
+from socforge.models.operations import AuditAction
 from socforge.models.user import User, UserSession
 from socforge.services.audit import record_audit_event
-from socforge.models.operations import AuditAction
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -89,12 +88,12 @@ async def login(
         token_hash=hash_token(refresh_token),
         ip_address=request.client.host if request.client else None,
         user_agent=request.headers.get("user-agent"),
-        expires_at=datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days),
+        expires_at=datetime.now(UTC) + timedelta(days=settings.refresh_token_expire_days),
     )
     db.add(session)
 
     # Update last login
-    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_at = datetime.now(UTC)
 
     await record_audit_event(
         db,

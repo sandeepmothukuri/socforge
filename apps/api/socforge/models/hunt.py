@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from enum import Enum as PyEnum
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -14,14 +14,14 @@ from socforge.database import Base
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _new_uuid() -> uuid.UUID:
     return uuid.uuid4()
 
 
-class HuntStatus(str, PyEnum):
+class HuntStatus(StrEnum):
     open = "open"
     active = "active"
     completed = "completed"
@@ -58,8 +58,8 @@ class Hunt(Base):
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    queries: Mapped[list["HuntQuery"]] = relationship("HuntQuery", back_populates="hunt")
-    observations: Mapped[list["HuntObservation"]] = relationship(
+    queries: Mapped[list[HuntQuery]] = relationship("HuntQuery", back_populates="hunt")
+    observations: Mapped[list[HuntObservation]] = relationship(
         "HuntObservation", back_populates="hunt"
     )
 

@@ -183,7 +183,7 @@ def _validate_kql(content: str) -> ValidationOutput:
         errors.append("Unmatched double quotes in KQL query")
 
     # KQL typically starts with a table name
-    lines = [l.strip() for l in stripped.splitlines() if l.strip()]
+    lines = [line.strip() for line in stripped.splitlines() if line.strip()]
     if lines:
         first_line = lines[0]
         # Should be a table name or let statement

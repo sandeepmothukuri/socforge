@@ -9,7 +9,6 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import select
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from socforge.auth.dependencies import CurrentAnalyst, CurrentIncidentCommander, CurrentUser

@@ -1,6 +1,5 @@
 """Unit tests for detection rule syntax validator."""
 
-import pytest
 from socforge.models.detection import RuleLanguage
 from socforge.services.detection_validator import validate_rule
 

@@ -7,22 +7,16 @@ based on rule content vs the labeled dataset — NOT hardcoded values.
 from __future__ import annotations
 
 import json
-import tempfile
 from pathlib import Path
-from unittest.mock import patch
-
-import pytest
 
 from socforge.models.detection import RuleLanguage
 from socforge.services.detection_replay import (
-    ReplayResult,
     _evaluate,
+    _kql_matcher,
     _sigma_matcher,
     _spl_matcher,
-    _kql_matcher,
     replay_detection,
 )
-
 
 # ── Fixtures ────────────────────────────────────────────────────────────────────
 

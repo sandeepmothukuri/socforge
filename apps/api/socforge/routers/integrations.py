@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import json
-import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -193,7 +192,7 @@ async def check_integration_health(
     # Update database record with health telemetry
     is_ok = health_result.get("status") in ("healthy", "ready", "ok")
     if db_int:
-        db_int.last_checked_at = datetime.now(timezone.utc)
+        db_int.last_checked_at = datetime.now(UTC)
         db_int.last_check_ok = is_ok
         db_int.last_check_error = health_result.get("error")
         await db.flush()

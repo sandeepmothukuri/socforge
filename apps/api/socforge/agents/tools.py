@@ -10,14 +10,13 @@ import time
 import uuid
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from socforge.models.alert import Alert, Entity, Event
-from socforge.models.investigation import Finding, FindingConfidence, Investigation
-from socforge.models.operations import AgentToolCall, AuditAction
-from socforge.services.audit import record_audit_event
+from socforge.models.alert import Alert, Event
+from socforge.models.investigation import Finding, FindingConfidence
+from socforge.models.operations import AgentToolCall
 
 
 class ToolResult(BaseModel):

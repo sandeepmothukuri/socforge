@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import logging
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 import structlog
 from fastapi import FastAPI, Request, status
@@ -69,8 +69,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Verify database connectivity (does NOT create or modify schema)
     try:
-        from socforge.database import engine
         from sqlalchemy import text
+
+        from socforge.database import engine
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         logger.info("database_connected")
@@ -146,22 +147,22 @@ def create_app() -> FastAPI:
         )
 
     # ── Routers ───────────────────────────────────────────────────────────────
-    API_PREFIX = "/api/v1"
+    api_prefix = "/api/v1"
 
     app.include_router(health.router)  # /health, /ready, /metrics (no prefix)
-    app.include_router(auth.router, prefix=API_PREFIX)
-    app.include_router(alerts.router, prefix=API_PREFIX)
-    app.include_router(events.router, prefix=API_PREFIX)
-    app.include_router(entities.router, prefix=API_PREFIX)
-    app.include_router(investigations.router, prefix=API_PREFIX)
-    app.include_router(hunts.router, prefix=API_PREFIX)
-    app.include_router(detections.router, prefix=API_PREFIX)
-    app.include_router(incidents.router, prefix=API_PREFIX)
-    app.include_router(agents.router, prefix=API_PREFIX)
-    app.include_router(integrations.router, prefix=API_PREFIX)
-    app.include_router(audit.router, prefix=API_PREFIX)
-    app.include_router(audit.responses_router, prefix=API_PREFIX)
-    app.include_router(audit.workspaces_router, prefix=API_PREFIX)
+    app.include_router(auth.router, prefix=api_prefix)
+    app.include_router(alerts.router, prefix=api_prefix)
+    app.include_router(events.router, prefix=api_prefix)
+    app.include_router(entities.router, prefix=api_prefix)
+    app.include_router(investigations.router, prefix=api_prefix)
+    app.include_router(hunts.router, prefix=api_prefix)
+    app.include_router(detections.router, prefix=api_prefix)
+    app.include_router(incidents.router, prefix=api_prefix)
+    app.include_router(agents.router, prefix=api_prefix)
+    app.include_router(integrations.router, prefix=api_prefix)
+    app.include_router(audit.router, prefix=api_prefix)
+    app.include_router(audit.responses_router, prefix=api_prefix)
+    app.include_router(audit.workspaces_router, prefix=api_prefix)
 
     @app.get("/", include_in_schema=False)
     async def root():

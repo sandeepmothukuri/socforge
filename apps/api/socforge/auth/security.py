@@ -5,14 +5,12 @@ from __future__ import annotations
 import base64
 import hashlib
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import bcrypt
 from cryptography.fernet import Fernet, InvalidToken
-from jose import JWTError, jwt
-from passlib.context import CryptContext
-from sqlalchemy.ext.asyncio import AsyncSession
+from jose import jwt
 
 from socforge.config import get_settings
 
@@ -56,13 +54,13 @@ def generate_api_key() -> tuple[str, str, str]:
 
 def create_access_token(subject: str, extra_claims: dict[str, Any] | None = None) -> str:
     settings = get_settings()
-    expire = datetime.now(timezone.utc) + timedelta(
+    expire = datetime.now(UTC) + timedelta(
         minutes=settings.access_token_expire_minutes
     )
     payload: dict[str, Any] = {
         "sub": subject,
         "exp": expire,
-        "iat": datetime.now(timezone.utc),
+        "iat": datetime.now(UTC),
         "type": "access",
     }
     if extra_claims:
@@ -72,11 +70,11 @@ def create_access_token(subject: str, extra_claims: dict[str, Any] | None = None
 
 def create_refresh_token(subject: str) -> str:
     settings = get_settings()
-    expire = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+    expire = datetime.now(UTC) + timedelta(days=settings.refresh_token_expire_days)
     payload: dict[str, Any] = {
         "sub": subject,
         "exp": expire,
-        "iat": datetime.now(timezone.utc),
+        "iat": datetime.now(UTC),
         "jti": secrets.token_hex(16),
         "type": "refresh",
     }

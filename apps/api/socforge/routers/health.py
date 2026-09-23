@@ -107,5 +107,4 @@ async def metrics() -> str:
         "# TYPE socforge_info gauge",
         f'socforge_info{{version="{get_settings().app_version}"}} 1',
     ]
-    from fastapi.responses import PlainTextResponse
     return PlainTextResponse("\n".join(lines) + "\n", media_type="text/plain; version=0.0.4")

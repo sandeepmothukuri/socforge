@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -13,7 +13,7 @@ from socforge.database import Base
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _new_uuid() -> uuid.UUID:
@@ -30,7 +30,7 @@ class Role(Base):
         DateTime(timezone=True), default=_utcnow, nullable=False
     )
 
-    users: Mapped[list["User"]] = relationship("User", back_populates="role")
+    users: Mapped[list[User]] = relationship("User", back_populates="role")
 
     def __repr__(self) -> str:
         return f"<Role {self.name}>"
@@ -57,8 +57,8 @@ class User(Base):
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     role: Mapped[Role] = relationship("Role", back_populates="users")
-    sessions: Mapped[list["UserSession"]] = relationship("UserSession", back_populates="user")
-    api_keys: Mapped[list["APIKey"]] = relationship("APIKey", back_populates="user")
+    sessions: Mapped[list[UserSession]] = relationship("UserSession", back_populates="user")
+    api_keys: Mapped[list[APIKey]] = relationship("APIKey", back_populates="user")
 
     def __repr__(self) -> str:
         return f"<User {self.email}>"

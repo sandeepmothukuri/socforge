@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from enum import Enum as PyEnum
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from sqlalchemy import DateTime, Enum, Float, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -14,14 +14,14 @@ from socforge.database import Base
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _new_uuid() -> uuid.UUID:
     return uuid.uuid4()
 
 
-class InvestigationStatus(str, PyEnum):
+class InvestigationStatus(StrEnum):
     open = "open"
     in_progress = "in_progress"
     pending_review = "pending_review"
@@ -29,7 +29,7 @@ class InvestigationStatus(str, PyEnum):
     archived = "archived"
 
 
-class FindingConfidence(str, PyEnum):
+class FindingConfidence(StrEnum):
     confirmed = "confirmed"
     high = "high"
     medium = "medium"
@@ -84,10 +84,10 @@ class Investigation(Base):
     )
 
     # Relationships
-    investigation_alerts: Mapped[list["InvestigationAlert"]] = relationship(
+    investigation_alerts: Mapped[list[InvestigationAlert]] = relationship(
         "InvestigationAlert", back_populates="investigation"
     )
-    findings: Mapped[list["Finding"]] = relationship("Finding", back_populates="investigation")
+    findings: Mapped[list[Finding]] = relationship("Finding", back_populates="investigation")
 
     __table_args__ = (
         Index("ix_investigations_status", "status"),
@@ -122,7 +122,7 @@ class InvestigationAlert(Base):
     investigation: Mapped[Investigation] = relationship(
         "Investigation", back_populates="investigation_alerts"
     )
-    alert: Mapped["Alert"] = relationship("Alert", back_populates="investigation_alerts")
+    alert: Mapped[Alert] = relationship("Alert", back_populates="investigation_alerts")
 
     __table_args__ = (
         Index(
@@ -181,10 +181,10 @@ class Finding(Base):
     )
 
     investigation: Mapped[Investigation] = relationship("Investigation", back_populates="findings")
-    finding_events: Mapped[list["FindingEvent"]] = relationship(
+    finding_events: Mapped[list[FindingEvent]] = relationship(
         "FindingEvent", back_populates="finding", cascade="all, delete-orphan"
     )
-    finding_entities: Mapped[list["FindingEntity"]] = relationship(
+    finding_entities: Mapped[list[FindingEntity]] = relationship(
         "FindingEntity", back_populates="finding", cascade="all, delete-orphan"
     )
 
@@ -244,4 +244,4 @@ class FindingEntity(Base):
 
 
 # Resolve forward references
-from socforge.models.alert import Alert, Event, Entity  # noqa: E402, F401
+from socforge.models.alert import Alert, Entity, Event  # noqa: E402, F401

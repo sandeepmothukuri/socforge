@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-import uuid
 from datetime import datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,7 +39,7 @@ class EventRead(BaseModel):
     created_at: datetime
 
     @classmethod
-    def from_orm(cls, ev: Event) -> "EventRead":
+    def from_orm(cls, ev: Event) -> EventRead:
         return cls(
             id=str(ev.id),
             alert_id=str(ev.alert_id) if ev.alert_id else None,

@@ -6,28 +6,28 @@ The application will fail fast on startup if required variables are missing.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, PostgresDsn, RedisDsn, field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Environment(str, Enum):
+class Environment(StrEnum):
     development = "development"
     testing = "testing"
     production = "production"
 
 
-class AIProvider(str, Enum):
+class AIProvider(StrEnum):
     openai = "openai"
     ollama = "ollama"
     vllm = "vllm"
     none = "none"
 
 
-class StorageBackend(str, Enum):
+class StorageBackend(StrEnum):
     local = "local"
     s3 = "s3"
 
@@ -116,9 +116,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def validate_ai_config(self) -> Settings:
-        if self.ai_provider in (AIProvider.openai, AIProvider.vllm):
-            if not self.ai_base_url and self.ai_provider == AIProvider.vllm:
-                raise ValueError("ai_base_url is required when AI_PROVIDER=vllm")
+        if self.ai_provider == AIProvider.vllm and not self.ai_base_url:
+            raise ValueError("ai_base_url is required when AI_PROVIDER=vllm")
         return self
 
 

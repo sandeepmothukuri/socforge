@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from enum import Enum as PyEnum
+from datetime import UTC, datetime
+from enum import StrEnum
 
-from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,21 +14,21 @@ from socforge.database import Base
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _new_uuid() -> uuid.UUID:
     return uuid.uuid4()
 
 
-class IncidentSeverity(str, PyEnum):
+class IncidentSeverity(StrEnum):
     critical = "critical"
     high = "high"
     medium = "medium"
     low = "low"
 
 
-class IncidentStatus(str, PyEnum):
+class IncidentStatus(StrEnum):
     open = "open"
     contained = "contained"
     eradicated = "eradicated"
@@ -36,7 +36,7 @@ class IncidentStatus(str, PyEnum):
     closed = "closed"
 
 
-class AgentRunStatus(str, PyEnum):
+class AgentRunStatus(StrEnum):
     queued = "queued"
     running = "running"
     completed = "completed"
@@ -44,7 +44,7 @@ class AgentRunStatus(str, PyEnum):
     cancelled = "cancelled"
 
 
-class AuditAction(str, PyEnum):
+class AuditAction(StrEnum):
     login = "LOGIN"
     logout = "LOGOUT"
     alert_created = "ALERT_CREATED"
@@ -162,7 +162,7 @@ class AgentRun(Base):
         DateTime(timezone=True), default=_utcnow, nullable=False
     )
 
-    tool_calls: Mapped[list["AgentToolCall"]] = relationship(
+    tool_calls: Mapped[list[AgentToolCall]] = relationship(
         "AgentToolCall", back_populates="agent_run", cascade="all, delete-orphan"
     )
 
@@ -318,7 +318,7 @@ class Workspace(Base):
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow, nullable=False
     )
 
-    members: Mapped[list["WorkspaceMembership"]] = relationship(
+    members: Mapped[list[WorkspaceMembership]] = relationship(
         "WorkspaceMembership", back_populates="workspace", cascade="all, delete-orphan"
     )
 
@@ -328,7 +328,7 @@ class Workspace(Base):
         return f"<Workspace {self.slug} [{self.name}]>"
 
 
-class WorkspaceMemberRole(str, PyEnum):
+class WorkspaceMemberRole(StrEnum):
     owner = "owner"
     admin = "admin"
     analyst = "analyst"
@@ -376,7 +376,7 @@ class WorkspaceMembership(Base):
         return f"<WorkspaceMembership user={self.user_id} workspace={self.workspace_id} role={self.role}>"
 
 
-class ResponseActionStatus(str, PyEnum):
+class ResponseActionStatus(StrEnum):
     pending_approval = "pending_approval"
     approved = "approved"
     rejected = "rejected"
@@ -386,7 +386,7 @@ class ResponseActionStatus(str, PyEnum):
     cancelled = "cancelled"
 
 
-class ResponseActionType(str, PyEnum):
+class ResponseActionType(StrEnum):
     isolate_host = "isolate_host"
     unisolate_host = "unisolate_host"
     block_ip = "block_ip"

@@ -1,0 +1,470 @@
+{
+  "name": "mitre-attck-detection-catalog",
+  "version": "1.0.0",
+  "description": "Curated SOCForge detection catalog: 25 high-priority MITRE ATT&CK techniques with associated detection patterns, rule templates, data sources, and replay dataset references. Use as a ground-truth reference for detection rule validation and coverage gap analysis.",
+  "schema_version": 1,
+  "catalog_metadata": {
+    "framework": "MITRE ATT&CK Enterprise v14.1",
+    "coverage_focus": "Endpoint + Network + Active Directory telemetry",
+    "last_updated": "2026-09-23",
+    "total_techniques": 25
+  },
+  "techniques": [
+    {
+      "technique_id": "T1003.001",
+      "technique_name": "OS Credential Dumping: LSASS Memory",
+      "tactic": "credential_access",
+      "priority": "critical",
+      "description": "Adversaries attempt to access credential material stored in the process memory of the Local Security Authority Subsystem Service (LSASS). Tools like Mimikatz, ProcDump, and comsvcs.dll are commonly used.",
+      "detection_patterns": [
+        "Process accessing lsass.exe memory with PROCESS_VM_READ",
+        "Execution of mimikatz.exe, procdump.exe with lsass target",
+        "comsvcs.dll MiniDump invocation via rundll32.exe",
+        "Unusual handle to lsass.exe from non-system processes"
+      ],
+      "sigma_rule_template": "title: LSASS Memory Access\nstatus: test\nlogsource:\n  category: process_access\n  product: windows\ndetection:\n  selection:\n    TargetImage|endswith: '\\lsass.exe'\n    GrantedAccess|contains:\n      - '0x1010'\n      - '0x1410'\n  condition: selection\nlevel: critical",
+      "data_sources": ["Sysmon Event ID 10", "Windows Security Event 4656", "EDR Process Access logs"],
+      "replay_dataset_refs": ["synthetic-soc-v1", "apt-lateral-movement"],
+      "false_positive_notes": "Antivirus and EDR processes legitimately access lsass.exe. Whitelist known security tools.",
+      "references": ["https://attack.mitre.org/techniques/T1003/001/"]
+    },
+    {
+      "technique_id": "T1059.001",
+      "technique_name": "Command and Scripting Interpreter: PowerShell",
+      "tactic": "execution",
+      "priority": "high",
+      "description": "Adversaries misuse PowerShell for execution of malicious commands, often with encoded payloads (-EncodedCommand), hidden windows (-w hidden), and policy bypass (-ep bypass).",
+      "detection_patterns": [
+        "powershell.exe with -EncodedCommand or -enc flag",
+        "powershell.exe -w hidden or -WindowStyle Hidden",
+        "PowerShell with -ep bypass or -ExecutionPolicy Bypass",
+        "IEX (Invoke-Expression) with DownloadString or WebClient",
+        "Base64-encoded command blocks"
+      ],
+      "sigma_rule_template": "title: Suspicious PowerShell Command Flags\nstatus: test\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith: '\\powershell.exe'\n    CommandLine|contains:\n      - '-EncodedCommand'\n      - '-enc'\n      - '-ep bypass'\n      - 'IEX'\n      - 'DownloadString'\n  condition: selection\nlevel: high",
+      "data_sources": ["Sysmon Event ID 1", "Windows Event 4688", "PowerShell Script Block Logging 4104"],
+      "replay_dataset_refs": ["synthetic-soc-v1", "apt-lateral-movement", "ransomware-pre-deployment"],
+      "false_positive_notes": "IT automation scripts legitimately use encoded commands. Baseline known-good scripts.",
+      "references": ["https://attack.mitre.org/techniques/T1059/001/"]
+    },
+    {
+      "technique_id": "T1047",
+      "technique_name": "Windows Management Instrumentation",
+      "tactic": "execution",
+      "priority": "high",
+      "description": "Adversaries use WMI for lateral movement, remote execution, and persistence. wmic.exe process call create is a common pattern.",
+      "detection_patterns": [
+        "wmic.exe process call create with remote node",
+        "WMI subscriptions created for persistence (EventFilter + EventConsumer)",
+        "PowerShell Invoke-WmiMethod or Get-WmiObject for remote exec",
+        "mofcomp.exe compiling MOF files for WMI subscription"
+      ],
+      "sigma_rule_template": "title: WMI Remote Execution\nstatus: test\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith: '\\wmic.exe'\n    CommandLine|contains:\n      - 'process call create'\n      - '/node:'\n  condition: selection\nlevel: high",
+      "data_sources": ["Sysmon Event ID 1", "WMI Activity Operational Log", "Windows Event 4688"],
+      "replay_dataset_refs": ["apt-lateral-movement"],
+      "false_positive_notes": "IT management tools (SCCM, Ansible) use WMI. Correlate with authorized change windows.",
+      "references": ["https://attack.mitre.org/techniques/T1047/"]
+    },
+    {
+      "technique_id": "T1546.003",
+      "technique_name": "WMI Event Subscription",
+      "tactic": "persistence",
+      "priority": "high",
+      "description": "Adversaries establish persistence using WMI event subscriptions that trigger malicious payloads on system events.",
+      "detection_patterns": [
+        "New WMI FilterToConsumerBinding creation",
+        "CommandLineEventConsumer with suspicious scripts",
+        "mofcomp.exe executing attacker-controlled MOF files",
+        "ActiveScriptEventConsumer creation"
+      ],
+      "sigma_rule_template": "title: WMI Persistence via Event Subscription\nstatus: test\nlogsource:\n  product: windows\n  service: wmi\ndetection:\n  selection:\n    EventID: 5861\n  condition: selection\nlevel: high",
+      "data_sources": ["WMI-Activity/Operational Event 5861", "Sysmon WMI event logs"],
+      "replay_dataset_refs": ["apt-lateral-movement"],
+      "false_positive_notes": "Some endpoint management solutions use WMI subscriptions for legitimate monitoring.",
+      "references": ["https://attack.mitre.org/techniques/T1546/003/"]
+    },
+    {
+      "technique_id": "T1053.005",
+      "technique_name": "Scheduled Task/Job: Scheduled Task",
+      "tactic": "persistence",
+      "priority": "high",
+      "description": "Adversaries create scheduled tasks for persistence and lateral execution, often disguising them as legitimate Windows tasks.",
+      "detection_patterns": [
+        "schtasks.exe /create with suspicious executables",
+        "Task XML creation in C:\\Windows\\System32\\Tasks",
+        "Scheduled task pointing to temp or user profile paths",
+        "Task created with SYSTEM privileges from non-admin process"
+      ],
+      "sigma_rule_template": "title: Suspicious Scheduled Task Creation\nstatus: test\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith: '\\schtasks.exe'\n    CommandLine|contains:\n      - '/create'\n  filter:\n    CommandLine|contains:\n      - 'C:\\Windows\\'\n      - 'C:\\Program Files\\'\n  condition: selection and not filter\nlevel: medium",
+      "data_sources": ["Sysmon Event ID 1", "Windows Event 4698", "Windows Task Scheduler Operational"],
+      "replay_dataset_refs": ["apt-lateral-movement", "ransomware-pre-deployment"],
+      "false_positive_notes": "Legitimate software creates scheduled tasks during installation. Filter by known software publishers.",
+      "references": ["https://attack.mitre.org/techniques/T1053/005/"]
+    },
+    {
+      "technique_id": "T1218.005",
+      "technique_name": "System Binary Proxy Execution: Mshta",
+      "tactic": "defense_evasion",
+      "priority": "high",
+      "description": "Adversaries abuse mshta.exe to execute malicious HTA scripts or VBScript, bypassing application whitelisting.",
+      "detection_patterns": [
+        "mshta.exe loading remote URLs (http:// or https://)",
+        "mshta.exe spawning suspicious child processes",
+        "mshta.exe executed from Office macros",
+        "HTA files with embedded vbscript loading payloads"
+      ],
+      "sigma_rule_template": "title: Mshta Loading Remote Payload\nstatus: test\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith: '\\mshta.exe'\n    CommandLine|contains:\n      - 'http://'\n      - 'https://'\n      - 'vbscript'\n      - 'javascript'\n  condition: selection\nlevel: high",
+      "data_sources": ["Sysmon Event ID 1", "Windows Event 4688", "Network proxy logs"],
+      "replay_dataset_refs": ["apt-lateral-movement"],
+      "false_positive_notes": "Rarely used legitimately in enterprise environments. High-confidence indicator.",
+      "references": ["https://attack.mitre.org/techniques/T1218/005/"]
+    },
+    {
+      "technique_id": "T1110.003",
+      "technique_name": "Brute Force: Password Spraying",
+      "tactic": "credential_access",
+      "priority": "high",
+      "description": "Adversaries attempt a small number of commonly used passwords against many accounts to avoid lockout thresholds.",
+      "detection_patterns": [
+        "Multiple failed logon events (4625) across distinct accounts from single source",
+        "Failed logons with same password across many accounts within time window",
+        "Logon failures with Logon Type 3 (Network) from external IPs",
+        "Azure AD sign-in failures across many UPNs"
+      ],
+      "sigma_rule_template": "title: Password Spray via Failed Logons\nstatus: test\nlogsource:\n  product: windows\n  service: security\ndetection:\n  selection:\n    EventID: 4625\n    LogonType: 3\n  timeframe: 5m\n  condition: selection | count() by TargetUserName > 10\nlevel: high",
+      "data_sources": ["Windows Security Event 4625", "Azure AD Sign-in Logs", "VPN auth logs"],
+      "replay_dataset_refs": ["ransomware-pre-deployment"],
+      "false_positive_notes": "Misconfigured applications or expired password sync can generate bursts. Correlate with source IP reputation.",
+      "references": ["https://attack.mitre.org/techniques/T1110/003/"]
+    },
+    {
+      "technique_id": "T1486",
+      "technique_name": "Data Encrypted for Impact",
+      "tactic": "impact",
+      "priority": "critical",
+      "description": "Adversaries encrypt victim files to deny access. Ransomware uses high-entropy file writes, mass file renaming, and creation of ransom notes.",
+      "detection_patterns": [
+        "Mass file extension changes within short time window",
+        "Process with high file rename/write rate",
+        "Unknown process writing high-entropy data to multiple files",
+        "Ransom note filenames (HOW_TO_DECRYPT.txt, README_RANSOM.txt)",
+        "Shadow copy deletion immediately before encryption"
+      ],
+      "sigma_rule_template": "title: Ransomware Ransom Note Creation\nstatus: test\nlogsource:\n  category: file_event\n  product: windows\ndetection:\n  selection:\n    TargetFilename|contains:\n      - 'HOW_TO_DECRYPT'\n      - 'README_RANSOM'\n      - 'RESTORE_FILES'\n      - 'YOUR_FILES'\n  condition: selection\nlevel: critical",
+      "data_sources": ["Sysmon Event ID 11", "EDR File Write events", "Windows Defender ATP"],
+      "replay_dataset_refs": ["ransomware-pre-deployment"],
+      "false_positive_notes": "None expected. Ransom note filename patterns are highly specific.",
+      "references": ["https://attack.mitre.org/techniques/T1486/"]
+    },
+    {
+      "technique_id": "T1490",
+      "technique_name": "Inhibit System Recovery",
+      "tactic": "impact",
+      "priority": "critical",
+      "description": "Adversaries delete shadow copies, backup catalogs, and disable recovery mechanisms before or during ransomware deployment.",
+      "detection_patterns": [
+        "vssadmin.exe delete shadows",
+        "wbadmin.exe delete catalog",
+        "bcdedit.exe /set recoveryenabled no",
+        "PowerShell Get-WmiObject Win32_ShadowCopy | Remove-WmiObject"
+      ],
+      "sigma_rule_template": "title: Shadow Copy Deletion\nstatus: stable\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection_vss:\n    Image|endswith: '\\vssadmin.exe'\n    CommandLine|contains|all:\n      - 'delete'\n      - 'shadows'\n  selection_bcdedit:\n    Image|endswith: '\\bcdedit.exe'\n    CommandLine|contains: 'recoveryenabled'\n  condition: 1 of selection_*\nlevel: critical",
+      "data_sources": ["Sysmon Event ID 1", "Windows Event 4688"],
+      "replay_dataset_refs": ["ransomware-pre-deployment", "apt-lateral-movement"],
+      "false_positive_notes": "Legitimate backup solutions occasionally manage shadow copies. Correlate with authorized maintenance windows.",
+      "references": ["https://attack.mitre.org/techniques/T1490/"]
+    },
+    {
+      "technique_id": "T1070.001",
+      "technique_name": "Indicator Removal: Clear Windows Event Logs",
+      "tactic": "defense_evasion",
+      "priority": "high",
+      "description": "Adversaries clear event logs to remove evidence of malicious activity. wevtutil, PowerShell Clear-EventLog, and direct log file deletion are common methods.",
+      "detection_patterns": [
+        "wevtutil cl Security / System / Application",
+        "PowerShell Clear-EventLog cmdlet",
+        "Windows Event 1102 (audit log cleared)",
+        "Windows Event 104 (System log cleared)"
+      ],
+      "sigma_rule_template": "title: Windows Event Log Cleared\nstatus: stable\nlogsource:\n  product: windows\n  service: security\ndetection:\n  selection:\n    EventID:\n      - 1102\n      - 104\n  condition: selection\nlevel: high",
+      "data_sources": ["Windows Security Event 1102", "Windows System Event 104"],
+      "replay_dataset_refs": ["apt-lateral-movement", "ransomware-pre-deployment"],
+      "false_positive_notes": "Log rotation tools may trigger 104. Correlate with user account and time of day.",
+      "references": ["https://attack.mitre.org/techniques/T1070/001/"]
+    },
+    {
+      "technique_id": "T1071.001",
+      "technique_name": "Application Layer Protocol: Web Protocols",
+      "tactic": "command_and_control",
+      "priority": "high",
+      "description": "Adversaries communicate with C2 infrastructure using HTTP/HTTPS to blend with legitimate web traffic.",
+      "detection_patterns": [
+        "Low-frequency periodic HTTP/HTTPS beaconing to unknown external IPs",
+        "HTTP connections to IP addresses (no domain) over port 80/443",
+        "Unusual User-Agent strings in web proxy logs",
+        "JA3/JA3S TLS fingerprint mismatches for known software",
+        "Domain generation algorithm (DGA) suspicious domains"
+      ],
+      "sigma_rule_template": "title: C2 HTTP Beaconing to IP Address\nstatus: test\nlogsource:\n  category: proxy\ndetection:\n  selection:\n    c-uri-query: ''\n    cs-host|re: '^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$'\n  condition: selection\nlevel: medium",
+      "data_sources": ["Web proxy logs", "Firewall/NGFW logs", "Zeek HTTP logs", "Network flow data"],
+      "replay_dataset_refs": ["apt-lateral-movement", "ransomware-pre-deployment"],
+      "false_positive_notes": "Some software communicates with IP addresses directly. Whitelist known CDNs and update servers.",
+      "references": ["https://attack.mitre.org/techniques/T1071/001/"]
+    },
+    {
+      "technique_id": "T1071.004",
+      "technique_name": "Application Layer Protocol: DNS",
+      "tactic": "command_and_control",
+      "priority": "high",
+      "description": "Adversaries use DNS to exfiltrate data or communicate with C2 via DNS tunneling, often using long subdomains or high query volume.",
+      "detection_patterns": [
+        "DNS queries with unusually long subdomains (>50 chars)",
+        "High-volume DNS queries to single domain",
+        "DNS TXT record queries from endpoints",
+        "DNS queries to recently registered domains (< 30 days)",
+        "Beaconing pattern in DNS query timestamps"
+      ],
+      "sigma_rule_template": "title: DNS Tunneling via Suspicious Query Length\nstatus: test\nlogsource:\n  category: dns\ndetection:\n  selection:\n    QueryName|re: '^[a-zA-Z0-9]{50,}\\.'\n  condition: selection\nlevel: medium",
+      "data_sources": ["DNS server logs", "Zeek DNS logs", "SIEM DNS events", "Sysmon Event ID 22"],
+      "replay_dataset_refs": ["synthetic-soc-v1", "apt-lateral-movement"],
+      "false_positive_notes": "CDN domains and some cloud services have long subdomains. Correlate with query frequency and destination reputation.",
+      "references": ["https://attack.mitre.org/techniques/T1071/004/"]
+    },
+    {
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "initial_access",
+      "priority": "high",
+      "description": "Adversaries obtain and use legitimate credentials to gain access, avoid detection, and maintain persistence.",
+      "detection_patterns": [
+        "Logon from unusual geographic location for account",
+        "Off-hours logon for account that normally works 9-5",
+        "Account logging into systems it has never accessed before",
+        "Multiple accounts using same source IP within short window",
+        "Privileged account used interactively on non-admin workstation"
+      ],
+      "sigma_rule_template": "title: Admin Account Interactive Logon on Workstation\nstatus: test\nlogsource:\n  product: windows\n  service: security\ndetection:\n  selection:\n    EventID: 4624\n    LogonType: 10\n    TargetUserName|contains: 'admin'\n  condition: selection\nlevel: medium",
+      "data_sources": ["Windows Security Event 4624", "Azure AD logs", "VPN authentication logs"],
+      "replay_dataset_refs": ["apt-lateral-movement", "ransomware-pre-deployment", "insider-threat-exfiltration"],
+      "false_positive_notes": "IT admins legitimately use admin accounts. Baseline normal behavior and alert on deviations.",
+      "references": ["https://attack.mitre.org/techniques/T1078/"]
+    },
+    {
+      "technique_id": "T1039",
+      "technique_name": "Data from Network Shared Drive",
+      "tactic": "collection",
+      "priority": "high",
+      "description": "Adversaries collect data from network shares before exfiltration. Large-scale reads from file servers outside of normal patterns indicate collection activity.",
+      "detection_patterns": [
+        "High volume file access from single account exceeding baseline",
+        "File access across multiple department shares not in user's normal pattern",
+        "Bulk read operations from sensitive share paths (Finance, HR, Executive)",
+        "Access to shares via unusual process (cmd.exe, powershell.exe)",
+        "Off-hours bulk file access"
+      ],
+      "sigma_rule_template": "title: Bulk File Access from Network Share\nstatus: test\nlogsource:\n  product: windows\n  service: security\ndetection:\n  selection:\n    EventID: 5145\n    ShareName|contains:\n      - 'Finance'\n      - 'HR'\n      - 'Executive'\n      - 'Confidential'\n  timeframe: 10m\n  condition: selection | count() by SubjectUserName > 100\nlevel: high",
+      "data_sources": ["Windows Security Event 5145", "File server audit logs", "DLP alerts"],
+      "replay_dataset_refs": ["insider-threat-exfiltration", "apt-lateral-movement"],
+      "false_positive_notes": "Backup jobs access many files. Correlate with service account vs. user account and time of activity.",
+      "references": ["https://attack.mitre.org/techniques/T1039/"]
+    },
+    {
+      "technique_id": "T1052.001",
+      "technique_name": "Exfiltration Over Physical Medium: USB",
+      "tactic": "exfiltration",
+      "priority": "critical",
+      "description": "Data is exfiltrated to removable USB drives. DLP solutions should alert on large file writes to removable media.",
+      "detection_patterns": [
+        "Large file write to removable media drive letter",
+        "USB storage device inserted by unexpected user",
+        "File copy to drive:\\ with suspicious file extensions",
+        "DLP policy violation on removable media write"
+      ],
+      "sigma_rule_template": "title: Large File Write to USB Drive\nstatus: test\nlogsource:\n  category: file_event\n  product: windows\ndetection:\n  selection:\n    TargetFilename|re: '^[E-Z]:\\\\'\n    FileSize|gt: 104857600\n  condition: selection\nlevel: high",
+      "data_sources": ["DLP endpoint agent", "Sysmon Event ID 11", "Windows Event 6416 (USB device)"],
+      "replay_dataset_refs": ["insider-threat-exfiltration"],
+      "false_positive_notes": "IT administrators may use USB drives for imaging. Correlate with authorized device inventory.",
+      "references": ["https://attack.mitre.org/techniques/T1052/001/"]
+    },
+    {
+      "technique_id": "T1567.002",
+      "technique_name": "Exfiltration to Cloud Storage",
+      "tactic": "exfiltration",
+      "priority": "high",
+      "description": "Adversaries exfiltrate data to cloud storage services (Google Drive, OneDrive, Dropbox, Box) to blend with legitimate cloud traffic.",
+      "detection_patterns": [
+        "Large HTTPS upload to personal cloud storage domains",
+        "Personal cloud storage access from corporate endpoint",
+        "Unusual upload volume to cloud storage outside business hours",
+        "Cloud storage upload from DLP-flagged data origin"
+      ],
+      "sigma_rule_template": "title: Data Exfiltration to Personal Cloud Storage\nstatus: test\nlogsource:\n  category: proxy\ndetection:\n  selection:\n    cs-method: 'PUT'\n    cs-host|contains:\n      - 'drive.google.com'\n      - 'api.dropbox.com'\n      - 'api.box.com'\n  condition: selection\nlevel: high",
+      "data_sources": ["Web proxy / CASB logs", "Firewall logs", "DLP network egress"],
+      "replay_dataset_refs": ["insider-threat-exfiltration"],
+      "false_positive_notes": "Authorized corporate OneDrive/SharePoint usage is legitimate. Block personal cloud services via CASB.",
+      "references": ["https://attack.mitre.org/techniques/T1567/002/"]
+    },
+    {
+      "technique_id": "T1547.001",
+      "technique_name": "Registry Run Keys / Startup Folder",
+      "tactic": "persistence",
+      "priority": "high",
+      "description": "Adversaries achieve persistence by adding malicious entries to registry Run keys or the startup folder.",
+      "detection_patterns": [
+        "Registry modification to HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run",
+        "Registry modification to HKCU\\...\\Run pointing to temp/appdata paths",
+        "File creation in C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup",
+        "reg.exe add with RunOnce key"
+      ],
+      "sigma_rule_template": "title: Registry Run Key Modification\nstatus: stable\nlogsource:\n  category: registry_set\n  product: windows\ndetection:\n  selection:\n    TargetObject|contains:\n      - '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run'\n      - '\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\RunOnce'\n  filter:\n    Details|contains:\n      - 'C:\\Program Files'\n      - 'C:\\Windows'\n  condition: selection and not filter\nlevel: medium",
+      "data_sources": ["Sysmon Event ID 13", "Windows Event 4657"],
+      "replay_dataset_refs": ["apt-lateral-movement", "ransomware-pre-deployment"],
+      "false_positive_notes": "Many legitimate applications use Run keys. Focus on executables in user-writable paths.",
+      "references": ["https://attack.mitre.org/techniques/T1547/001/"]
+    },
+    {
+      "technique_id": "T1562.001",
+      "technique_name": "Impair Defenses: Disable or Modify Tools",
+      "tactic": "defense_evasion",
+      "priority": "critical",
+      "description": "Adversaries disable security tools such as Windows Defender, antivirus, and firewalls to enable undetected activity.",
+      "detection_patterns": [
+        "Set-MpPreference -Disable* $true via PowerShell",
+        "netsh advfirewall set allprofiles state off",
+        "HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows Defender\\DisableAntiSpyware = 1",
+        "Termination of security processes (MsMpEng.exe, SentinelOne, CrowdStrike)"
+      ],
+      "sigma_rule_template": "title: Windows Defender Disabled via PowerShell\nstatus: stable\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith: '\\powershell.exe'\n    CommandLine|contains:\n      - 'Set-MpPreference'\n      - 'DisableRealtimeMonitoring'\n  condition: selection\nlevel: critical",
+      "data_sources": ["Sysmon Event ID 1", "Windows Defender Event 5001", "Windows Event 4688"],
+      "replay_dataset_refs": ["apt-lateral-movement", "ransomware-pre-deployment"],
+      "false_positive_notes": "Penetration testing tools may disable AV during authorized engagements. Verify with change management.",
+      "references": ["https://attack.mitre.org/techniques/T1562/001/"]
+    },
+    {
+      "technique_id": "T1560.001",
+      "technique_name": "Archive Collected Data: Archive via Utility",
+      "tactic": "collection",
+      "priority": "medium",
+      "description": "Adversaries compress and archive collected data using utilities like 7-Zip, WinRAR, or Tar to reduce size and enable exfiltration.",
+      "detection_patterns": [
+        "7z.exe, WinRAR.exe, or tar.exe with password flag (-p)",
+        "Archive creation in temp directories or user profile paths",
+        "Archives created from sensitive share paths",
+        "Compression of large data volumes in unusual locations"
+      ],
+      "sigma_rule_template": "title: Suspicious Archive with Password\nstatus: test\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith:\n      - '\\7z.exe'\n      - '\\WinRAR.exe'\n    CommandLine|contains:\n      - '-p'\n      - '-hp'\n  condition: selection\nlevel: medium",
+      "data_sources": ["Sysmon Event ID 1", "Windows Event 4688", "File creation events"],
+      "replay_dataset_refs": ["apt-lateral-movement", "insider-threat-exfiltration"],
+      "false_positive_notes": "IT creates password-protected archives routinely. Correlate with file origin and destination.",
+      "references": ["https://attack.mitre.org/techniques/T1560/001/"]
+    },
+    {
+      "technique_id": "T1046",
+      "technique_name": "Network Service Discovery",
+      "tactic": "discovery",
+      "priority": "medium",
+      "description": "Adversaries scan the network for open ports and running services to identify targets for lateral movement.",
+      "detection_patterns": [
+        "nmap, masscan, or PortScan.exe execution",
+        "High volume of TCP SYN packets to multiple internal hosts",
+        "Port scanning from workstation to server subnet",
+        "PowerShell Test-NetConnection in loops"
+      ],
+      "sigma_rule_template": "title: Internal Network Port Scan\nstatus: test\nlogsource:\n  category: network_connection\n  product: windows\ndetection:\n  selection:\n    Initiated: 'true'\n  timeframe: 1m\n  condition: selection | count() by SourceIp > 50\nlevel: medium",
+      "data_sources": ["Sysmon Event ID 3", "Firewall logs", "IDS/IPS alerts", "Network flow data"],
+      "replay_dataset_refs": ["apt-lateral-movement", "synthetic-soc-v1"],
+      "false_positive_notes": "Vulnerability scanners (Nessus, Qualys) generate similar patterns. Whitelist scanner IPs.",
+      "references": ["https://attack.mitre.org/techniques/T1046/"]
+    },
+    {
+      "technique_id": "T1136.001",
+      "technique_name": "Create Account: Local Account",
+      "tactic": "persistence",
+      "priority": "high",
+      "description": "Adversaries create local accounts for persistence, often adding them to local Administrators group.",
+      "detection_patterns": [
+        "net user /add command execution",
+        "Windows Event 4720 (user account created)",
+        "New account added to local Administrators (Event 4732)",
+        "PowerShell New-LocalUser cmdlet"
+      ],
+      "sigma_rule_template": "title: Local Account Created\nstatus: stable\nlogsource:\n  product: windows\n  service: security\ndetection:\n  selection:\n    EventID: 4720\n  condition: selection\nlevel: medium",
+      "data_sources": ["Windows Security Event 4720", "Windows Security Event 4732"],
+      "replay_dataset_refs": ["synthetic-soc-v1"],
+      "false_positive_notes": "Service account creation during software installation triggers this. Correlate with expected deployment windows.",
+      "references": ["https://attack.mitre.org/techniques/T1136/001/"]
+    },
+    {
+      "technique_id": "T1550.002",
+      "technique_name": "Use Alternate Authentication Material: Pass the Hash",
+      "tactic": "lateral_movement",
+      "priority": "critical",
+      "description": "Adversaries authenticate using stolen NTLM password hashes without knowing the plaintext password.",
+      "detection_patterns": [
+        "NTLM authentication with account that normally uses Kerberos",
+        "Logon Event 4624 with Logon Type 3 and NTLM auth from anomalous source",
+        "Mimikatz sekurlsa::pth execution",
+        "Overpass-the-hash producing Kerberos ticket from NTLM hash"
+      ],
+      "sigma_rule_template": "title: Pass the Hash via Unusual NTLM Logon\nstatus: test\nlogsource:\n  product: windows\n  service: security\ndetection:\n  selection:\n    EventID: 4624\n    LogonType: 3\n    AuthenticationPackageName: 'NTLM'\n    WorkstationName: ''\n  condition: selection\nlevel: high",
+      "data_sources": ["Windows Security Event 4624", "Windows Security Event 4776", "Sysmon network events"],
+      "replay_dataset_refs": ["apt-lateral-movement"],
+      "false_positive_notes": "Legacy applications using NTLM are common. Correlate with source host and account role.",
+      "references": ["https://attack.mitre.org/techniques/T1550/002/"]
+    },
+    {
+      "technique_id": "T1027",
+      "technique_name": "Obfuscated Files or Information",
+      "tactic": "defense_evasion",
+      "priority": "medium",
+      "description": "Adversaries obfuscate malicious files, scripts, or payloads to evade detection. Encoded PowerShell, XOR'd shellcode, and packed binaries are common techniques.",
+      "detection_patterns": [
+        "High-entropy file content in script files",
+        "Base64 encoded content in script blocks",
+        "Files with PE headers in renamed/obfuscated extensions",
+        "PowerShell -EncodedCommand with long base64 strings"
+      ],
+      "sigma_rule_template": "title: Highly Encoded PowerShell Command\nstatus: test\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith: '\\powershell.exe'\n    CommandLine|base64offset|contains: 'IEX'\n  condition: selection\nlevel: high",
+      "data_sources": ["Sysmon Event ID 1", "PowerShell Script Block 4104", "AV/EDR file scan events"],
+      "replay_dataset_refs": ["synthetic-soc-v1"],
+      "false_positive_notes": "Some legitimate software uses base64 encoding for configuration. Validate with code signing status.",
+      "references": ["https://attack.mitre.org/techniques/T1027/"]
+    },
+    {
+      "technique_id": "T1482",
+      "technique_name": "Domain Trust Discovery",
+      "tactic": "discovery",
+      "priority": "medium",
+      "description": "Adversaries enumerate domain trust relationships to identify targets across trusted domains for lateral movement.",
+      "detection_patterns": [
+        "nltest.exe /domain_trusts",
+        "PowerShell Get-ADTrust cmdlet",
+        "netdom query /domain",
+        "Enumeration of external trust relationships"
+      ],
+      "sigma_rule_template": "title: Domain Trust Discovery via Nltest\nstatus: test\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith: '\\nltest.exe'\n    CommandLine|contains:\n      - '/domain_trusts'\n      - '/all_trusts'\n  condition: selection\nlevel: medium",
+      "data_sources": ["Sysmon Event ID 1", "Windows Event 4688", "AD replication events"],
+      "replay_dataset_refs": ["apt-lateral-movement"],
+      "false_positive_notes": "IT administrators legitimately run domain trust queries during troubleshooting. Rarely in automated scripts.",
+      "references": ["https://attack.mitre.org/techniques/T1482/"]
+    },
+    {
+      "technique_id": "T1069.002",
+      "technique_name": "Permission Groups Discovery: Domain Groups",
+      "tactic": "discovery",
+      "priority": "medium",
+      "description": "Adversaries enumerate domain groups (especially privileged ones like Domain Admins) to identify targets for privilege escalation.",
+      "detection_patterns": [
+        "net group \"Domain Admins\" /domain",
+        "PowerShell Get-ADGroupMember for privileged groups",
+        "LDAP queries for group membership from non-admin accounts",
+        "Bulk AD group enumeration"
+      ],
+      "sigma_rule_template": "title: Domain Admin Group Enumeration\nstatus: test\nlogsource:\n  category: process_creation\n  product: windows\ndetection:\n  selection:\n    Image|endswith: '\\net.exe'\n    CommandLine|contains|all:\n      - 'group'\n      - 'Domain Admins'\n  condition: selection\nlevel: medium",
+      "data_sources": ["Sysmon Event ID 1", "Windows Event 4688", "AD LDAP audit logs"],
+      "replay_dataset_refs": ["apt-lateral-movement"],
+      "false_positive_notes": "Help desk and IT staff enumerate domain groups routinely for access provisioning.",
+      "references": ["https://attack.mitre.org/techniques/T1069/002/"]
+    }
+  ]
+}

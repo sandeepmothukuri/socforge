@@ -7,7 +7,6 @@ Base.metadata.create_all(). Run `alembic upgrade head` first.
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
 
 import structlog
 from sqlalchemy import select
@@ -15,19 +14,7 @@ from sqlalchemy import select
 from socforge.auth.security import hash_password
 from socforge.config import get_settings
 from socforge.database import AsyncSessionLocal
-from socforge.models.alert import (
-    Alert,
-    AlertSeverity,
-    AlertStatus,
-    Entity,
-    EntityRelationship,
-    EntityType,
-    Event,
-    RelationshipType,
-)
-from socforge.models.detection import Detection, DetectionVersion, RuleLanguage, ValidationState
-from socforge.models.investigation import Finding, FindingConfidence, Investigation, InvestigationAlert
-from socforge.models.operations import Workspace, WorkspaceMembership, WorkspaceMemberRole
+from socforge.models.operations import Workspace, WorkspaceMemberRole, WorkspaceMembership
 from socforge.models.user import Role, User
 
 logger = structlog.get_logger(__name__)

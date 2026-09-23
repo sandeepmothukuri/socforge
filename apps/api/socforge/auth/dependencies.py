@@ -19,11 +19,11 @@ Usage in routers:
 
 from __future__ import annotations
 
-import uuid
+from datetime import UTC
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Query, Request, Security, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer, OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPBearer, OAuth2PasswordBearer
 from jose import JWTError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,7 +31,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from socforge.auth.security import decode_token, hash_token
 from socforge.database import get_db
 from socforge.models.operations import Workspace, WorkspaceMembership
-from socforge.models.user import APIKey, Role, User, UserSession
+from socforge.models.user import APIKey, Role, User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -66,7 +66,7 @@ async def _get_user_from_token(
 
 async def _get_user_from_api_key(api_key: str, db: AsyncSession) -> User | None:
     key_hash = hash_token(api_key)
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     result = await db.execute(
         select(APIKey).where(
@@ -79,7 +79,7 @@ async def _get_user_from_api_key(api_key: str, db: AsyncSession) -> User | None:
         return None
 
     # Check expiry
-    if api_key_obj.expires_at and api_key_obj.expires_at < datetime.now(timezone.utc):
+    if api_key_obj.expires_at and api_key_obj.expires_at < datetime.now(UTC):
         return None
 
     user_result = await db.execute(

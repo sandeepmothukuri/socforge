@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import uuid
 from datetime import datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,11 +21,10 @@ from socforge.services.audit import record_audit_event
 
 router = APIRouter(prefix="/alerts", tags=["Alerts"])
 
+MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
+
 
 # ── Schemas ──────────────────────────────────────────────────────────────────
-
-
-import ipaddress
 
 
 class AlertCreate(BaseModel):
@@ -105,7 +105,7 @@ class AlertRead(BaseModel):
     model_config = {"from_attributes": True}
 
     @classmethod
-    def from_orm(cls, alert: Alert) -> "AlertRead":
+    def from_orm(cls, alert: Alert) -> AlertRead:
         return cls(
             id=str(alert.id),
             external_id=alert.external_id,

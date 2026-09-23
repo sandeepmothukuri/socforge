@@ -162,7 +162,16 @@ export default function DetectionsPage() {
                     </span>
                   </div>
                   <h4 className="text-xs font-semibold text-white truncate">{d.name}</h4>
-                  <p className="text-[11px] text-[#A7B0C0] font-mono mt-1">v{d.version} • {d.mitre_techniques?.join(", ") || "ATT&CK"}</p>
+                  <p className="text-[11px] text-[#A7B0C0] font-mono mt-1">{d.mitre_techniques?.join(", ") || "ATT&CK"}</p>
+                  <div className="flex justify-end mt-1.5">
+                    <a
+                      href={`/detections/${d.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[10px] text-[#38BDF8] hover:underline font-mono"
+                    >
+                      View Detail →
+                    </a>
+                  </div>
                 </div>
               ))}
             </div>

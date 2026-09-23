@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from enum import Enum as PyEnum
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -14,20 +14,20 @@ from socforge.database import Base
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _new_uuid() -> uuid.UUID:
     return uuid.uuid4()
 
 
-class RuleLanguage(str, PyEnum):
+class RuleLanguage(StrEnum):
     sigma = "sigma"
     spl = "spl"
     kql = "kql"
 
 
-class ValidationState(str, PyEnum):
+class ValidationState(StrEnum):
     pending = "pending"
     syntax_valid = "syntax_valid"
     syntax_error = "syntax_error"
@@ -105,10 +105,10 @@ class Detection(Base):
     )
 
     # Relationships
-    versions: Mapped[list["DetectionVersion"]] = relationship(
+    versions: Mapped[list[DetectionVersion]] = relationship(
         "DetectionVersion", back_populates="detection"
     )
-    test_runs: Mapped[list["DetectionTestRun"]] = relationship(
+    test_runs: Mapped[list[DetectionTestRun]] = relationship(
         "DetectionTestRun", back_populates="detection"
     )
 

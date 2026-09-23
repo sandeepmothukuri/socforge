@@ -8,7 +8,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -35,7 +35,7 @@ class EntityRead(BaseModel):
     updated_at: datetime
 
     @classmethod
-    def from_orm(cls, entity: Entity) -> "EntityRead":
+    def from_orm(cls, entity: Entity) -> EntityRead:
         return cls(
             id=str(entity.id),
             entity_type=entity.entity_type.value,

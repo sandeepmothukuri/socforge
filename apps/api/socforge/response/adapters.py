@@ -8,10 +8,10 @@ dry_run=True to ensure technical credibility and operational clarity.
 from __future__ import annotations
 
 import abc
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
-from socforge.models.operations import ResponseAction, ResponseActionStatus, ResponseActionType
+from socforge.models.operations import ResponseAction
 
 
 class BaseResponseAdapter(abc.ABC):
@@ -37,7 +37,7 @@ class MockResponseAdapter(BaseResponseAdapter):
         self,
         action: ResponseAction,
     ) -> dict[str, Any]:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         action_type = action.action_type.value if hasattr(action.action_type, "value") else str(action.action_type)
 
         execution_plans = {

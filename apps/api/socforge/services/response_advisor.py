@@ -11,10 +11,12 @@ Response actions require:
 
 from __future__ import annotations
 
-from typing import Any
 import uuid
+from typing import Any
+
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from socforge.models.operations import AuditAction
 from socforge.services.audit import record_audit_event
 

@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -87,7 +87,7 @@ class HuntRead(BaseModel):
     observations: list[HuntObservationRead]
 
     @classmethod
-    def from_orm(cls, h: Hunt) -> "HuntRead":
+    def from_orm(cls, h: Hunt) -> HuntRead:
         return cls(
             id=str(h.id),
             title=h.title,

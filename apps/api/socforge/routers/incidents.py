@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from socforge.auth.dependencies import CurrentAnalyst, CurrentIncidentCommander, CurrentUser
+from socforge.auth.dependencies import CurrentAnalyst, CurrentUser
 from socforge.database import get_db
 from socforge.models.operations import AuditAction, Incident, IncidentSeverity, IncidentStatus
 from socforge.services.audit import record_audit_event
@@ -62,7 +62,7 @@ class IncidentRead(BaseModel):
     updated_at: datetime
 
     @classmethod
-    def from_orm(cls, inc: Incident) -> "IncidentRead":
+    def from_orm(cls, inc: Incident) -> IncidentRead:
         return cls(
             id=str(inc.id),
             title=inc.title,
@@ -164,7 +164,7 @@ async def update_incident(
         setattr(inc, k, v)
 
     if payload.status == IncidentStatus.closed and not inc.closed_at:
-        inc.closed_at = datetime.now(timezone.utc)
+        inc.closed_at = datetime.now(UTC)
 
     await record_audit_event(
         db,

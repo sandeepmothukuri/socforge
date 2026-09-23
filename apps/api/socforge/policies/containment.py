@@ -118,23 +118,25 @@ class FourEyesPolicyEngine:
                 )
 
         # 4. Role Hierarchy Thresholds
-        if action.action_type in cls.HIGH_IMPACT_ACTIONS:
-            if not (approver.is_superuser or approver_role_name in ["Incident Commander", "Administrator"]):
-                return PolicyDecision(
-                    allowed=False,
-                    decision_code=PolicyDecisionCode.DENIED_INSUFFICIENT_PRIVILEGES,
-                    reason="High-impact containment actions require Incident Commander or Administrator privileges.",
-                    required_role="Incident Commander",
-                )
+        if action.action_type in cls.HIGH_IMPACT_ACTIONS and not (
+            approver.is_superuser or approver_role_name in ["Incident Commander", "Administrator"]
+        ):
+            return PolicyDecision(
+                allowed=False,
+                decision_code=PolicyDecisionCode.DENIED_INSUFFICIENT_PRIVILEGES,
+                reason="High-impact containment actions require Incident Commander or Administrator privileges.",
+                required_role="Incident Commander",
+            )
 
-        if action.action_type in cls.MEDIUM_IMPACT_ACTIONS:
-            if not (approver.is_superuser or approver_role_name in ["Incident Commander", "Administrator", "SOC Analyst"]):
-                return PolicyDecision(
-                    allowed=False,
-                    decision_code=PolicyDecisionCode.DENIED_INSUFFICIENT_PRIVILEGES,
-                    reason="Action requires operational analyst privileges.",
-                    required_role="SOC Analyst",
-                )
+        if action.action_type in cls.MEDIUM_IMPACT_ACTIONS and not (
+            approver.is_superuser or approver_role_name in ["Incident Commander", "Administrator", "SOC Analyst"]
+        ):
+            return PolicyDecision(
+                allowed=False,
+                decision_code=PolicyDecisionCode.DENIED_INSUFFICIENT_PRIVILEGES,
+                reason="Action requires operational analyst privileges.",
+                required_role="SOC Analyst",
+            )
 
         return PolicyDecision(
             allowed=True,

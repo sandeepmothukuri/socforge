@@ -110,6 +110,14 @@ export default function InvestigationsPage() {
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
               Refresh Graph
             </button>
+            {selectedInv && (
+              <Link
+                href={`/investigations/${selectedInv.id}`}
+                className="flex items-center gap-2 px-3.5 py-1.5 text-xs rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition shadow-sm"
+              >
+                <ArrowRight className="w-3.5 h-3.5" /> Open Detail Studio
+              </Link>
+            )}
             <Link
               href="/detections"
               className="flex items-center gap-2 px-3.5 py-1.5 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition shadow-sm"

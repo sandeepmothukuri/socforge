@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-import re
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from socforge.auth.dependencies import CurrentAnalyst, CurrentDetectionEngineer, CurrentUser
 from socforge.database import get_db
@@ -75,7 +73,7 @@ class DetectionRead(BaseModel):
     updated_at: datetime
 
     @classmethod
-    def from_orm(cls, d: Detection) -> "DetectionRead":
+    def from_orm(cls, d: Detection) -> DetectionRead:
         return cls(
             id=str(d.id),
             name=d.name,
@@ -260,7 +258,7 @@ async def validate_detection(
 
     # Update detection state
     detection.validation_errors = validation.errors
-    detection.last_validated_at = datetime.now(timezone.utc)
+    detection.last_validated_at = datetime.now(UTC)
     if validation.syntax_valid:
         if detection.validation_state == ValidationState.pending:
             detection.validation_state = ValidationState.syntax_valid
@@ -282,7 +280,7 @@ async def validate_detection(
         errors=validation.errors,
         warnings=validation.warnings,
         rule_language=detection.rule_language.value,
-        validated_at=datetime.now(timezone.utc),
+        validated_at=datetime.now(UTC),
     )
 
 
@@ -324,7 +322,7 @@ async def approve_detection(
 
     detection.validation_state = ValidationState.approved
     detection.reviewed_by_id = current_user.id
-    detection.approved_at = datetime.now(timezone.utc)
+    detection.approved_at = datetime.now(UTC)
 
     await record_audit_event(
         db,
@@ -365,7 +363,7 @@ async def test_detection(
     if detection is None:
         raise HTTPException(status_code=404, detail="Detection not found")
 
-    started_at = datetime.now(timezone.utc)
+    started_at = datetime.now(UTC)
 
     # Run syntax validation first
     validation = validate_rule(detection.rule_language, detection.rule_content)
@@ -377,7 +375,7 @@ async def test_detection(
         dataset_name=payload.dataset_name,
     )
 
-    completed_at = datetime.now(timezone.utc)
+    completed_at = datetime.now(UTC)
     duration_ms = max(1, int((completed_at - started_at).total_seconds() * 1000))
 
     # Persist test run

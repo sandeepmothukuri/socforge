@@ -7,6 +7,7 @@ Capabilities: health_check, search_events, get_alert, dispatch_spl.
 from __future__ import annotations
 
 from typing import Any
+
 import httpx
 import structlog
 

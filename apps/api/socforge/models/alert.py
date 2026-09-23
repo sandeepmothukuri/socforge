@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from enum import Enum as PyEnum
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from sqlalchemy import (
     Boolean,
@@ -24,14 +24,14 @@ from socforge.database import Base
 
 
 def _utcnow() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _new_uuid() -> uuid.UUID:
     return uuid.uuid4()
 
 
-class AlertStatus(str, PyEnum):
+class AlertStatus(StrEnum):
     new = "new"
     triaged = "triaged"
     investigating = "investigating"
@@ -40,7 +40,7 @@ class AlertStatus(str, PyEnum):
     closed = "closed"
 
 
-class AlertSeverity(str, PyEnum):
+class AlertSeverity(StrEnum):
     critical = "critical"
     high = "high"
     medium = "medium"
@@ -48,7 +48,7 @@ class AlertSeverity(str, PyEnum):
     informational = "informational"
 
 
-class EntityType(str, PyEnum):
+class EntityType(StrEnum):
     alert = "alert"
     event = "event"
     user = "user"
@@ -67,7 +67,7 @@ class EntityType(str, PyEnum):
     response_action = "response_action"
 
 
-class RelationshipType(str, PyEnum):
+class RelationshipType(StrEnum):
     alert_contains_event = "ALERT_CONTAINS_EVENT"
     event_involves_user = "EVENT_INVOLVES_USER"
     event_source_ip = "EVENT_SOURCE_IP"
@@ -138,8 +138,8 @@ class Alert(Base):
     )
 
     # Relationships
-    events: Mapped[list["Event"]] = relationship("Event", back_populates="alert")
-    investigation_alerts: Mapped[list["InvestigationAlert"]] = relationship(
+    events: Mapped[list[Event]] = relationship("Event", back_populates="alert")
+    investigation_alerts: Mapped[list[InvestigationAlert]] = relationship(
         "InvestigationAlert", back_populates="alert"
     )
 
@@ -239,12 +239,12 @@ class Entity(Base):
     )
 
     # Relationships
-    outbound_relationships: Mapped[list["EntityRelationship"]] = relationship(
+    outbound_relationships: Mapped[list[EntityRelationship]] = relationship(
         "EntityRelationship",
         foreign_keys="EntityRelationship.source_entity_id",
         back_populates="source_entity",
     )
-    inbound_relationships: Mapped[list["EntityRelationship"]] = relationship(
+    inbound_relationships: Mapped[list[EntityRelationship]] = relationship(
         "EntityRelationship",
         foreign_keys="EntityRelationship.target_entity_id",
         back_populates="target_entity",

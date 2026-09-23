@@ -3,17 +3,14 @@
 from __future__ import annotations
 
 import json
-import time
 import uuid
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from socforge.agents.providers import get_ai_provider
 from socforge.agents.schemas import (
     DetectionProposal,
-    FindingProposal,
     InvestigationResult,
     ThreatHuntResult,
     TriageResult,
@@ -35,7 +32,7 @@ class AIAgentOrchestrator:
             status=AgentRunStatus.running,
             target_type="alert",
             target_id=uuid.UUID(alert_id),
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         self.db.add(run)
         await self.db.flush()
@@ -67,7 +64,7 @@ class AIAgentOrchestrator:
 
         run.status = AgentRunStatus.completed
         run.output_payload = result.model_dump()
-        run.completed_at = datetime.now(timezone.utc)
+        run.completed_at = datetime.now(UTC)
         await self.db.flush()
         return result
 
@@ -83,7 +80,7 @@ class AIAgentOrchestrator:
             status=AgentRunStatus.running,
             target_type="investigation",
             target_id=uuid.UUID(investigation_id) if investigation_id else None,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         self.db.add(run)
         await self.db.flush()
@@ -112,7 +109,7 @@ class AIAgentOrchestrator:
 
         run.status = AgentRunStatus.completed
         run.output_payload = result.model_dump()
-        run.completed_at = datetime.now(timezone.utc)
+        run.completed_at = datetime.now(UTC)
         await self.db.flush()
         return result
 
@@ -129,7 +126,7 @@ class AIAgentOrchestrator:
             status=AgentRunStatus.running,
             target_type="finding",
             target_id=uuid.UUID(finding_id) if finding_id else None,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         self.db.add(run)
         await self.db.flush()
@@ -160,7 +157,7 @@ class AIAgentOrchestrator:
         output_dict = result.model_dump()
         run.status = AgentRunStatus.completed
         run.output_payload = output_dict
-        run.completed_at = datetime.now(timezone.utc)
+        run.completed_at = datetime.now(UTC)
         await self.db.flush()
         return result
 
@@ -176,7 +173,7 @@ class AIAgentOrchestrator:
             status=AgentRunStatus.running,
             target_type="hunt",
             target_id=uuid.UUID(hunt_id) if hunt_id else None,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         self.db.add(run)
         await self.db.flush()
@@ -208,6 +205,6 @@ class AIAgentOrchestrator:
 
         run.status = AgentRunStatus.completed
         run.output_payload = result.model_dump()
-        run.completed_at = datetime.now(timezone.utc)
+        run.completed_at = datetime.now(UTC)
         await self.db.flush()
         return result

@@ -148,6 +148,15 @@ export async function getInvestigations(): Promise<InvestigationItem[]> {
   }
 }
 
+export async function getInvestigationById(id: string): Promise<InvestigationItem> {
+  try {
+    return await request<InvestigationItem>(`/investigations/${id}`);
+  } catch {
+    await login();
+    return await request<InvestigationItem>(`/investigations/${id}`);
+  }
+}
+
 export interface FindingItem {
   id: string;
   investigation_id: string;
@@ -234,6 +243,15 @@ export async function getDetections(): Promise<DetectionItem[]> {
     await login();
     const res = await request<any>("/detections");
     return Array.isArray(res) ? res : res?.items || [];
+  }
+}
+
+export async function getDetectionById(id: string): Promise<DetectionItem> {
+  try {
+    return await request<DetectionItem>(`/detections/${id}`);
+  } catch {
+    await login();
+    return await request<DetectionItem>(`/detections/${id}`);
   }
 }
 
