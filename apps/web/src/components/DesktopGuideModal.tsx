@@ -358,7 +358,7 @@ export function DesktopGuideModal({ isOpen, onClose }: DesktopGuideModalProps) {
                   <div>
                     <div className="font-bold text-[#F8FAFC]">Step 3: Connect to Local API Gateway</div>
                     <p className="text-[11px] text-[#94A3B8] mt-1">
-                      In the mobile app Settings tab, change the URL from <code>localhost:8000</code> to your PC's local network IP (e.g. <code>http://192.168.1.100:8000</code>).
+                      In the mobile app Settings tab, change the URL from <code>localhost:8000</code> to your PC&apos;s local network IP (e.g. <code>http://192.168.1.100:8000</code>).
                     </p>
                   </div>
                 </div>

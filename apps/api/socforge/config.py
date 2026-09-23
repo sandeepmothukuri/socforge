@@ -17,6 +17,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Environment(StrEnum):
     development = "development"
     testing = "testing"
+    test = "test"
     production = "production"
 
 
@@ -25,6 +26,7 @@ class AIProvider(StrEnum):
     ollama = "ollama"
     vllm = "vllm"
     none = "none"
+    mock = "mock"
 
 
 class StorageBackend(StrEnum):
@@ -98,6 +100,32 @@ class Settings(BaseSettings):
     first_admin_email: str = "admin@socforge.local"
     first_admin_password: str = Field(default="admin12345!", min_length=8)
 
+    @field_validator("app_env", mode="before")
+    @classmethod
+    def normalize_app_env(cls, v: str | Environment) -> Environment:
+        if isinstance(v, str):
+            val = v.lower().strip()
+            if val in ("test", "testing"):
+                return Environment.testing
+            if val in ("dev", "development"):
+                return Environment.development
+            if val in ("prod", "production"):
+                return Environment.production
+            return Environment(val)
+        return v
+
+    @field_validator("ai_provider", mode="before")
+    @classmethod
+    def normalize_ai_provider(cls, v: str | AIProvider) -> AIProvider:
+        if isinstance(v, str):
+            val = v.lower().strip()
+            if val in ("none", "disabled", "off", "no"):
+                return AIProvider.none
+            if val in ("mock", "test", "testing", "fake"):
+                return AIProvider.mock
+            return AIProvider(val)
+        return v
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: str | list[str]) -> list[str]:
@@ -140,7 +168,7 @@ class Settings(BaseSettings):
 
     @property
     def is_testing(self) -> bool:
-        return self.app_env == Environment.testing
+        return self.app_env in (Environment.testing, Environment.test)
 
 
 @lru_cache(maxsize=1)

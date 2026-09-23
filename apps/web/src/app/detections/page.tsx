@@ -317,7 +317,7 @@ export default function DetectionsPage() {
                       </div>
                     ) : (
                       <div className="p-4 rounded-xl border border-dashed border-[#263248] text-xs text-[#6B7280] text-center">
-                        Click "Syntax Check" or "Replay Against Dataset" above to run automated analysis.
+                        Click &quot;Syntax Check&quot; or &quot;Replay Against Dataset&quot; above to run automated analysis.
                       </div>
                     )}
                   </div>
