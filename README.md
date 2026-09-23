@@ -140,29 +140,61 @@ socforge/
 
 ---
 
-## 3. Platform Verification & Screenshots
+## 3. Platform Verification & Visual Gallery
 
-### Security Operations Command Center
-High-density tactical operations dashboard tracking MTTD, MTTR, high-risk entity pivots, active investigations, and MITRE ATT&CK technique matrix.
+All screenshots below are captured directly from live operational instances running the verified SOCForge platform stack (PostgreSQL 16, FastAPI backend, Next.js 14 console).
+
+### 3.1 Security Operations Command Center
+High-density tactical operations dashboard tracking real-time triage metrics, MTTD/MTTR indicators, high-risk entity pivots, active investigations, and MITRE ATT&CK coverage matrix with quick-action telemetry feeds.
 ![SOCForge Dashboard Overview](docs/assets/socforge_dashboard.png)
 
 ---
 
-### Interactive Evidence Graph
-Typed graph visualizer mapping directed entity relationships (`User` → `Host` → `Process` → `Domain` → `MITRE ATT&CK`) with supporting event backing.
+### 3.2 Interactive Evidence Graph & Investigation Studio
+Authoritative typed graph visualizer mapping directed entity relationships (`User` → `Host` → `Process` → `Domain` → `MITRE ATT&CK`) with supporting event backing, dynamic findings ledger, and controlled response advisor.
+![SOCForge Investigation Studio](docs/assets/socforge_investigations.png)
+
+---
+
+### 3.3 Authoritative Entity Graph Detail
+Detailed interactive attack path graph displaying lateral pivots, compromised process lineages (`mimikatz.exe` targeting `lsass.exe`), credential dumping techniques (`T1003.001`), and risk scoring (94/100).
 ![SOCForge Evidence Graph](docs/assets/socforge_graph.png)
 
 ---
 
-### Detection Engineering Studio
-Lifecycle management for Sigma YAML, Splunk SPL, and Microsoft Sentinel KQL detection rules with AST grammar validation, separation-of-duties approval gating, and confusion-matrix replay testing.
+### 3.4 Operational Alerts Ledger & Triage
+Real-time telemetry ingestion ledger with multi-level severity classification, MITRE ATT&CK technique mapping, workspace filtering, and one-click escalation to active investigation cases.
+![SOCForge Alerts Ledger](docs/assets/socforge_alerts.png)
+
+---
+
+### 3.5 Detection Engineering Studio
+End-to-end lifecycle management for Sigma YAML, Splunk SPL, and Microsoft Sentinel KQL detection rules with AST grammar validation, separation-of-duties approval gating, and confusion-matrix replay testing against real telemetry datasets.
 ![SOCForge Detection Studio](docs/assets/socforge_detections.png)
 
 ---
 
-### Security Connectors & Integrations Hub
-Vendor-neutral adapters connecting external SIEM, EDR, and log analytics platforms into SOCForge normalized schemas with live connectivity diagnostics and AES-256 secret encryption.
+### 3.6 Dual-Gated Response & Containment Ledger
+Controlled incident mitigation console enforcing strict separation-of-duties approvals before executing host isolation or account disablement actions, backed by simulated execution adapters and an immutable audit trail.
+![SOCForge Response Ledger](docs/assets/socforge_responses.png)
+
+---
+
+### 3.7 Security Connectors & Integrations Hub
+Vendor-neutral telemetry adapters connecting external SIEM and EDR platforms (Wazuh, Splunk, Microsoft Sentinel) with live connectivity diagnostics, capability probing, and AES-256-GCM vault-encrypted credentials.
 ![SOCForge Integrations Hub](docs/assets/socforge_integrations.png)
+
+---
+
+### 3.8 Keyboard-First SOC Command Palette
+Interactive quick pivot command palette enabling rapid keyboard-driven navigation (`Ctrl+K` / `⌘K`) across alerts, entities, investigations, containment workflows, and detection replay suites.
+![SOCForge Command Palette](docs/assets/socforge_command_palette.png)
+
+---
+
+### 3.9 Standalone Windows Desktop Operations Suite
+Native executable support (`SOCForge-Operations.exe` and `SOCForge-Window.exe`) providing an offline-capable, dedicated desktop security analyst experience with automated local health probes and background sync.
+![SOCForge Desktop Guide](docs/assets/socforge_desktop.png)
 
 ---
 
