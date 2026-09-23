@@ -1,6 +1,6 @@
 <p align="center">
   <img
-    src="docs/assets/socforge-banner.png"
+    src="docs/assets/socforge-banner.jpg"
     alt="SOCForge - Open Source Security Operations Platform"
     width="100%"
   />
