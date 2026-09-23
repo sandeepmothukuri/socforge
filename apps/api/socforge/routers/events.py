@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,6 +37,8 @@ class EventRead(BaseModel):
     raw_event: dict[str, Any] | None
     metadata: dict[str, Any]
     created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(cls, ev: Event) -> EventRead:
@@ -148,7 +150,11 @@ async def search_events(
     count_q = select(func.count()).select_from(q.subquery())
     total = (await db.execute(count_q)).scalar_one()
 
-    q = q.order_by(Event.event_time.desc()).offset((req.page - 1) * req.page_size).limit(req.page_size)
+    q = (
+        q.order_by(Event.event_time.desc())
+        .offset((req.page - 1) * req.page_size)
+        .limit(req.page_size)
+    )
     events = (await db.execute(q)).scalars().all()
     return EventListResponse(
         items=[EventRead.from_orm(e) for e in events],

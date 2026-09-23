@@ -22,7 +22,7 @@ from socforge.services.audit import record_audit_event
 
 router = APIRouter(prefix="/integrations", tags=["Integrations"])
 
-CONNECTOR_REGISTRY = {
+CONNECTOR_REGISTRY: dict[str, type[WazuhIntegration | SentinelIntegration | SplunkIntegration]] = {
     "wazuh": WazuhIntegration,
     "sentinel": SentinelIntegration,
     "splunk": SplunkIntegration,
@@ -90,7 +90,9 @@ async def list_integrations(
     return results
 
 
-@router.put("/{name}", response_model=IntegrationRead, summary="Configure connector and encrypt secrets")
+@router.put(
+    "/{name}", response_model=IntegrationRead, summary="Configure connector and encrypt secrets"
+)
 async def configure_integration(
     name: str,
     payload: IntegrationConfigureRequest,
@@ -156,7 +158,9 @@ async def configure_integration(
     )
 
 
-@router.post("/{name}/health", response_model=IntegrationTestResponse, summary="Test connector health")
+@router.post(
+    "/{name}/health", response_model=IntegrationTestResponse, summary="Test connector health"
+)
 async def check_integration_health(
     name: str,
     current_user: CurrentUser,

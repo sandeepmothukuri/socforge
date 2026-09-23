@@ -50,9 +50,7 @@ def _validate_sigma(content: str) -> ValidationOutput:
         return ValidationOutput(syntax_valid=False, errors=[f"YAML parse error: {e}"])
 
     if not isinstance(parsed, dict):
-        return ValidationOutput(
-            syntax_valid=False, errors=["Sigma rule must be a YAML dictionary"]
-        )
+        return ValidationOutput(syntax_valid=False, errors=["Sigma rule must be a YAML dictionary"])
 
     # Required fields
     required = ["title", "status", "logsource", "detection"]
@@ -72,13 +70,17 @@ def _validate_sigma(content: str) -> ValidationOutput:
     valid_statuses = {"stable", "test", "experimental", "deprecated", "unsupported"}
     status = parsed.get("status")
     if status and status not in valid_statuses:
-        warnings.append(f"Status '{status}' is not a standard Sigma status. Expected one of: {', '.join(sorted(valid_statuses))}")
+        warnings.append(
+            f"Status '{status}' is not a standard Sigma status. Expected one of: {', '.join(sorted(valid_statuses))}"
+        )
 
     # Logsource validation
     logsource = parsed.get("logsource")
     if logsource and not isinstance(logsource, dict):
         errors.append("'logsource' must be a dictionary")
-    elif isinstance(logsource, dict) and not any(k in logsource for k in ("category", "product", "service")):
+    elif isinstance(logsource, dict) and not any(
+        k in logsource for k in ("category", "product", "service")
+    ):
         warnings.append("'logsource' should specify at least 'category', 'product', or 'service'")
 
     # Detection validation
@@ -106,7 +108,9 @@ def _validate_sigma(content: str) -> ValidationOutput:
     valid_levels = {"critical", "high", "medium", "low", "informational"}
     level = parsed.get("level")
     if level and level not in valid_levels:
-        warnings.append(f"Level '{level}' is not standard. Expected: {', '.join(sorted(valid_levels))}")
+        warnings.append(
+            f"Level '{level}' is not standard. Expected: {', '.join(sorted(valid_levels))}"
+        )
 
     # MITRE tags
     tags = parsed.get("tags", [])
@@ -135,8 +139,15 @@ def _validate_spl(content: str) -> ValidationOutput:
 
     # SPL should start with a search command or have pipe operations
     common_commands = [
-        "search", "index=", "source=", "sourcetype=", "|", "tstats",
-        "datamodel", "tag=", "eventtype="
+        "search",
+        "index=",
+        "source=",
+        "sourcetype=",
+        "|",
+        "tstats",
+        "datamodel",
+        "tag=",
+        "eventtype=",
     ]
     has_command = any(stripped.startswith(cmd) or f" {cmd}" in stripped for cmd in common_commands)
 
@@ -196,9 +207,24 @@ def _validate_kql(content: str) -> ValidationOutput:
 
     # Common KQL operators
     valid_operators = [
-        "where", "project", "extend", "summarize", "count", "limit",
-        "order by", "sort by", "join", "union", "distinct", "mv-expand",
-        "parse", "extract", "render", "let", "search", "find"
+        "where",
+        "project",
+        "extend",
+        "summarize",
+        "count",
+        "limit",
+        "order by",
+        "sort by",
+        "join",
+        "union",
+        "distinct",
+        "mv-expand",
+        "parse",
+        "extract",
+        "render",
+        "let",
+        "search",
+        "find",
     ]
 
     # Check for at least one KQL operator

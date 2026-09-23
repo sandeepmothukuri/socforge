@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from socforge.models.operations import ResponseAction, ResponseActionType
 
@@ -37,14 +37,14 @@ class FourEyesPolicyEngine:
     """Evaluates Four-Eyes separation of duties and authorization thresholds for containment actions."""
 
     # High-impact containment actions requiring Incident Commander or Administrator
-    HIGH_IMPACT_ACTIONS = {
+    HIGH_IMPACT_ACTIONS: ClassVar[set[ResponseActionType]] = {
         ResponseActionType.isolate_host,
         ResponseActionType.disable_user,
         ResponseActionType.kill_process,
     }
 
     # Medium-impact containment actions
-    MEDIUM_IMPACT_ACTIONS = {
+    MEDIUM_IMPACT_ACTIONS: ClassVar[set[ResponseActionType]] = {
         ResponseActionType.block_ip,
         ResponseActionType.block_domain,
         ResponseActionType.revoke_session,
@@ -52,13 +52,21 @@ class FourEyesPolicyEngine:
     }
 
     # Low-impact restoration actions
-    LOW_IMPACT_ACTIONS = {
+    LOW_IMPACT_ACTIONS: ClassVar[set[ResponseActionType]] = {
         ResponseActionType.unisolate_host,
         ResponseActionType.unblock_ip,
     }
 
     # Protected entity substrings (Domain controllers, identity infrastructure)
-    CRITICAL_ASSET_PATTERNS = ["-dc-", "dc01", "dc02", "domain_controller", "kdc", "ca-root", "prod-db"]
+    CRITICAL_ASSET_PATTERNS: ClassVar[list[str]] = [
+        "-dc-",
+        "dc01",
+        "dc02",
+        "domain_controller",
+        "kdc",
+        "ca-root",
+        "prod-db",
+    ]
 
     APPROVAL_TIMEOUT_SECONDS = 7200  # 2 hours
 
@@ -101,7 +109,10 @@ class FourEyesPolicyEngine:
             )
 
         # 3. Critical Asset Safeguard
-        if cls.is_critical_asset(action.target_entity_value) and action.action_type in cls.HIGH_IMPACT_ACTIONS:
+        if (
+            cls.is_critical_asset(action.target_entity_value)
+            and action.action_type in cls.HIGH_IMPACT_ACTIONS
+        ):
             if not (approver.is_superuser or approver_role_name == "Administrator"):
                 return PolicyDecision(
                     allowed=False,
@@ -129,7 +140,8 @@ class FourEyesPolicyEngine:
             )
 
         if action.action_type in cls.MEDIUM_IMPACT_ACTIONS and not (
-            approver.is_superuser or approver_role_name in ["Incident Commander", "Administrator", "SOC Analyst"]
+            approver.is_superuser
+            or approver_role_name in ["Incident Commander", "Administrator", "SOC Analyst"]
         ):
             return PolicyDecision(
                 allowed=False,

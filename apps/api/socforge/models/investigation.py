@@ -5,12 +5,16 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, Float, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from socforge.database import Base
+
+if TYPE_CHECKING:
+    from socforge.models.alert import Alert
 
 
 def _utcnow() -> datetime:
@@ -124,11 +128,7 @@ class InvestigationAlert(Base):
     )
     alert: Mapped[Alert] = relationship("Alert", back_populates="investigation_alerts")
 
-    __table_args__ = (
-        Index(
-            "ix_inv_alert_unique", "investigation_id", "alert_id", unique=True
-        ),
-    )
+    __table_args__ = (Index("ix_inv_alert_unique", "investigation_id", "alert_id", unique=True),)
 
 
 class Finding(Base):
@@ -168,9 +168,7 @@ class Finding(Base):
     response_recommendations: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
 
     # Promoted to detection hypothesis?
-    has_detection_hypothesis: Mapped[bool] = mapped_column(
-        default=False, nullable=False
-    )
+    has_detection_hypothesis: Mapped[bool] = mapped_column(default=False, nullable=False)
 
     extra_metadata: Mapped[dict | None] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(
@@ -204,7 +202,10 @@ class FindingEvent(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
     finding_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("findings.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("findings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     event_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True
@@ -215,9 +216,7 @@ class FindingEvent(Base):
 
     finding: Mapped[Finding] = relationship("Finding", back_populates="finding_events")
 
-    __table_args__ = (
-        Index("ix_finding_events_unique", "finding_id", "event_id", unique=True),
-    )
+    __table_args__ = (Index("ix_finding_events_unique", "finding_id", "event_id", unique=True),)
 
 
 class FindingEntity(Base):
@@ -227,10 +226,16 @@ class FindingEntity(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
     finding_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("findings.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("findings.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     entity_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("entities.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("entities.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, nullable=False
@@ -238,10 +243,4 @@ class FindingEntity(Base):
 
     finding: Mapped[Finding] = relationship("Finding", back_populates="finding_entities")
 
-    __table_args__ = (
-        Index("ix_finding_entities_unique", "finding_id", "entity_id", unique=True),
-    )
-
-
-# Resolve forward references
-from socforge.models.alert import Alert, Entity, Event  # noqa: E402, F401
+    __table_args__ = (Index("ix_finding_entities_unique", "finding_id", "entity_id", unique=True),)

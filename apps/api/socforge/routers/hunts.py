@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -86,6 +86,8 @@ class HuntRead(BaseModel):
     queries: list[HuntQueryRead]
     observations: list[HuntObservationRead]
 
+    model_config = ConfigDict(from_attributes=True)
+
     @classmethod
     def from_orm(cls, h: Hunt) -> HuntRead:
         return cls(
@@ -148,7 +150,9 @@ async def list_hunts(
     return [HuntRead.from_orm(h) for h in hunts]
 
 
-@router.post("", response_model=HuntRead, status_code=status.HTTP_201_CREATED, summary="Create a threat hunt")
+@router.post(
+    "", response_model=HuntRead, status_code=status.HTTP_201_CREATED, summary="Create a threat hunt"
+)
 async def create_hunt(
     payload: HuntCreate,
     current_user: CurrentAnalyst,
@@ -213,7 +217,11 @@ async def add_hunt_query(
     )
 
 
-@router.post("/{hunt_id}/observations", response_model=HuntObservationRead, summary="Record hunting observation")
+@router.post(
+    "/{hunt_id}/observations",
+    response_model=HuntObservationRead,
+    summary="Record hunting observation",
+)
 async def add_hunt_observation(
     hunt_id: str,
     payload: HuntObservationCreate,
@@ -242,7 +250,10 @@ async def add_hunt_observation(
     )
 
 
-@router.post("/{hunt_id}/observations/{obs_id}/promote", summary="Promote observation to an investigation finding")
+@router.post(
+    "/{hunt_id}/observations/{obs_id}/promote",
+    summary="Promote observation to an investigation finding",
+)
 async def promote_observation(
     hunt_id: str,
     obs_id: str,
@@ -251,7 +262,9 @@ async def promote_observation(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> dict[str, str]:
     oid = uuid.UUID(obs_id)
-    obs = (await db.execute(select(HuntObservation).where(HuntObservation.id == oid))).scalar_one_or_none()
+    obs = (
+        await db.execute(select(HuntObservation).where(HuntObservation.id == oid))
+    ).scalar_one_or_none()
     if not obs:
         raise HTTPException(status_code=404, detail="Observation not found")
 

@@ -8,7 +8,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi import status as http_status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -61,7 +61,9 @@ class FindingCreate(BaseModel):
     supporting_event_ids: list[str] = Field(default_factory=list)
     supporting_entity_ids: list[str] = Field(default_factory=list)
     response_recommendations: list[str] = Field(default_factory=list)
-    justification: str | None = Field(default=None, description="Analytical justification if no direct event IDs are linked")
+    justification: str | None = Field(
+        default=None, description="Analytical justification if no direct event IDs are linked"
+    )
 
 
 class FindingRead(BaseModel):
@@ -77,6 +79,8 @@ class FindingRead(BaseModel):
     response_recommendations: list[str]
     has_detection_hypothesis: bool
     created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(cls, f: Finding) -> FindingRead:
@@ -114,6 +118,8 @@ class InvestigationRead(BaseModel):
     updated_at: datetime
     alert_count: int = 0
     finding_count: int = 0
+
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(
@@ -185,33 +191,38 @@ async def list_investigations(
 
     if not current_user.is_superuser:
         user_ws_ids = (
-            await db.execute(
-                select(WorkspaceMembership.workspace_id).where(
-                    WorkspaceMembership.user_id == current_user.id
+            (
+                await db.execute(
+                    select(WorkspaceMembership.workspace_id).where(
+                        WorkspaceMembership.user_id == current_user.id
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         if workspace_id:
             try:
                 wid = uuid.UUID(workspace_id)
-                if wid not in user_ws_ids:
-                    raise HTTPException(
-                        status_code=http_status.HTTP_403_FORBIDDEN,
-                        detail="Access denied to requested workspace",
-                    )
-                query = query.where(Investigation.workspace_id == wid)
             except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid workspace ID")
+                raise HTTPException(status_code=400, detail="Invalid workspace ID") from None
+            if wid not in user_ws_ids:
+                raise HTTPException(
+                    status_code=http_status.HTTP_403_FORBIDDEN,
+                    detail="Access denied to requested workspace",
+                )
+            query = query.where(Investigation.workspace_id == wid)
         else:
             query = query.where(
-                (Investigation.workspace_id.in_(user_ws_ids)) | (Investigation.workspace_id.is_(None))
+                (Investigation.workspace_id.in_(user_ws_ids))
+                | (Investigation.workspace_id.is_(None))
             )
     elif workspace_id:
         try:
             wid = uuid.UUID(workspace_id)
             query = query.where(Investigation.workspace_id == wid)
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid workspace ID")
+            raise HTTPException(status_code=400, detail="Invalid workspace ID") from None
 
     query = query.order_by(Investigation.created_at.desc())
     query = query.offset((page - 1) * page_size).limit(page_size)
@@ -244,7 +255,7 @@ async def create_investigation(
         try:
             target_ws_id = uuid.UUID(payload.workspace_id)
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid workspace ID")
+            raise HTTPException(status_code=400, detail="Invalid workspace ID") from None
         if not current_user.is_superuser:
             mem = (
                 await db.execute(
@@ -296,7 +307,10 @@ async def create_investigation(
         actor_email=current_user.email,
         target_type="investigation",
         target_id=str(inv.id),
-        metadata={"alert_count": len(payload.alert_ids), "workspace_id": str(target_ws_id) if target_ws_id else None},
+        metadata={
+            "alert_count": len(payload.alert_ids),
+            "workspace_id": str(target_ws_id) if target_ws_id else None,
+        },
     )
     await db.commit()
     await db.refresh(inv)
@@ -313,7 +327,7 @@ async def get_investigation(
     try:
         iid = uuid.UUID(investigation_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid investigation ID")
+        raise HTTPException(status_code=400, detail="Invalid investigation ID") from None
 
     result = await db.execute(
         select(Investigation)
@@ -349,7 +363,9 @@ async def get_investigation(
     )
 
 
-@router.patch("/{investigation_id}", response_model=InvestigationRead, summary="Update investigation")
+@router.patch(
+    "/{investigation_id}", response_model=InvestigationRead, summary="Update investigation"
+)
 async def update_investigation(
     investigation_id: str,
     payload: InvestigationUpdate,
@@ -359,7 +375,7 @@ async def update_investigation(
     try:
         iid = uuid.UUID(investigation_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid investigation ID")
+        raise HTTPException(status_code=400, detail="Invalid investigation ID") from None
 
     result = await db.execute(
         select(Investigation)
@@ -425,7 +441,7 @@ async def create_finding(
     try:
         iid = uuid.UUID(investigation_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid investigation ID")
+        raise HTTPException(status_code=400, detail="Invalid investigation ID") from None
 
     result = await db.execute(select(Investigation).where(Investigation.id == iid))
     inv = result.scalar_one_or_none()
@@ -438,7 +454,9 @@ async def create_finding(
         for eid_str in payload.supporting_event_ids:
             try:
                 eid_uuid = uuid.UUID(eid_str)
-                evt = (await db.execute(select(Event).where(Event.id == eid_uuid))).scalar_one_or_none()
+                evt = (
+                    await db.execute(select(Event).where(Event.id == eid_uuid))
+                ).scalar_one_or_none()
                 if evt:
                     valid_event_uuids.append(evt.id)
             except ValueError:
@@ -450,7 +468,9 @@ async def create_finding(
         for ent_str in payload.supporting_entity_ids:
             try:
                 ent_uuid = uuid.UUID(ent_str)
-                entity = (await db.execute(select(Entity).where(Entity.id == ent_uuid))).scalar_one_or_none()
+                entity = (
+                    await db.execute(select(Entity).where(Entity.id == ent_uuid))
+                ).scalar_one_or_none()
                 if entity:
                     valid_entity_uuids.append(entity.id)
             except ValueError:
@@ -516,12 +536,10 @@ async def list_findings(
     try:
         iid = uuid.UUID(investigation_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid investigation ID")
+        raise HTTPException(status_code=400, detail="Invalid investigation ID") from None
 
     result = await db.execute(
-        select(Finding)
-        .where(Finding.investigation_id == iid)
-        .order_by(Finding.created_at.asc())
+        select(Finding).where(Finding.investigation_id == iid).order_by(Finding.created_at.asc())
     )
     return [FindingRead.from_orm(f) for f in result.scalars()]
 
@@ -540,10 +558,12 @@ async def get_evidence_graph(
     try:
         iid = uuid.UUID(investigation_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid investigation ID")
+        raise HTTPException(status_code=400, detail="Invalid investigation ID") from None
 
     # Verify investigation exists
-    inv = (await db.execute(select(Investigation).where(Investigation.id == iid))).scalar_one_or_none()
+    inv = (
+        await db.execute(select(Investigation).where(Investigation.id == iid))
+    ).scalar_one_or_none()
     if not inv:
         raise HTTPException(status_code=404, detail="Investigation not found")
 
@@ -664,7 +684,7 @@ async def get_evidence_graph(
                     )
                 )
 
-        for tech in (inv.mitre_techniques or []):
+        for tech in inv.mitre_techniques or []:
             tech_node_id = f"tech-{tech}"
             if tech_node_id not in nodes_map:
                 nodes_map[tech_node_id] = GraphNode(

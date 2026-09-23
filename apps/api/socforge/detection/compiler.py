@@ -45,9 +45,18 @@ class DetectionCompiler:
             return []
         tactics = []
         known_tactics = [
-            "initial-access", "execution", "persistence", "privilege-escalation",
-            "defense-evasion", "credential-access", "discovery", "lateral-movement",
-            "collection", "command-and-control", "exfiltration", "impact",
+            "initial-access",
+            "execution",
+            "persistence",
+            "privilege-escalation",
+            "defense-evasion",
+            "credential-access",
+            "discovery",
+            "lateral-movement",
+            "collection",
+            "command-and-control",
+            "exfiltration",
+            "impact",
         ]
         for tag in tags:
             tag_clean = tag.lower().replace("attack.", "").replace("_", "-")
@@ -65,11 +74,13 @@ class DetectionCompiler:
         # Determine index / sourcetype
         category = logsource.get("category", "")
         logsource.get("product", "")
-        index_clause = 'index=*'
+        index_clause = "index=*"
         if category == "process_creation":
             index_clause += ' sourcetype="WinEventLog:Security" EventCode=4688'
         elif category == "network_connection":
-            index_clause += ' sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=3'
+            index_clause += (
+                ' sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=3'
+            )
 
         predicates: list[str] = []
         for key, val in detection.items():
@@ -93,7 +104,7 @@ class DetectionCompiler:
                         or_clauses = []
                         for item in field_val:
                             if modifier == "contains":
-                                or_clauses.append(f'*{item}*')
+                                or_clauses.append(f"*{item}*")
                             else:
                                 or_clauses.append(f'"{item}"')
                         predicates.append(f"({spl_field} IN ({', '.join(or_clauses)}))")

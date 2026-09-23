@@ -7,7 +7,7 @@ Capabilities: health_check, search_events, get_alert, get_agent_status.
 from __future__ import annotations
 
 import base64
-from typing import Any
+from typing import Any, ClassVar
 
 import httpx
 import structlog
@@ -20,7 +20,7 @@ logger = structlog.get_logger(__name__)
 class WazuhIntegration(BaseIntegration):
     name = "wazuh"
     display_name = "Wazuh SIEM / EDR"
-    capabilities = [
+    capabilities: ClassVar[list[str]] = [
         "health_check",
         "search_events",
         "get_alert",
@@ -85,7 +85,7 @@ class WazuhIntegration(BaseIntegration):
         token = await self._authenticate()
         headers = {"Authorization": f"Bearer {token}"}
         async with httpx.AsyncClient(verify=self.verify_ssl, timeout=15.0) as client:
-            params = {"q": query, "limit": limit}
+            params: dict[str, str | int] = {"q": query, "limit": limit}
             resp = await client.get(f"{self.base_url}/syscheck", headers=headers, params=params)
             if resp.status_code == 200:
                 return resp.json().get("data", {}).get("affected_items", [])

@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from socforge.agents.schemas import DetectionProposal, TriageResult
 from socforge.agents.workflows import AIAgentOrchestrator
 from socforge.auth.dependencies import CurrentAnalyst, CurrentUser
 from socforge.database import get_db
@@ -45,7 +46,7 @@ async def triage_alert(
     req: TriageRequest,
     current_user: CurrentAnalyst,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> dict[str, Any]:
+) -> TriageResult:
     orchestrator = AIAgentOrchestrator(db, actor_id=current_user.id)
     result = await orchestrator.run_triage_agent(req.alert_id)
     await record_audit_event(
@@ -65,7 +66,7 @@ async def generate_detection(
     req: DetectionGenRequest,
     current_user: CurrentAnalyst,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> dict[str, Any]:
+) -> DetectionProposal:
     orchestrator = AIAgentOrchestrator(db, actor_id=current_user.id)
     result = await orchestrator.run_detection_engineer_agent(
         finding_id=req.finding_id,
@@ -85,12 +86,19 @@ async def generate_detection(
     return result
 
 
-@router.get("/runs", response_model=list[dict[str, Any]], summary="List AI agent runs and tool audit logs")
+@router.get(
+    "/runs", response_model=list[dict[str, Any]], summary="List AI agent runs and tool audit logs"
+)
 async def list_agent_runs(
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[dict[str, Any]]:
-    q = select(AgentRun).options(selectinload(AgentRun.tool_calls)).order_by(AgentRun.created_at.desc()).limit(50)
+    q = (
+        select(AgentRun)
+        .options(selectinload(AgentRun.tool_calls))
+        .order_by(AgentRun.created_at.desc())
+        .limit(50)
+    )
     runs = (await db.execute(q)).scalars().all()
     return [
         {
@@ -99,7 +107,7 @@ async def list_agent_runs(
             "status": r.status.value,
             "target_type": r.target_type,
             "target_id": str(r.target_id) if r.target_id else None,
-            "output": r.output,
+            "output": r.output_payload,
             "tool_calls_count": len(r.tool_calls),
             "created_at": str(r.created_at),
         }

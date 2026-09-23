@@ -19,7 +19,7 @@ Usage in routers:
 
 from __future__ import annotations
 
-from datetime import UTC
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
@@ -45,9 +45,7 @@ ROLE_HIERARCHY = {
 }
 
 
-async def _get_user_from_token(
-    token: str, db: AsyncSession
-) -> User | None:
+async def _get_user_from_token(token: str, db: AsyncSession) -> User | None:
     try:
         payload = decode_token(token)
         if payload.get("type") != "access":
@@ -58,15 +56,12 @@ async def _get_user_from_token(
     except JWTError:
         return None
 
-    result = await db.execute(
-        select(User).where(User.id == user_id, User.is_active.is_(True))
-    )
+    result = await db.execute(select(User).where(User.id == user_id, User.is_active.is_(True)))
     return result.scalar_one_or_none()
 
 
 async def _get_user_from_api_key(api_key: str, db: AsyncSession) -> User | None:
     key_hash = hash_token(api_key)
-    from datetime import datetime
 
     result = await db.execute(
         select(APIKey).where(
@@ -143,9 +138,7 @@ def require_role(minimum_role: str):
         result = await db.execute(select(Role).where(Role.id == current_user.role_id))
         role = result.scalar_one_or_none()
         if role is None:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail="Role not found"
-            )
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Role not found")
         user_level = ROLE_HIERARCHY.get(role.name, -1)
         required_level = ROLE_HIERARCHY.get(minimum_role, 999)
         if user_level < required_level and not current_user.is_superuser:

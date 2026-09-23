@@ -18,7 +18,12 @@ async def test_agent_tool_registry_get_alert_invalid_uuid():
         # Non-UUID string should gracefully fail without crashing
         res = await registry.get_alert("invalid-uuid-string")
         assert res.success is False
-        assert "badly formed hexadecimal UUID string" in res.error or "not a valid UUID" in res.error or "Invalid" in res.error or res.error is not None
+        assert (
+            "badly formed hexadecimal UUID string" in res.error
+            or "not a valid UUID" in res.error
+            or "Invalid" in res.error
+            or res.error is not None
+        )
 
 
 @pytest.mark.asyncio

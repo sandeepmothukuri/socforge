@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, ClassVar
 
 
 class BaseIntegration(ABC):
@@ -11,7 +11,7 @@ class BaseIntegration(ABC):
 
     name: str = "base"
     display_name: str = "Base Connector"
-    capabilities: list[str] = []
+    capabilities: ClassVar[list[str]] = []
 
     def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}

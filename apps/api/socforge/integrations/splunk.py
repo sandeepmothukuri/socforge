@@ -1,4 +1,4 @@
-﻿"""Splunk integration adapter — connects to Splunk Enterprise / Cloud REST API.
+"""Splunk integration adapter — connects to Splunk Enterprise / Cloud REST API.
 
 Provides real API interaction with a live Splunk instance or local forwarder.
 Capabilities: health_check, search_events, get_alert, dispatch_spl.
@@ -6,7 +6,7 @@ Capabilities: health_check, search_events, get_alert, dispatch_spl.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 import httpx
 import structlog
@@ -19,7 +19,7 @@ logger = structlog.get_logger(__name__)
 class SplunkIntegration(BaseIntegration):
     name = "splunk"
     display_name = "Splunk Enterprise / Cloud"
-    capabilities = [
+    capabilities: ClassVar[list[str]] = [
         "health_check",
         "search_events",
         "get_alert",
@@ -48,7 +48,11 @@ class SplunkIntegration(BaseIntegration):
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
 
-        auth = (self.username, self.password) if (self.username and self.password and not self.token) else None
+        auth = (
+            (self.username, self.password)
+            if (self.username and self.password and not self.token)
+            else None
+        )
 
         try:
             async with httpx.AsyncClient(verify=self.verify_ssl, timeout=8.0) as client:

@@ -11,20 +11,23 @@ Response actions require:
 
 from __future__ import annotations
 
-import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from socforge.models.operations import AuditAction
 from socforge.services.audit import record_audit_event
+
+if TYPE_CHECKING:
+    import uuid
+
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger(__name__)
 
 
 class ResponseAdvisor:
-    VALID_ACTIONS = {
+    VALID_ACTIONS: ClassVar[set[str]] = {
         "isolate_host",
         "disable_user",
         "block_ip",
@@ -33,7 +36,9 @@ class ResponseAdvisor:
         "collect_forensic_artifact",
     }
 
-    def __init__(self, db: AsyncSession, actor_id: uuid.UUID | None = None, actor_email: str | None = None):
+    def __init__(
+        self, db: AsyncSession, actor_id: uuid.UUID | None = None, actor_email: str | None = None
+    ):
         self.db = db
         self.actor_id = actor_id
         self.actor_email = actor_email

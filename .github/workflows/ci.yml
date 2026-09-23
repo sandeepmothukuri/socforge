@@ -72,7 +72,6 @@ jobs:
 
       - name: Mypy type check
         run: mypy socforge --ignore-missing-imports --no-error-summary
-        continue-on-error: true  # Non-blocking until stubs coverage improves
 
       - name: Run Alembic migrations on fresh DB
         run: |
@@ -129,7 +128,6 @@ jobs:
 
       - name: TypeScript type check
         run: npx tsc --noEmit
-        continue-on-error: true
 
       - name: ESLint
         run: npx eslint src --ext .ts,.tsx --max-warnings 0

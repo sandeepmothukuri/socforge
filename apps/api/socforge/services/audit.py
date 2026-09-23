@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any
-
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import TYPE_CHECKING, Any
 
 from socforge.models.operations import AuditAction, AuditEvent
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def record_audit_event(

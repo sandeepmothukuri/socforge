@@ -193,7 +193,14 @@ async def test_evidence_graph_workspace():
         assert len(invs) >= 1
 
         # Select or create an investigation with alert telemetry or MITRE techniques
-        target_inv = next((i for i in invs if (i.get("alert_count", 0) > 0 or len(i.get("mitre_techniques") or []) > 0)), None)
+        target_inv = next(
+            (
+                i
+                for i in invs
+                if (i.get("alert_count", 0) > 0 or len(i.get("mitre_techniques") or []) > 0)
+            ),
+            None,
+        )
         if not target_inv:
             create_resp = await client.post(
                 "/api/v1/investigations",
@@ -210,7 +217,9 @@ async def test_evidence_graph_workspace():
         target_inv_id = target_inv["id"]
 
         # Fetch investigation evidence graph
-        graph_resp = await client.get(f"/api/v1/investigations/{target_inv_id}/graph", headers=headers)
+        graph_resp = await client.get(
+            f"/api/v1/investigations/{target_inv_id}/graph", headers=headers
+        )
         assert graph_resp.status_code == 200
         graph = graph_resp.json()
 
@@ -318,4 +327,3 @@ async def test_response_action_lifecycle_and_workspaces():
         list_res = await client.get("/api/v1/responses", headers=headers)
         assert list_res.status_code == 200
         assert any(a["id"] == action_id for a in list_res.json())
-

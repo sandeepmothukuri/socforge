@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -71,6 +71,8 @@ class DetectionRead(BaseModel):
     approved_at: datetime | None
     created_at: datetime
     updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(cls, d: Detection) -> DetectionRead:
@@ -173,7 +175,7 @@ async def create_detection(
         try:
             finding_id = uuid.UUID(payload.finding_id)
         except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid finding_id")
+            raise HTTPException(status_code=400, detail="Invalid finding_id") from None
 
     detection = Detection(
         name=payload.name,
@@ -224,7 +226,7 @@ async def get_detection(
     try:
         did = uuid.UUID(detection_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid detection ID")
+        raise HTTPException(status_code=400, detail="Invalid detection ID") from None
 
     result = await db.execute(select(Detection).where(Detection.id == did))
     detection = result.scalar_one_or_none()
@@ -247,7 +249,7 @@ async def validate_detection(
     try:
         did = uuid.UUID(detection_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid detection ID")
+        raise HTTPException(status_code=400, detail="Invalid detection ID") from None
 
     result = await db.execute(select(Detection).where(Detection.id == did))
     detection = result.scalar_one_or_none()
@@ -297,7 +299,7 @@ async def approve_detection(
     try:
         did = uuid.UUID(detection_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid detection ID")
+        raise HTTPException(status_code=400, detail="Invalid detection ID") from None
 
     result = await db.execute(select(Detection).where(Detection.id == did))
     detection = result.scalar_one_or_none()
@@ -356,7 +358,7 @@ async def test_detection(
     try:
         did = uuid.UUID(detection_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid detection ID")
+        raise HTTPException(status_code=400, detail="Invalid detection ID") from None
 
     result = await db.execute(select(Detection).where(Detection.id == did))
     detection = result.scalar_one_or_none()
@@ -474,7 +476,7 @@ async def list_detection_tests(
     try:
         did = uuid.UUID(detection_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid detection ID")
+        raise HTTPException(status_code=400, detail="Invalid detection ID") from None
 
     runs = await db.execute(
         select(DetectionTestRun)

@@ -68,6 +68,7 @@ ignore = ["E501"]
 known-first-party = ["socforge"]
 
 [tool.ruff.lint.flake8-type-checking]
+exempt-modules = ["typing", "typing_extensions", "sqlalchemy.ext.asyncio"]
 runtime-evaluated-base-classes = ["pydantic.BaseModel", "sqlalchemy.orm.DeclarativeBase"]
 runtime-evaluated-decorators = [
   "fastapi.APIRouter.get",

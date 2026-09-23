@@ -45,7 +45,7 @@ def test_extract_mitre():
 def test_sigma_to_spl():
     spl = DetectionCompiler.sigma_to_spl(SAMPLE_SIGMA)
     assert "index=*" in spl
-    assert "sourcetype=\"WinEventLog:Security\"" in spl
+    assert 'sourcetype="WinEventLog:Security"' in spl
     assert 'NewProcessName="*mimikatz.exe*"' in spl
     assert 'CommandLine="*sekurlsa*"' in spl
 

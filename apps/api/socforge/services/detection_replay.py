@@ -46,15 +46,15 @@ class ReplayResult:
 
     dataset_name: str
     total_events: int
-    expected_true_positives: int   # ground truth malicious events in dataset
-    expected_true_negatives: int   # ground truth benign events in dataset
+    expected_true_positives: int  # ground truth malicious events in dataset
+    expected_true_negatives: int  # ground truth benign events in dataset
 
     # Confusion matrix
-    true_positives: int    # rule fired on a malicious event
-    false_positives: int   # rule fired on a benign event
-    false_negatives: int   # rule did NOT fire on a malicious event
-    true_negatives: int    # rule did NOT fire on a benign event
-    matched_events: int    # total events the rule fired on (TP + FP)
+    true_positives: int  # rule fired on a malicious event
+    false_positives: int  # rule fired on a benign event
+    false_negatives: int  # rule did NOT fire on a malicious event
+    true_negatives: int  # rule did NOT fire on a benign event
+    matched_events: int  # total events the rule fired on (TP + FP)
 
     precision: float
     recall: float
@@ -309,7 +309,7 @@ def _spl_matcher(rule_content: str):
     for match in re.finditer(r'"([^"]+)"', rule_content):
         keywords.append(match.group(1).lower())
 
-    for match in re.finditer(r'(?:search|where)\s+([\w]+)', rule_content, re.IGNORECASE):
+    for match in re.finditer(r"(?:search|where)\s+([\w]+)", rule_content, re.IGNORECASE):
         keywords.append(match.group(1).lower())
 
     def matcher(event: dict) -> bool:
@@ -388,9 +388,9 @@ def _evaluate(events: list[dict], matcher, dataset_name: str) -> ReplayResult:
 
     precision = round(tp / matched_total, 4) if matched_total > 0 else 0.0
     recall = round(tp / expected_tp, 4) if expected_tp > 0 else 0.0
-    f1 = round(
-        2 * precision * recall / (precision + recall), 4
-    ) if (precision + recall) > 0 else 0.0
+    f1 = (
+        round(2 * precision * recall / (precision + recall), 4) if (precision + recall) > 0 else 0.0
+    )
 
     return ReplayResult(
         dataset_name=dataset_name,
@@ -412,8 +412,17 @@ def _evaluate(events: list[dict], matcher, dataset_name: str) -> ReplayResult:
 
 def _safe_sample(event: dict) -> dict:
     keys = [
-        "id", "event_type", "source", "source_ip", "source_host",
-        "username", "process_name", "process_command_line",
-        "domain", "severity", "mitre_technique", "malicious",
+        "id",
+        "event_type",
+        "source",
+        "source_ip",
+        "source_host",
+        "username",
+        "process_name",
+        "process_command_line",
+        "domain",
+        "severity",
+        "mitre_technique",
+        "malicious",
     ]
     return {k: event.get(k) for k in keys if event.get(k) is not None}

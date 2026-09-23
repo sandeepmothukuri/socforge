@@ -73,9 +73,7 @@ async def login(
         )
 
     if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is disabled")
 
     access_token = create_access_token(str(user.id), {"email": user.email})
     refresh_token = create_refresh_token(str(user.id))

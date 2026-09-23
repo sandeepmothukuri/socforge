@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import abc
 from datetime import UTC, datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from socforge.models.operations import ResponseAction
+if TYPE_CHECKING:
+    from socforge.models.operations import ResponseAction
 
 
 class BaseResponseAdapter(abc.ABC):
@@ -38,7 +39,11 @@ class MockResponseAdapter(BaseResponseAdapter):
         action: ResponseAction,
     ) -> dict[str, Any]:
         now = datetime.now(UTC).isoformat()
-        action_type = action.action_type.value if hasattr(action.action_type, "value") else str(action.action_type)
+        action_type = (
+            action.action_type.value
+            if hasattr(action.action_type, "value")
+            else str(action.action_type)
+        )
 
         execution_plans = {
             "isolate_host": {

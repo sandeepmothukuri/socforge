@@ -5,7 +5,7 @@ References Sentinel detection architecture, workspace queries, and incident inge
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from socforge.integrations.base import BaseIntegration
 
@@ -13,7 +13,7 @@ from socforge.integrations.base import BaseIntegration
 class SentinelIntegration(BaseIntegration):
     name = "sentinel"
     display_name = "Microsoft Sentinel (Azure Log Analytics)"
-    capabilities = [
+    capabilities: ClassVar[list[str]] = [
         "health_check",
         "search_events",
         "get_alert",

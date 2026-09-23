@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import contextlib
 import logging
-from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 import structlog
 from fastapi import FastAPI, Request, status
@@ -72,6 +75,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         from sqlalchemy import text
 
         from socforge.database import engine
+
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
         logger.info("database_connected")
@@ -121,9 +125,7 @@ def create_app() -> FastAPI:
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         if not settings.is_development:
-            response.headers["Strict-Transport-Security"] = (
-                "max-age=31536000; includeSubDomains"
-            )
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
 
     # ── Exception handlers ───────────────────────────────────────────────────────

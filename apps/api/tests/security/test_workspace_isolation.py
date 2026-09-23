@@ -27,9 +27,17 @@ async def test_workspace_isolation_and_cross_tenant_denial():
             await db.flush()
 
         # Create Workspace Alpha (Tenant A)
-        ws_a = Workspace(name=f"Tenant Alpha {uuid.uuid4().hex[:6]}", slug=f"alpha-{uuid.uuid4().hex[:6]}", is_active=True)
+        ws_a = Workspace(
+            name=f"Tenant Alpha {uuid.uuid4().hex[:6]}",
+            slug=f"alpha-{uuid.uuid4().hex[:6]}",
+            is_active=True,
+        )
         # Create Workspace Beta (Tenant B)
-        ws_b = Workspace(name=f"Tenant Beta {uuid.uuid4().hex[:6]}", slug=f"beta-{uuid.uuid4().hex[:6]}", is_active=True)
+        ws_b = Workspace(
+            name=f"Tenant Beta {uuid.uuid4().hex[:6]}",
+            slug=f"beta-{uuid.uuid4().hex[:6]}",
+            is_active=True,
+        )
         db.add_all([ws_a, ws_b])
         await db.flush()
 
@@ -55,8 +63,16 @@ async def test_workspace_isolation_and_cross_tenant_denial():
         await db.flush()
 
         # Add memberships
-        db.add(WorkspaceMembership(workspace_id=ws_a.id, user_id=user_a.id, role=WorkspaceMemberRole.analyst))
-        db.add(WorkspaceMembership(workspace_id=ws_b.id, user_id=user_b.id, role=WorkspaceMemberRole.analyst))
+        db.add(
+            WorkspaceMembership(
+                workspace_id=ws_a.id, user_id=user_a.id, role=WorkspaceMemberRole.analyst
+            )
+        )
+        db.add(
+            WorkspaceMembership(
+                workspace_id=ws_b.id, user_id=user_b.id, role=WorkspaceMemberRole.analyst
+            )
+        )
 
         # Create an investigation inside Workspace Beta
         inv_b = Investigation(
@@ -76,7 +92,9 @@ async def test_workspace_isolation_and_cross_tenant_denial():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         # 1. User Alpha lists workspaces: must see Workspace A, must NOT see Workspace B
-        resp = await client.get("/api/v1/workspaces", headers={"Authorization": f"Bearer {token_a}"})
+        resp = await client.get(
+            "/api/v1/workspaces", headers={"Authorization": f"Bearer {token_a}"}
+        )
         assert resp.status_code == 200
         workspaces = resp.json()
         ws_ids = [w["id"] for w in workspaces]

@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -33,6 +33,8 @@ class EntityRead(BaseModel):
     metadata: dict[str, Any]
     created_at: datetime
     updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(cls, entity: Entity) -> EntityRead:
@@ -94,7 +96,11 @@ async def list_entities(
     return [EntityRead.from_orm(e) for e in result.scalars()]
 
 
-@router.get("/{entity_id}", response_model=EntityDetailWithRelations, summary="Get entity and graph neighbors")
+@router.get(
+    "/{entity_id}",
+    response_model=EntityDetailWithRelations,
+    summary="Get entity and graph neighbors",
+)
 async def get_entity(
     entity_id: str,
     current_user: CurrentUser,
@@ -103,7 +109,7 @@ async def get_entity(
     try:
         eid = uuid.UUID(entity_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid entity ID")
+        raise HTTPException(status_code=400, detail="Invalid entity ID") from None
 
     result = await db.execute(select(Entity).where(Entity.id == eid))
     entity = result.scalar_one_or_none()

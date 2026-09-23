@@ -86,7 +86,9 @@ class Incident(Base):
     title: Mapped[str] = mapped_column(String(512), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     severity: Mapped[IncidentSeverity] = mapped_column(
-        Enum(IncidentSeverity, name="incident_severity"), nullable=False, default=IncidentSeverity.medium
+        Enum(IncidentSeverity, name="incident_severity"),
+        nullable=False,
+        default=IncidentSeverity.medium,
     )
     status: Mapped[IncidentStatus] = mapped_column(
         Enum(IncidentStatus, name="incident_status"), nullable=False, default=IncidentStatus.open
@@ -100,9 +102,21 @@ class Incident(Base):
     commander_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), index=True
     )
+    assigned_to_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
     created_by_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
     )
+    investigation_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("investigations.id", ondelete="SET NULL")
+    )
+
+    executive_summary: Mapped[str | None] = mapped_column(Text)
+    technical_summary: Mapped[str | None] = mapped_column(Text)
+    timeline: Mapped[list[dict] | None] = mapped_column(JSONB, default=list)
+    affected_systems: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
+    affected_users: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
 
     mitre_techniques: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
     mitre_tactics: Mapped[list[str] | None] = mapped_column(JSONB, default=list)
@@ -257,7 +271,9 @@ class Integration(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
     name: Mapped[str] = mapped_column(String(128), nullable=False)
-    integration_type: Mapped[str] = mapped_column(String(64), nullable=False)  # e.g. "splunk", "elastic"
+    integration_type: Mapped[str] = mapped_column(
+        String(64), nullable=False
+    )  # e.g. "splunk", "elastic"
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Configuration (non-secret fields: host, port, index, etc.)
@@ -348,7 +364,10 @@ class WorkspaceMembership(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
     workspace_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False, index=True
+        UUID(as_uuid=True),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True

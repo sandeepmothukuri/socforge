@@ -6,6 +6,7 @@ import time
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -81,6 +82,7 @@ async def ready(
 
     if not is_ready:
         from fastapi import HTTPException
+
         raise HTTPException(
             status_code=503,
             detail={"ready": False, "checks": checks},
@@ -90,14 +92,12 @@ async def ready(
 
 
 @router.get("/metrics", summary="Basic application metrics (Prometheus-compatible text format)")
-async def metrics() -> str:
+async def metrics() -> PlainTextResponse:
     """Basic metrics endpoint.
 
     Returns uptime. For production monitoring, use the OpenTelemetry
     exporter configured via OTLP_ENDPOINT.
     """
-    from fastapi.responses import PlainTextResponse
-
     uptime = round(time.time() - _start_time, 2)
     lines = [
         "# HELP socforge_uptime_seconds Time since application start",

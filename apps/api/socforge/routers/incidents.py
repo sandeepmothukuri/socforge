@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -61,6 +61,8 @@ class IncidentRead(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    model_config = ConfigDict(from_attributes=True)
+
     @classmethod
     def from_orm(cls, inc: Incident) -> IncidentRead:
         return cls(
@@ -101,7 +103,9 @@ async def list_incidents(
     return [IncidentRead.from_orm(inc) for inc in incidents]
 
 
-@router.post("", response_model=IncidentRead, status_code=status.HTTP_201_CREATED, summary="Create incident")
+@router.post(
+    "", response_model=IncidentRead, status_code=status.HTTP_201_CREATED, summary="Create incident"
+)
 async def create_incident(
     payload: IncidentCreate,
     current_user: CurrentAnalyst,
@@ -147,7 +151,9 @@ async def get_incident(
     return IncidentRead.from_orm(inc)
 
 
-@router.patch("/{incident_id}", response_model=IncidentRead, summary="Update incident status / summaries")
+@router.patch(
+    "/{incident_id}", response_model=IncidentRead, summary="Update incident status / summaries"
+)
 async def update_incident(
     incident_id: str,
     payload: IncidentUpdate,

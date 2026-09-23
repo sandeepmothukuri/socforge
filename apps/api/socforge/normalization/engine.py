@@ -9,7 +9,7 @@ from __future__ import annotations
 import abc
 import json
 import re
-from typing import Any
+from typing import Any, ClassVar
 
 from socforge.models.alert import AlertSeverity
 from socforge.routers.alerts import AlertCreate
@@ -32,11 +32,16 @@ class BaseNormalizer(abc.ABC):
 class SysmonNormalizer(BaseNormalizer):
     """Normalizes Microsoft Windows Sysmon XML/JSON telemetry into SOCForge alerts."""
 
-    EVENT_MAPPING = {
+    EVENT_MAPPING: ClassVar[dict[int, tuple[str, AlertSeverity, list[str], list[str]]]] = {
         1: ("Process Create", AlertSeverity.medium, ["T1059.001"], ["execution"]),
         3: ("Network Connection", AlertSeverity.low, ["T1071.001"], ["command_and_control"]),
         7: ("Image Loaded", AlertSeverity.informational, ["T1574.002"], ["persistence"]),
-        8: ("CreateRemoteThread", AlertSeverity.high, ["T1055.001"], ["defense_evasion", "privilege_escalation"]),
+        8: (
+            "CreateRemoteThread",
+            AlertSeverity.high,
+            ["T1055.001"],
+            ["defense_evasion", "privilege_escalation"],
+        ),
         10: ("ProcessAccess", AlertSeverity.high, ["T1003.001"], ["credential_access"]),
         11: ("File Create", AlertSeverity.low, ["T1105"], ["command_and_control"]),
         13: ("RegistryEvent (Value Set)", AlertSeverity.medium, ["T1547.001"], ["persistence"]),
@@ -49,7 +54,10 @@ class SysmonNormalizer(BaseNormalizer):
             provider = raw_data["Event"].get("System", {}).get("Provider", {}).get("@Name", "")
             return "sysmon" in provider.lower()
         if "EventID" in raw_data or "event_id" in raw_data:
-            return raw_data.get("source", "").lower() in ["sysmon", "microsoft-windows-sysmon"] or "UtcTime" in raw_data
+            return (
+                raw_data.get("source", "").lower() in ["sysmon", "microsoft-windows-sysmon"]
+                or "UtcTime" in raw_data
+            )
         return False
 
     def normalize(self, raw_data: dict[str, Any]) -> AlertCreate:
@@ -60,7 +68,9 @@ class SysmonNormalizer(BaseNormalizer):
             event_data = raw_data["Event"]["EventData"]
 
         try:
-            event_id = int(system_data.get("EventID", raw_data.get("EventID", raw_data.get("event_id", 1))))
+            event_id = int(
+                system_data.get("EventID", raw_data.get("EventID", raw_data.get("event_id", 1)))
+            )
         except (ValueError, TypeError):
             event_id = 1
 
@@ -119,7 +129,9 @@ class WazuhNormalizer(BaseNormalizer):
     """Normalizes Wazuh agent and manager alert JSON records."""
 
     def can_normalize(self, raw_data: dict[str, Any]) -> bool:
-        return "rule" in raw_data and ("agent" in raw_data or "decoder" in raw_data or "manager" in raw_data)
+        return "rule" in raw_data and (
+            "agent" in raw_data or "decoder" in raw_data or "manager" in raw_data
+        )
 
     def normalize(self, raw_data: dict[str, Any]) -> AlertCreate:
         rule = raw_data.get("rule", {})
@@ -168,7 +180,11 @@ class WazuhNormalizer(BaseNormalizer):
             mitre_techniques=mitre_techs,
             mitre_tactics=mitre_tactics,
             raw_event=raw_data,
-            metadata={"wazuh_rule_id": rule_id, "wazuh_rule_level": rule_level, "agent_id": agent.get("id")},
+            metadata={
+                "wazuh_rule_id": rule_id,
+                "wazuh_rule_level": rule_level,
+                "agent_id": agent.get("id"),
+            },
         )
 
 
@@ -202,7 +218,9 @@ class ZeekNormalizer(BaseNormalizer):
             description = f"HTTP request {raw_data.get('method', 'GET')} to {full_url or domain}"
         else:
             title = f"Zeek Network Connection: {src_ip} -> {dst_ip} ({service or proto})"
-            description = f"Network session observed duration={raw_data.get('duration', '0')}s proto={proto}"
+            description = (
+                f"Network session observed duration={raw_data.get('duration', '0')}s proto={proto}"
+            )
 
         return AlertCreate(
             source=f"zeek.{log_type}",
@@ -230,7 +248,9 @@ class NormalizationEngine:
             ZeekNormalizer(),
         ]
 
-    def normalize_event(self, raw_event: dict[str, Any] | str, source_hint: str | None = None) -> AlertCreate:
+    def normalize_event(
+        self, raw_event: dict[str, Any] | str, source_hint: str | None = None
+    ) -> AlertCreate:
         if isinstance(raw_event, str):
             try:
                 data = json.loads(raw_event)

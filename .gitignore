@@ -62,5 +62,7 @@ Thumbs.db
 *.swp
 *.swo
 *.exe
+*.tsbuildinfo
+uv.lock
 apps/mobile/node_modules/
 apps/mobile/.expo/

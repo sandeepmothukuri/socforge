@@ -54,9 +54,7 @@ def generate_api_key() -> tuple[str, str, str]:
 
 def create_access_token(subject: str, extra_claims: dict[str, Any] | None = None) -> str:
     settings = get_settings()
-    expire = datetime.now(UTC) + timedelta(
-        minutes=settings.access_token_expire_minutes
-    )
+    expire = datetime.now(UTC) + timedelta(minutes=settings.access_token_expire_minutes)
     payload: dict[str, Any] = {
         "sub": subject,
         "exp": expire,

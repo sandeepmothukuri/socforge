@@ -61,8 +61,7 @@ class AlertCreate(BaseModel):
             ipaddress.ip_address(v.strip())
             return v.strip()
         except ValueError:
-            raise ValueError(f"Invalid IP address format: {v}")
-
+            raise ValueError(f"Invalid IP address format: {v}") from None
 
 
 class AlertUpdate(BaseModel):
@@ -191,7 +190,9 @@ async def list_alerts(
     )
 
 
-@router.post("", response_model=AlertRead, status_code=status.HTTP_201_CREATED, summary="Create alert")
+@router.post(
+    "", response_model=AlertRead, status_code=status.HTTP_201_CREATED, summary="Create alert"
+)
 async def create_alert(
     payload: AlertCreate,
     current_user: CurrentAnalyst,
@@ -211,7 +212,6 @@ async def create_alert(
             return AlertRead.from_orm(existing_alert)
 
     alert = Alert(
-
         source=payload.source,
         title=payload.title,
         description=payload.description,
@@ -258,14 +258,13 @@ async def create_alert(
 async def ingest_alerts(
     current_user: CurrentAnalyst,
     db: Annotated[AsyncSession, Depends(get_db)],
-    file: UploadFile = File(description="JSON array or NDJSON file of alert objects"),
+    file: Annotated[UploadFile, File(description="JSON array or NDJSON file of alert objects")],
 ) -> IngestResponse:
     """Bulk ingest alerts from a JSON array or newline-delimited JSON file.
 
     The file must contain AlertCreate-compatible objects. Malformed records
     are rejected individually without blocking the valid records.
     """
-    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 MB
     content = await file.read()
     if len(content) > MAX_FILE_SIZE:
         raise HTTPException(
@@ -280,7 +279,7 @@ async def ingest_alerts(
     try:
         text = content.decode("utf-8")
     except UnicodeDecodeError:
-        raise HTTPException(status_code=400, detail="File must be UTF-8 encoded")
+        raise HTTPException(status_code=400, detail="File must be UTF-8 encoded") from None
 
     # Try JSON array first, then NDJSON
     records: list[dict] = []
@@ -289,7 +288,7 @@ async def ingest_alerts(
         try:
             records = json.loads(text)
         except json.JSONDecodeError as e:
-            raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}")
+            raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}") from e
     else:
         for i, line in enumerate(text.splitlines()):
             line = line.strip()
@@ -344,7 +343,7 @@ async def get_alert(
     try:
         aid = uuid.UUID(alert_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid alert ID")
+        raise HTTPException(status_code=400, detail="Invalid alert ID") from None
 
     result = await db.execute(select(Alert).where(Alert.id == aid))
     alert = result.scalar_one_or_none()
@@ -364,7 +363,7 @@ async def update_alert(
     try:
         aid = uuid.UUID(alert_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid alert ID")
+        raise HTTPException(status_code=400, detail="Invalid alert ID") from None
 
     result = await db.execute(select(Alert).where(Alert.id == aid))
     alert = result.scalar_one_or_none()

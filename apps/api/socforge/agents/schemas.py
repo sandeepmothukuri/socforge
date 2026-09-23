@@ -26,9 +26,7 @@ class TriageResult(BaseModel):
         default_factory=list,
         description="MITRE ATT&CK tactic names observed",
     )
-    confidence: str = Field(
-        description="Confidence in the assessment: high, medium, low"
-    )
+    confidence: str = Field(description="Confidence in the assessment: high, medium, low")
     recommended_pivots: list[str] = Field(
         default_factory=list,
         description="Recommended investigation pivot queries or data sources",

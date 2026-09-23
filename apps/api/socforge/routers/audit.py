@@ -7,7 +7,7 @@ from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -40,6 +40,8 @@ class AuditEventRead(BaseModel):
     target_id: str | None
     metadata: dict | None
     occurred_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(cls, a: AuditEvent) -> AuditEventRead:
@@ -115,6 +117,8 @@ class ResponseActionRead(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    model_config = ConfigDict(from_attributes=True)
+
     @classmethod
     def from_orm(cls, r: ResponseAction) -> ResponseActionRead:
         return cls(
@@ -136,7 +140,9 @@ class ResponseActionRead(BaseModel):
         )
 
 
-@responses_router.get("", response_model=list[ResponseActionRead], summary="List containment response actions")
+@responses_router.get(
+    "", response_model=list[ResponseActionRead], summary="List containment response actions"
+)
 async def list_response_actions(
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -150,7 +156,12 @@ async def list_response_actions(
     return [ResponseActionRead.from_orm(r) for r in res.scalars()]
 
 
-@responses_router.post("", response_model=ResponseActionRead, status_code=status.HTTP_201_CREATED, summary="Request containment response action")
+@responses_router.post(
+    "",
+    response_model=ResponseActionRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Request containment response action",
+)
 async def request_response_action(
     payload: ResponseActionCreate,
     current_user: CurrentAnalyst,
@@ -187,19 +198,27 @@ async def request_response_action(
     return ResponseActionRead.from_orm(action)
 
 
-@responses_router.post("/{action_id}/approve", response_model=ResponseActionRead, summary="Approve and execute response action")
+@responses_router.post(
+    "/{action_id}/approve",
+    response_model=ResponseActionRead,
+    summary="Approve and execute response action",
+)
 async def approve_response_action(
     action_id: str,
     current_user: CurrentIncidentCommander,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> ResponseActionRead:
     aid = uuid.UUID(action_id)
-    action = (await db.execute(select(ResponseAction).where(ResponseAction.id == aid))).scalar_one_or_none()
+    action = (
+        await db.execute(select(ResponseAction).where(ResponseAction.id == aid))
+    ).scalar_one_or_none()
     if not action:
         raise HTTPException(status_code=404, detail="Response action not found")
 
     if action.status != ResponseActionStatus.pending_approval:
-        raise HTTPException(status_code=400, detail=f"Action cannot be approved in state {action.status.value}")
+        raise HTTPException(
+            status_code=400, detail=f"Action cannot be approved in state {action.status.value}"
+        )
 
     # Enforce separation of duties: requester cannot approve
     if action.requested_by_id and action.requested_by_id == current_user.id:
@@ -241,7 +260,7 @@ async def approve_response_action(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Containment execution failed: {exc}",
-        )
+        ) from exc
 
     await record_audit_event(
         db,
@@ -283,6 +302,8 @@ class WorkspaceRead(BaseModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
     @classmethod
     def from_orm(cls, w: Workspace) -> WorkspaceRead:

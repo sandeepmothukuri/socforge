@@ -27,12 +27,15 @@ ModelT = TypeVar("ModelT", bound=Base)
 class BaseRepository[ModelT: Base]:
     """Generic async repository base class."""
 
+    primary_key_attribute: str = "id"
+
     def __init__(self, db: AsyncSession, model: type[ModelT]):
         self.db = db
         self.model = model
 
     async def get_by_id(self, item_id: uuid.UUID) -> ModelT | None:
-        result = await self.db.execute(select(self.model).where(self.model.id == item_id))
+        pk_col = getattr(self.model, self.primary_key_attribute)
+        result = await self.db.execute(select(self.model).where(pk_col == item_id))
         return result.scalar_one_or_none()
 
     async def list_all(self, limit: int = 100, offset: int = 0) -> Sequence[ModelT]:
@@ -70,7 +73,11 @@ class AlertRepository(BaseRepository[Alert]):
         count_q = select(func.count()).select_from(q.subquery())
         total = (await self.db.execute(count_q)).scalar_one()
 
-        items = (await self.db.execute(q.order_by(Alert.created_at.desc()).limit(limit).offset(offset))).scalars().all()
+        items = (
+            (await self.db.execute(q.order_by(Alert.created_at.desc()).limit(limit).offset(offset)))
+            .scalars()
+            .all()
+        )
         return items, total
 
 

@@ -8,11 +8,13 @@ from __future__ import annotations
 
 import time
 import uuid
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 from socforge.models.alert import Alert, Event
 from socforge.models.investigation import Finding, FindingConfidence
@@ -28,12 +30,16 @@ class ToolResult(BaseModel):
 
 
 class ControlledToolRegistry:
-    def __init__(self, db: AsyncSession, agent_run_id: uuid.UUID, actor_id: uuid.UUID | None = None):
+    def __init__(
+        self, db: AsyncSession, agent_run_id: uuid.UUID, actor_id: uuid.UUID | None = None
+    ):
         self.db = db
         self.agent_run_id = agent_run_id
         self.actor_id = actor_id
 
-    async def _record_call(self, name: str, inp: dict, outp: Any, success: bool, err: str | None, dur: int):
+    async def _record_call(
+        self, name: str, inp: dict, outp: Any, success: bool, err: str | None, dur: int
+    ):
         tool_call = AgentToolCall(
             agent_run_id=self.agent_run_id,
             tool_name=name,
@@ -53,8 +59,16 @@ class ControlledToolRegistry:
             alert = res.scalar_one_or_none()
             dur = int((time.time() - t0) * 1000)
             if not alert:
-                await self._record_call("get_alert", {"alert_id": alert_id}, None, False, "Alert not found", dur)
-                return ToolResult(tool_name="get_alert", success=False, data=None, error="Alert not found", duration_ms=dur)
+                await self._record_call(
+                    "get_alert", {"alert_id": alert_id}, None, False, "Alert not found", dur
+                )
+                return ToolResult(
+                    tool_name="get_alert",
+                    success=False,
+                    data=None,
+                    error="Alert not found",
+                    duration_ms=dur,
+                )
 
             data = {
                 "id": str(alert.id),
@@ -73,7 +87,9 @@ class ControlledToolRegistry:
         except Exception as e:
             dur = int((time.time() - t0) * 1000)
             await self._record_call("get_alert", {"alert_id": alert_id}, None, False, str(e), dur)
-            return ToolResult(tool_name="get_alert", success=False, data=None, error=str(e), duration_ms=dur)
+            return ToolResult(
+                tool_name="get_alert", success=False, data=None, error=str(e), duration_ms=dur
+            )
 
     async def search_events(self, query: str, limit: int = 10) -> ToolResult:
         t0 = time.time()
@@ -92,14 +108,30 @@ class ControlledToolRegistry:
                 }
                 for e in events
             ]
-            await self._record_call("search_events", {"query": query, "limit": limit}, {"count": len(data)}, True, None, dur)
+            await self._record_call(
+                "search_events",
+                {"query": query, "limit": limit},
+                {"count": len(data)},
+                True,
+                None,
+                dur,
+            )
             return ToolResult(tool_name="search_events", success=True, data=data, duration_ms=dur)
         except Exception as e:
             dur = int((time.time() - t0) * 1000)
             await self._record_call("search_events", {"query": query}, None, False, str(e), dur)
-            return ToolResult(tool_name="search_events", success=False, data=None, error=str(e), duration_ms=dur)
+            return ToolResult(
+                tool_name="search_events", success=False, data=None, error=str(e), duration_ms=dur
+            )
 
-    async def create_finding(self, investigation_id: str, title: str, description: str, confidence: str = "medium", mitre_techniques: list[str] | None = None) -> ToolResult:
+    async def create_finding(
+        self,
+        investigation_id: str,
+        title: str,
+        description: str,
+        confidence: str = "medium",
+        mitre_techniques: list[str] | None = None,
+    ) -> ToolResult:
         t0 = time.time()
         try:
             iid = uuid.UUID(investigation_id)
@@ -114,9 +146,20 @@ class ControlledToolRegistry:
             await self.db.flush()
             dur = int((time.time() - t0) * 1000)
             data = {"finding_id": str(finding.id), "title": finding.title}
-            await self._record_call("create_finding", {"investigation_id": investigation_id, "title": title}, data, True, None, dur)
+            await self._record_call(
+                "create_finding",
+                {"investigation_id": investigation_id, "title": title},
+                data,
+                True,
+                None,
+                dur,
+            )
             return ToolResult(tool_name="create_finding", success=True, data=data, duration_ms=dur)
         except Exception as e:
             dur = int((time.time() - t0) * 1000)
-            await self._record_call("create_finding", {"investigation_id": investigation_id}, None, False, str(e), dur)
-            return ToolResult(tool_name="create_finding", success=False, data=None, error=str(e), duration_ms=dur)
+            await self._record_call(
+                "create_finding", {"investigation_id": investigation_id}, None, False, str(e), dur
+            )
+            return ToolResult(
+                tool_name="create_finding", success=False, data=None, error=str(e), duration_ms=dur
+            )

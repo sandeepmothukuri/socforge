@@ -108,7 +108,11 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_production_security(self) -> Settings:
         if self.app_env == Environment.production:
-            if self.secret_key in ("insecure-dev-secret-key-change-in-production", "change-me-immediately", "secret"):
+            if self.secret_key in (
+                "insecure-dev-secret-key-change-in-production",
+                "change-me-immediately",
+                "secret",
+            ):
                 raise ValueError("Insecure SECRET_KEY detected in production environment.")
             if self.first_admin_password in ("admin12345!", "change-me-immediately", "admin"):
                 raise ValueError("Default FIRST_ADMIN_PASSWORD cannot be used in production.")
@@ -119,7 +123,6 @@ class Settings(BaseSettings):
         if self.ai_provider == AIProvider.vllm and not self.ai_base_url:
             raise ValueError("ai_base_url is required when AI_PROVIDER=vllm")
         return self
-
 
     @property
     def cors_origins_list(self) -> list[str]:

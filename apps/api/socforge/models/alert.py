@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     Boolean,
@@ -21,6 +22,9 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from socforge.database import Base
+
+if TYPE_CHECKING:
+    from socforge.models.investigation import InvestigationAlert
 
 
 def _utcnow() -> datetime:
@@ -318,7 +322,3 @@ class EntityRelationship(Base):
         ),
         Index("ix_entity_rel_target", "target_entity_id"),
     )
-
-
-# Circular reference resolved below
-from socforge.models.investigation import Investigation, InvestigationAlert  # noqa: E402, F401
