@@ -94,9 +94,12 @@ def _validate_sigma(content: str) -> ValidationOutput:
                 # Check that condition references defined selections
                 selections = [k for k in detection if k != "condition"]
                 if isinstance(condition, str):
+                    sigma_keywords = {"and", "or", "not", "all", "of", "1", "them", "by"}
                     referenced = re.findall(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b", condition)
                     for ref in referenced:
-                        if ref not in ("all", "of", "1", "them") and ref not in selections:
+                        if ref.lower() in sigma_keywords:
+                            continue
+                        if ref not in selections and not any(s.startswith(ref) for s in selections):
                             errors.append(f"Condition references undefined selection: '{ref}'")
 
     # Level validation

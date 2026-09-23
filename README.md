@@ -215,12 +215,12 @@ Native executable support (`SOCForge-Operations.exe` and `SOCForge-Window.exe`) 
 ---
 
 ### 3.10 Automated Test Suite Verification Evidence
-All core domain models, policies, and pipelines are verified continuously with automated unit, integration, and security test suites (**65 tests, 0 failures, 100% pass rate**):
+All core domain models, policies, and pipelines are verified continuously with automated unit, integration, and security test suites (**66 tests, 0 failures, 100% pass rate**):
 
 ```text
 ============================= test session starts ==============================
 platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
-collected 65 items
+collected 66 items
 
 tests/integration/test_api_integration.py ............                   [ 18%]
 tests/integration/test_asgi_workflows.py ..                              [ 21%]
@@ -231,11 +231,11 @@ tests/unit/test_auth_security.py ...                                     [ 35%]
 tests/unit/test_cli.py ....                                              [ 41%]
 tests/unit/test_detection_compiler.py ....                               [ 47%]
 tests/unit/test_detection_replay.py .............                        [ 67%]
-tests/unit/test_detection_validator.py ....                              [ 73%]
-tests/unit/test_graph_builder.py ..                                      [ 76%]
-tests/unit/test_normalization.py .....                                   [ 84%]
+tests/unit/test_detection_validator.py .....                             [ 74%]
+tests/unit/test_graph_builder.py ..                                      [ 77%]
+tests/unit/test_normalization.py .....                                   [ 85%]
 tests/unit/test_policies.py .....                                        [ 92%]
-tests/unit/test_repositories.py ...                                      [ 96%]
+tests/unit/test_repositories.py ...                                      [ 97%]
 tests/unit/test_response_advisor.py .                                    [ 98%]
 tests/unit/test_unit_forwarder.py .                                      [100%]
 
@@ -248,7 +248,7 @@ socforge/normalization/engine.py             129     20    84%
 socforge/agents/tools.py                      70      8    89%
 socforge/models/* (all models)               688     15    98%
 TOTAL                                       3710   1033    72%
-======================= 65 passed, 2 warnings in 23.05s ========================
+======================= 66 passed, 2 warnings in 14.35s ========================
 ```
 
 ---

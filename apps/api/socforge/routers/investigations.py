@@ -298,6 +298,8 @@ async def create_investigation(
         target_id=str(inv.id),
         metadata={"alert_count": len(payload.alert_ids), "workspace_id": str(target_ws_id) if target_ws_id else None},
     )
+    await db.commit()
+    await db.refresh(inv)
 
     return InvestigationRead.from_orm(inv, alert_count=len(payload.alert_ids))
 
@@ -495,6 +497,8 @@ async def create_finding(
         target_id=str(finding.id),
         metadata={"investigation_id": investigation_id, "evidence_count": len(valid_event_uuids)},
     )
+    await db.commit()
+    await db.refresh(finding)
 
     return FindingRead.from_orm(finding)
 

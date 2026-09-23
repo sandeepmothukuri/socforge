@@ -20,6 +20,7 @@ RUN pip install --no-cache-dir hatchling && \
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app
 USER appuser
+ENV PATH="/home/appuser/.local/bin:${PATH}"
 
 EXPOSE 8000
 

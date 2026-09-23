@@ -182,6 +182,8 @@ async def request_response_action(
         target_id=str(action.id),
         metadata={"action_type": action.action_type.value, "target": action.target_entity_value},
     )
+    await db.commit()
+    await db.refresh(action)
 
     return ResponseActionRead.from_orm(action)
 

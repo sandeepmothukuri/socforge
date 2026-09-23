@@ -211,6 +211,8 @@ async def create_detection(
         target_type="detection",
         target_id=str(detection.id),
     )
+    await db.commit()
+    await db.refresh(detection)
 
     return DetectionRead.from_orm(detection)
 

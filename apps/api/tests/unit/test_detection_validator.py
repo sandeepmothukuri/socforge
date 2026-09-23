@@ -61,3 +61,24 @@ def test_kql_validation():
 """
     result = validate_rule(RuleLanguage.kql, kql)
     assert result.syntax_valid is True
+
+
+def test_compound_sigma_conditions():
+    compound_rule = """title: Compound Rule
+id: 22222222-3333-4444-5555-666666666666
+status: test
+description: Test compound condition
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_tools:
+        Image|contains: 'mimikatz.exe'
+    selection_cmdline:
+        CommandLine|contains: 'sekurlsa'
+    condition: selection_tools and selection_cmdline
+level: critical
+"""
+    result = validate_rule(RuleLanguage.sigma, compound_rule)
+    assert result.syntax_valid is True
+    assert len(result.errors) == 0
