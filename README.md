@@ -1,13 +1,23 @@
-# SOCForge
+<p align="center">
+  <img
+    src="docs/assets/socforge-banner.jpg"
+    alt="SOCForge - Open Source Security Operations Platform"
+    width="100%"
+  />
+</p>
 
-> **Evidence-Driven Security Operations Platform for Investigation, Threat Hunting, and Detection Engineering**
+<p align="center">
+  <strong>Evidence-Driven Security Operations Platform for Investigation, Threat Hunting, and Detection Engineering</strong>
+</p>
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Python: 3.12](https://img.shields.io/badge/Python-3.12-brightgreen.svg)](https://www.python.org/)
-[![FastAPI: 0.115](https://img.shields.io/badge/FastAPI-0.115-009688.svg)](https://fastapi.tiangolo.com/)
-[![Next.js: 14](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
-[![PostgreSQL: 16](https://img.shields.io/badge/PostgreSQL-16-336791.svg)](https://www.postgresql.org/)
-[![Docker Compose](https://img.shields.io/badge/Deploy-Docker_Compose-blue.svg)](docker-compose.yml)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License: Apache 2.0"></a>
+  <img src="https://img.shields.io/badge/Python-3.12-brightgreen.svg" alt="Python 3.12">
+  <img src="https://img.shields.io/badge/FastAPI-0.115-009688.svg" alt="FastAPI 0.115">
+  <img src="https://img.shields.io/badge/Next.js-14-black.svg" alt="Next.js 14">
+  <img src="https://img.shields.io/badge/PostgreSQL-16-336791.svg" alt="PostgreSQL 16">
+  <img src="https://img.shields.io/badge/Deploy-Docker_Compose-blue.svg" alt="Docker Compose">
+</p>
 
 **Author**: [Sandeep Mothukuri](https://github.com/sandeepmothukuri)  
 **Website**: [https://cybertechnology.in](https://cybertechnology.in)
