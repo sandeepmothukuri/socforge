@@ -72,7 +72,7 @@ export default function AuditPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/50 font-mono">
-                  {logList.map((log) => (
+                  {logList.map((log: AuditItem) => (
                     <tr key={log.id} className="hover:bg-slate-900/40">
                       <td className="px-6 py-3 text-slate-400">
                         {new Date(log.occurred_at).toLocaleString()}

@@ -43,7 +43,7 @@ export default function AlertsPage() {
   }, []);
 
   const alertList = Array.isArray(alerts) ? alerts : (alerts as any)?.items || [];
-  const filtered = alertList.filter((a) => {
+  const filtered = alertList.filter((a: AlertItem) => {
     const matchesSearch =
       a.title.toLowerCase().includes(search.toLowerCase()) ||
       (a.source_host && a.source_host.toLowerCase().includes(search.toLowerCase())) ||
@@ -135,7 +135,7 @@ export default function AlertsPage() {
                 <p className="text-xs text-slate-400">No alerts match the active filter criteria.</p>
               </div>
             ) : (
-              filtered.map((alert) => (
+              filtered.map((alert: AlertItem) => (
                 <div
                   key={alert.id}
                   onClick={() => setSelectedAlert(alert)}

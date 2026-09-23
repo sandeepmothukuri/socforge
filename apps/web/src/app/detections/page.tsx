@@ -185,8 +185,8 @@ export default function DetectionsPage() {
                 <div>
                   <h2 className="text-sm font-bold text-white flex items-center gap-2">
                     {selectedDet.name}
-                    <span className="text-xs px-2 py-0.5 rounded bg-[#172033] border border-[#263248] text-[#38BDF8] font-mono font-normal">
-                      v{selectedDet.version}
+                    <span className="text-xs px-2 py-0.5 rounded bg-[#172033] border border-[#263248] text-[#38BDF8] font-mono font-normal uppercase">
+                      {selectedDet.rule_language}
                     </span>
                   </h2>
                   <p className="text-xs text-[#A7B0C0] mt-0.5">{selectedDet.description}</p>
