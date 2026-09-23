@@ -1,0 +1,4 @@
+DeviceNetworkEvents
+| where ActionType == "DnsQuery"
+| where RemoteUrl has_any ("c2.attacker-infra.net", "tunnel.evilcorp.org", "dnscat", "iodined")
+| project Timestamp, DeviceName, InitiatingProcessAccountName, RemoteUrl, RemoteIP

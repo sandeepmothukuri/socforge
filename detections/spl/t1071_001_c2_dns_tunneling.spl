@@ -1,0 +1,3 @@
+index=* sourcetype="XmlWinEventLog:Microsoft-Windows-Sysmon/Operational" EventCode=22
+(QueryName="*c2.attacker-infra.net*" OR QueryName="*tunnel.evilcorp.org*" OR QueryName="*dnscat*" OR QueryName="*iodined*")
+| table _time, Computer, Image, QueryName, QueryResults

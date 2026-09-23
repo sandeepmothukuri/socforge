@@ -26,7 +26,9 @@ target_metadata = Base.metadata
 database_url = os.environ.get("DATABASE_URL", "")
 if database_url:
     # Ensure postgresql+asyncpg is used for async migrations
-    if database_url.startswith("postgresql://"):
+    if database_url.startswith("postgresql+psycopg2://"):
+        database_url = database_url.replace("postgresql+psycopg2://", "postgresql+asyncpg://", 1)
+    elif database_url.startswith("postgresql://"):
         database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
     config.set_main_option("sqlalchemy.url", database_url)
 

@@ -1,0 +1,4 @@
+DeviceProcessEvents
+| where FileName has_any ("mimikatz.exe", "procdump.exe", "rundll32.exe")
+| where ProcessCommandLine has_any ("sekurlsa", "MiniDump", "comsvcs.dll", "lsass")
+| project Timestamp, DeviceName, AccountName, FileName, ProcessCommandLine

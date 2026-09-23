@@ -8,11 +8,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY apps/api/ /app/
+COPY apps/cli/ /app/apps/cli/
 COPY workers/ /app/workers/
 COPY datasets/ /app/datasets/
+COPY detections/ /app/detections/
 
 RUN pip install --no-cache-dir hatchling && \
-    pip install --no-cache-dir .
+    pip install --no-cache-dir . && \
+    pip install --no-cache-dir -e /app/apps/cli
 
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app

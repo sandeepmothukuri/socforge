@@ -1,0 +1,24 @@
+title: Potential C2 DNS Tunneling Telemetry
+id: 8a7b6c5d-4e3f-2a1b-0c9d-8e7f6a5b4c3d
+status: test
+description: Detects command-and-control communication utilizing excessive DNS query length or suspicious subdomain patterns
+author: Sandeep Mothukuri
+references:
+  - https://attack.mitre.org/techniques/T1071/004/
+tags:
+  - attack.command_and_control
+  - attack.t1071.004
+logsource:
+  category: dns
+  product: windows
+detection:
+  selection_dns:
+    query|contains:
+      - c2.attacker-infra.net
+      - tunnel.evilcorp.org
+      - dnscat
+      - iodined
+  condition: selection_dns
+falsepositives:
+  - Complex CDN or dynamic anti-spam DNS queries
+level: high

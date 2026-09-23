@@ -1,0 +1,27 @@
+{
+  "test_case_id": "TC-T1136.001-01",
+  "technique": "T1136.001",
+  "title": "Local Account Creation Test Batch",
+  "events": [
+    {
+      "id": "evt-tp-05",
+      "malicious": true,
+      "event_type": "process_creation",
+      "source_host": "WKSTN-401",
+      "username": "intruder",
+      "process_name": "net.exe",
+      "process_command_line": "net user backdoor Pass123! /add",
+      "expected_match": true
+    },
+    {
+      "id": "evt-tn-05",
+      "malicious": false,
+      "event_type": "process_creation",
+      "source_host": "WKSTN-402",
+      "username": "admin",
+      "process_name": "net.exe",
+      "process_command_line": "net view \\\\SRV-FILE01",
+      "expected_match": false
+    }
+  ]
+}

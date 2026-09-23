@@ -10,6 +10,7 @@ Provides operational and administrative controls for SOCForge:
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Optional
 
 import httpx
@@ -30,13 +31,45 @@ console = Console()
 
 API_BASE_URL = os.environ.get("SOCFORGE_API_URL", "http://localhost:8000/api/v1")
 AUTH_TOKEN = os.environ.get("SOCFORGE_API_KEY", "")
+TOKEN_FILE = Path.home() / ".socforge" / "token"
 
 
 def get_headers() -> dict[str, str]:
     headers = {"Content-Type": "application/json"}
-    if AUTH_TOKEN:
-        headers["Authorization"] = f"Bearer {AUTH_TOKEN}"
+    token = AUTH_TOKEN
+    if not token and TOKEN_FILE.exists():
+        try:
+            token = TOKEN_FILE.read_text(encoding="utf-8").strip()
+        except Exception:
+            token = ""
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     return headers
+
+
+@app.command("login")
+def login(
+    email: str = typer.Option("admin@socforge.local", "--email", "-e"),
+    password: str = typer.Option("admin12345!", "--password", "-p"),
+):
+    """Authenticate with SOCForge API and store access token."""
+    login_url = f"{API_BASE_URL}/auth/login"
+    try:
+        resp = httpx.post(
+            login_url,
+            data={"username": email, "password": password},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10.0,
+        )
+        if resp.status_code == 200:
+            token = resp.json().get("access_token")
+            TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
+            TOKEN_FILE.write_text(token, encoding="utf-8")
+            console.print(f"[bold green][OK] Successfully authenticated as {email}[/bold green]")
+        else:
+            console.print(f"[bold red]Authentication failed: HTTP {resp.status_code} {resp.text}[/bold red]")
+    except Exception as e:
+        console.print(f"[bold red]Login error: {e}[/bold red]")
 
 
 # ── Alerts ───────────────────────────────────────────────────────────────────
@@ -58,8 +91,10 @@ def list_alerts(
     try:
         resp = httpx.get(url, headers=get_headers(), params=params, timeout=10.0)
         if resp.status_code == 200:
-            alerts = resp.json()
-            table = Table(title=f"Security Alerts ({len(alerts)})")
+            data = resp.json()
+            alerts = data.get("items", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
+            total = data.get("total", len(alerts)) if isinstance(data, dict) else len(alerts)
+            table = Table(title=f"Security Alerts ({total})")
             table.add_column("ID", style="cyan")
             table.add_column("Severity", style="bold")
             table.add_column("Status", style="yellow")
@@ -75,11 +110,11 @@ def list_alerts(
                     "informational": "dim",
                 }.get(a.get("severity", ""), "")
                 table.add_row(
-                    a["id"][:8],
+                    str(a.get("id", ""))[:8],
                     f"[{sev_style}]{a.get('severity', '')}[/{sev_style}]",
-                    a.get("status", ""),
-                    a.get("source", ""),
-                    a.get("title", "")[:50],
+                    str(a.get("status", "")),
+                    str(a.get("source", "")),
+                    str(a.get("title", ""))[:50],
                 )
             console.print(table)
         else:
@@ -152,6 +187,70 @@ def test_detection_cli(detection_id: str, dataset: str = "synthetic-soc-v1"):
         console.print(f"[bold red]Error: {e}[/bold red]")
 
 
+# ── Investigations ──────────────────────────────────────────────────────────
+
+app.add_typer(investigations_app, name="investigations")
+
+
+@investigations_app.command("list")
+def list_investigations():
+    """List security investigations."""
+    url = f"{API_BASE_URL}/investigations"
+    try:
+        resp = httpx.get(url, headers=get_headers(), timeout=10.0)
+        if resp.status_code == 200:
+            data = resp.json()
+            invs = data if isinstance(data, list) else data.get("items", [])
+            table = Table(title=f"Investigations ({len(invs)})")
+            table.add_column("ID", style="cyan")
+            table.add_column("Severity", style="bold")
+            table.add_column("Status", style="yellow")
+            table.add_column("Alerts", style="magenta")
+            table.add_column("Findings", style="green")
+            table.add_column("Title")
+
+            for inv in invs:
+                sev = inv.get("severity", "")
+                sev_style = {
+                    "critical": "bold red",
+                    "high": "red",
+                    "medium": "yellow",
+                    "low": "blue",
+                }.get(sev, "")
+                table.add_row(
+                    str(inv.get("id", ""))[:8],
+                    f"[{sev_style}]{sev}[/{sev_style}]",
+                    str(inv.get("status", "")),
+                    str(inv.get("alert_count", 0)),
+                    str(inv.get("finding_count", 0)),
+                    str(inv.get("title", ""))[:50],
+                )
+            console.print(table)
+        else:
+            console.print(f"[bold red]Failed: HTTP {resp.status_code} {resp.text}[/bold red]")
+    except Exception as e:
+        console.print(f"[bold red]Error: {e}[/bold red]")
+
+
+@investigations_app.command("get")
+def get_investigation(investigation_id: str):
+    """Get investigation details by ID."""
+    url = f"{API_BASE_URL}/investigations/{investigation_id}"
+    try:
+        resp = httpx.get(url, headers=get_headers(), timeout=10.0)
+        if resp.status_code == 200:
+            inv = resp.json()
+            console.print(f"[bold cyan]Investigation:[/bold cyan] {inv.get('title')}")
+            console.print(f"ID: {inv.get('id')} | Status: {inv.get('status')} | Severity: {inv.get('severity')}")
+            console.print(f"Description: {inv.get('description')}")
+            console.print(f"MITRE Techniques: {', '.join(inv.get('mitre_techniques') or [])}")
+            console.print(f"Alerts: {inv.get('alert_count')} | Findings: {inv.get('finding_count')}")
+        else:
+            console.print(f"[bold red]Failed: HTTP {resp.status_code} {resp.text}[/bold red]")
+    except Exception as e:
+        console.print(f"[bold red]Error: {e}[/bold red]")
+
+
 # ── Demo Workflow (Real API Operations) ──────────────────────────────────────
 
 @app.command()
@@ -178,10 +277,19 @@ def demo():
         login_url = "/api/v1/auth/login"
         try:
             admin_email = os.environ.get("DEFAULT_ADMIN_EMAIL", "admin@socforge.local")
-            admin_pwd = os.environ.get("DEFAULT_ADMIN_PASSWORD", "changeme_in_production")
-            login_resp = client.post(login_url, json={"email": admin_email, "password": admin_pwd})
+            admin_pwd = os.environ.get("DEFAULT_ADMIN_PASSWORD", "admin12345!")
+            login_resp = client.post(
+                login_url,
+                data={"username": admin_email, "password": admin_pwd},
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
             if login_resp.status_code == 200:
                 token = login_resp.json().get("access_token")
+                try:
+                    TOKEN_FILE.parent.mkdir(parents=True, exist_ok=True)
+                    TOKEN_FILE.write_text(token, encoding="utf-8")
+                except Exception:
+                    pass
                 console.print(f"[green][OK] Authenticated as {admin_email}[/green]")
             else:
                 console.print(f"[yellow][WARN] Auto-login skipped (HTTP {login_resp.status_code}); attempting unauthenticated demo[/yellow]")

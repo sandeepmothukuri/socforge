@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy import select
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from socforge.auth.dependencies import CurrentAnalyst, CurrentIncidentCommander, CurrentUser
@@ -20,6 +21,7 @@ from socforge.models.operations import (
     ResponseActionStatus,
     ResponseActionType,
     Workspace,
+    WorkspaceMembership,
 )
 from socforge.response.adapters import ResponseDispatcher
 from socforge.services.audit import record_audit_event
@@ -41,7 +43,7 @@ class AuditEventRead(BaseModel):
     occurred_at: datetime
 
     @classmethod
-    def from_orm(cls, a: AuditEvent) -> "AuditEventRead":
+    def from_orm(cls, a: AuditEvent) -> AuditEventRead:
         return cls(
             id=str(a.id),
             action=a.action.value,
@@ -115,7 +117,7 @@ class ResponseActionRead(BaseModel):
     updated_at: datetime
 
     @classmethod
-    def from_orm(cls, r: ResponseAction) -> "ResponseActionRead":
+    def from_orm(cls, r: ResponseAction) -> ResponseActionRead:
         return cls(
             id=str(r.id),
             action_type=r.action_type.value,
@@ -207,12 +209,38 @@ async def approve_response_action(
 
     # Dispatch to containment adapter (MockResponseAdapter returns clearly labeled SIMULATED execution)
     dispatcher = ResponseDispatcher()
-    execution_result = await dispatcher.dispatch(action)
-
-    action.status = ResponseActionStatus.completed
-    action.approved_by_id = current_user.id
-    action.approved_at = datetime.now(timezone.utc)
-    action.execution_result = execution_result
+    try:
+        execution_result = await dispatcher.dispatch(action)
+        if isinstance(execution_result, dict) and execution_result.get("status") == "failed":
+            action.status = ResponseActionStatus.failed
+        else:
+            action.status = ResponseActionStatus.completed
+        action.approved_by_id = current_user.id
+        action.approved_at = datetime.now(UTC)
+        action.execution_result = execution_result
+    except Exception as exc:
+        action.status = ResponseActionStatus.failed
+        action.approved_by_id = current_user.id
+        action.approved_at = datetime.now(UTC)
+        action.execution_result = {
+            "status": "failed",
+            "error": str(exc),
+            "failed_at": datetime.now(UTC).isoformat(),
+        }
+        await record_audit_event(
+            db,
+            action=AuditAction.response_executed,
+            actor_id=str(current_user.id),
+            actor_email=current_user.email,
+            target_type="response_action",
+            target_id=action_id,
+            metadata={"status": "failed", "error": str(exc)},
+        )
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Containment execution failed: {exc}",
+        )
 
     await record_audit_event(
         db,
@@ -256,7 +284,7 @@ class WorkspaceRead(BaseModel):
     updated_at: datetime
 
     @classmethod
-    def from_orm(cls, w: Workspace) -> "WorkspaceRead":
+    def from_orm(cls, w: Workspace) -> WorkspaceRead:
         return cls(
             id=str(w.id),
             name=w.name,
@@ -273,5 +301,16 @@ async def list_workspaces(
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> list[WorkspaceRead]:
-    workspaces = (await db.execute(select(Workspace).where(Workspace.is_active.is_(True)))).scalars().all()
+    if current_user.is_superuser:
+        query = select(Workspace).where(Workspace.is_active.is_(True))
+    else:
+        query = (
+            select(Workspace)
+            .join(WorkspaceMembership, WorkspaceMembership.workspace_id == Workspace.id)
+            .where(
+                WorkspaceMembership.user_id == current_user.id,
+                Workspace.is_active.is_(True),
+            )
+        )
+    workspaces = (await db.execute(query)).scalars().all()
     return [WorkspaceRead.from_orm(w) for w in workspaces]

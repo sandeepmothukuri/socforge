@@ -1,0 +1,23 @@
+{
+  "test_case_id": "TC-T1071.004-01",
+  "technique": "T1071.004",
+  "title": "DNS Tunneling C2 Test Batch",
+  "events": [
+    {
+      "id": "evt-tp-06",
+      "malicious": true,
+      "event_type": "dns_query",
+      "source_host": "WKSTN-501",
+      "query": "stage1.c2.attacker-infra.net",
+      "expected_match": true
+    },
+    {
+      "id": "evt-tn-06",
+      "malicious": false,
+      "event_type": "dns_query",
+      "source_host": "WKSTN-502",
+      "query": "api.github.com",
+      "expected_match": false
+    }
+  ]
+}

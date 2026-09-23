@@ -1,0 +1,3 @@
+DeviceRegistryEvents
+| where RegistryKey has_any (@"CurrentVersion\Run", @"CurrentVersion\RunOnce", @"CurrentVersion\RunServices")
+| project Timestamp, DeviceName, InitiatingProcessAccountName, ActionType, RegistryKey, RegistryValueName, RegistryValueData

@@ -14,6 +14,17 @@ app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    imports=[
+        "workers.jobs.telemetry_ingestion",
+        "workers.jobs.detection_replay",
+        "workers.jobs.action_cleaner",
+    ],
+    beat_schedule={
+        "expire-stale-containment-actions-hourly": {
+            "task": "workers.jobs.expire_stale_response_actions",
+            "schedule": 3600.0,
+        },
+    },
 )
 
 

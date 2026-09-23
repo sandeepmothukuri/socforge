@@ -1,0 +1,47 @@
+{
+  "test_case_id": "TC-T1003.001-01",
+  "technique": "T1003.001",
+  "title": "LSASS Memory Dumping Telemetry Test Batch",
+  "events": [
+    {
+      "id": "evt-tp-01",
+      "malicious": true,
+      "event_type": "process_creation",
+      "source_host": "SRV-DC01",
+      "username": "SYSTEM",
+      "process_name": "mimikatz.exe",
+      "process_command_line": "mimikatz.exe privilege::debug sekurlsa::logonpasswords exit",
+      "expected_match": true
+    },
+    {
+      "id": "evt-tp-02",
+      "malicious": true,
+      "event_type": "process_creation",
+      "source_host": "WKSTN-101",
+      "username": "attacker",
+      "process_name": "rundll32.exe",
+      "process_command_line": "rundll32.exe C:\\windows\\System32\\comsvcs.dll, MiniDump 624 C:\\temp\\lsass.dmp full",
+      "expected_match": true
+    },
+    {
+      "id": "evt-tn-01",
+      "malicious": false,
+      "event_type": "process_creation",
+      "source_host": "WKSTN-102",
+      "username": "developer",
+      "process_name": "code.exe",
+      "process_command_line": "code.exe --status",
+      "expected_match": false
+    },
+    {
+      "id": "evt-tn-02",
+      "malicious": false,
+      "event_type": "process_creation",
+      "source_host": "SRV-APP01",
+      "username": "svc_iis",
+      "process_name": "w3wp.exe",
+      "process_command_line": "w3wp.exe -ap DefaultAppPool",
+      "expected_match": false
+    }
+  ]
+}

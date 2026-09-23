@@ -1,0 +1,27 @@
+{
+  "test_case_id": "TC-T1547.001-01",
+  "technique": "T1547.001",
+  "title": "Registry Run Key Persistence Test Batch",
+  "events": [
+    {
+      "id": "evt-tp-04",
+      "malicious": true,
+      "event_type": "registry_modification",
+      "source_host": "WKSTN-301",
+      "username": "attacker",
+      "process_name": "reg.exe",
+      "TargetObject": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\Updater",
+      "expected_match": true
+    },
+    {
+      "id": "evt-tn-04",
+      "malicious": false,
+      "event_type": "registry_modification",
+      "source_host": "WKSTN-302",
+      "username": "SYSTEM",
+      "process_name": "svchost.exe",
+      "TargetObject": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing",
+      "expected_match": false
+    }
+  ]
+}

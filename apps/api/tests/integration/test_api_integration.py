@@ -12,9 +12,8 @@ Tests full REST API workflows including:
 
 from __future__ import annotations
 
-import pytest
 import httpx
-
+import pytest
 
 API_BASE = "http://localhost:8000"
 
@@ -193,10 +192,25 @@ async def test_evidence_graph_workspace():
         invs = inv_list_resp.json()
         assert len(invs) >= 1
 
-        first_inv_id = invs[0]["id"]
+        # Select or create an investigation with alert telemetry or MITRE techniques
+        target_inv = next((i for i in invs if (i.get("alert_count", 0) > 0 or len(i.get("mitre_techniques") or []) > 0)), None)
+        if not target_inv:
+            create_resp = await client.post(
+                "/api/v1/investigations",
+                json={
+                    "title": "Evidence Graph Test Investigation",
+                    "severity": "high",
+                    "mitre_techniques": ["T1059.001"],
+                },
+                headers=headers,
+            )
+            assert create_resp.status_code == 201
+            target_inv = create_resp.json()
+
+        target_inv_id = target_inv["id"]
 
         # Fetch investigation evidence graph
-        graph_resp = await client.get(f"/api/v1/investigations/{first_inv_id}/graph", headers=headers)
+        graph_resp = await client.get(f"/api/v1/investigations/{target_inv_id}/graph", headers=headers)
         assert graph_resp.status_code == 200
         graph = graph_resp.json()
 

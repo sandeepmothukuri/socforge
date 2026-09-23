@@ -1,0 +1,30 @@
+title: PowerShell Remote Download Cradle and Encoded Execution
+id: e4b2c1f9-7a32-4d51-8e99-0123456789ab
+status: test
+description: Detects suspicious PowerShell executions utilizing web download cradles or Base64 encoded commands
+author: Sandeep Mothukuri
+references:
+  - https://attack.mitre.org/techniques/T1059/001/
+tags:
+  - attack.execution
+  - attack.t1059.001
+logsource:
+  category: process_creation
+  product: windows
+detection:
+  selection_img:
+    Image|contains:
+      - powershell.exe
+      - pwsh.exe
+  selection_cmd:
+    CommandLine|contains:
+      - DownloadString
+      - DownloadFile
+      - IEX
+      - -enc
+      - -encodedcommand
+      - FromBase64String
+  condition: selection_img and selection_cmd
+falsepositives:
+  - Legitimate automated system deployment scripts (e.g. Chocolatey, Ansible)
+level: high

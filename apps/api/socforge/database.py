@@ -2,16 +2,29 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncGenerator
+import os
+import sys
+from typing import TYPE_CHECKING
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.pool import NullPool
 
 from socforge.config import get_settings
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 
 def _build_engine():
     settings = get_settings()
+    is_test = os.environ.get("APP_ENV") == "test" or "pytest" in sys.modules
+    if is_test:
+        return create_async_engine(
+            settings.database_url,
+            poolclass=NullPool,
+            echo=False,
+        )
     return create_async_engine(
         settings.database_url,
         pool_size=settings.database_pool_size,

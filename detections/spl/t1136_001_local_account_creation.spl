@@ -1,0 +1,5 @@
+index=* sourcetype="WinEventLog:Security" EventCode=4688
+((NewProcessName="*net.exe" OR NewProcessName="*net1.exe") AND (CommandLine="*user /add*" OR CommandLine="*user add*"))
+OR
+((NewProcessName="*powershell.exe" OR NewProcessName="*pwsh.exe") AND CommandLine="*New-LocalUser*")
+| table _time, ComputerName, AccountName, NewProcessName, CommandLine

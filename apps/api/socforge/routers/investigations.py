@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import status as http_status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +15,7 @@ from sqlalchemy.orm import selectinload
 
 from socforge.auth.dependencies import CurrentAnalyst, CurrentUser
 from socforge.database import get_db
-from socforge.models.alert import Alert, Entity, EntityRelationship, Event
+from socforge.models.alert import Entity, EntityRelationship, Event
 from socforge.models.investigation import (
     Finding,
     FindingConfidence,
@@ -24,7 +25,7 @@ from socforge.models.investigation import (
     InvestigationAlert,
     InvestigationStatus,
 )
-from socforge.models.operations import AuditAction
+from socforge.models.operations import AuditAction, WorkspaceMembership
 from socforge.services.audit import record_audit_event
 
 router = APIRouter(prefix="/investigations", tags=["Investigations"])
@@ -37,6 +38,7 @@ class InvestigationCreate(BaseModel):
     title: str = Field(..., max_length=512)
     description: str | None = None
     severity: str | None = "medium"
+    workspace_id: str | None = None
     alert_ids: list[str] = Field(default_factory=list)
     mitre_techniques: list[str] = Field(default_factory=list)
     mitre_tactics: list[str] = Field(default_factory=list)
@@ -77,7 +79,7 @@ class FindingRead(BaseModel):
     created_at: datetime
 
     @classmethod
-    def from_orm(cls, f: Finding) -> "FindingRead":
+    def from_orm(cls, f: Finding) -> FindingRead:
         return cls(
             id=str(f.id),
             investigation_id=str(f.investigation_id),
@@ -101,6 +103,7 @@ class InvestigationRead(BaseModel):
     status: str
     severity: str | None
     risk_score: float | None
+    workspace_id: str | None = None
     assigned_to_id: str | None
     created_by_id: str | None
     mitre_techniques: list[str]
@@ -118,7 +121,7 @@ class InvestigationRead(BaseModel):
         inv: Investigation,
         alert_count: int = 0,
         finding_count: int = 0,
-    ) -> "InvestigationRead":
+    ) -> InvestigationRead:
         return cls(
             id=str(inv.id),
             title=inv.title,
@@ -126,6 +129,7 @@ class InvestigationRead(BaseModel):
             status=inv.status.value,
             severity=inv.severity,
             risk_score=inv.risk_score,
+            workspace_id=str(inv.workspace_id) if inv.workspace_id else None,
             assigned_to_id=str(inv.assigned_to_id) if inv.assigned_to_id else None,
             created_by_id=str(inv.created_by_id) if inv.created_by_id else None,
             mitre_techniques=inv.mitre_techniques or [],
@@ -168,6 +172,7 @@ async def list_investigations(
     current_user: CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
     status: InvestigationStatus | None = None,
+    workspace_id: str | None = None,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=25, ge=1, le=100),
 ) -> list[InvestigationRead]:
@@ -177,6 +182,37 @@ async def list_investigations(
     )
     if status:
         query = query.where(Investigation.status == status)
+
+    if not current_user.is_superuser:
+        user_ws_ids = (
+            await db.execute(
+                select(WorkspaceMembership.workspace_id).where(
+                    WorkspaceMembership.user_id == current_user.id
+                )
+            )
+        ).scalars().all()
+        if workspace_id:
+            try:
+                wid = uuid.UUID(workspace_id)
+                if wid not in user_ws_ids:
+                    raise HTTPException(
+                        status_code=http_status.HTTP_403_FORBIDDEN,
+                        detail="Access denied to requested workspace",
+                    )
+                query = query.where(Investigation.workspace_id == wid)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid workspace ID")
+        else:
+            query = query.where(
+                (Investigation.workspace_id.in_(user_ws_ids)) | (Investigation.workspace_id.is_(None))
+            )
+    elif workspace_id:
+        try:
+            wid = uuid.UUID(workspace_id)
+            query = query.where(Investigation.workspace_id == wid)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid workspace ID")
+
     query = query.order_by(Investigation.created_at.desc())
     query = query.offset((page - 1) * page_size).limit(page_size)
 
@@ -195,7 +231,7 @@ async def list_investigations(
 @router.post(
     "",
     response_model=InvestigationRead,
-    status_code=status.HTTP_201_CREATED,
+    status_code=http_status.HTTP_201_CREATED,
     summary="Create investigation",
 )
 async def create_investigation(
@@ -203,10 +239,41 @@ async def create_investigation(
     current_user: CurrentAnalyst,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> InvestigationRead:
+    target_ws_id: uuid.UUID | None = None
+    if payload.workspace_id:
+        try:
+            target_ws_id = uuid.UUID(payload.workspace_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid workspace ID")
+        if not current_user.is_superuser:
+            mem = (
+                await db.execute(
+                    select(WorkspaceMembership).where(
+                        WorkspaceMembership.workspace_id == target_ws_id,
+                        WorkspaceMembership.user_id == current_user.id,
+                    )
+                )
+            ).scalar_one_or_none()
+            if not mem:
+                raise HTTPException(
+                    status_code=http_status.HTTP_403_FORBIDDEN,
+                    detail="Cannot create investigation in a workspace you do not belong to",
+                )
+    else:
+        first_mem = (
+            await db.execute(
+                select(WorkspaceMembership.workspace_id)
+                .where(WorkspaceMembership.user_id == current_user.id)
+                .limit(1)
+            )
+        ).scalar_one_or_none()
+        target_ws_id = first_mem
+
     inv = Investigation(
         title=payload.title,
         description=payload.description,
         severity=payload.severity,
+        workspace_id=target_ws_id,
         mitre_techniques=payload.mitre_techniques,
         mitre_tactics=payload.mitre_tactics,
         created_by_id=current_user.id,
@@ -229,7 +296,7 @@ async def create_investigation(
         actor_email=current_user.email,
         target_type="investigation",
         target_id=str(inv.id),
-        metadata={"alert_count": len(payload.alert_ids)},
+        metadata={"alert_count": len(payload.alert_ids), "workspace_id": str(target_ws_id) if target_ws_id else None},
     )
 
     return InvestigationRead.from_orm(inv, alert_count=len(payload.alert_ids))
@@ -257,6 +324,21 @@ async def get_investigation(
     inv = result.scalar_one_or_none()
     if inv is None:
         raise HTTPException(status_code=404, detail="Investigation not found")
+
+    if inv.workspace_id and not current_user.is_superuser:
+        mem = (
+            await db.execute(
+                select(WorkspaceMembership).where(
+                    WorkspaceMembership.workspace_id == inv.workspace_id,
+                    WorkspaceMembership.user_id == current_user.id,
+                )
+            )
+        ).scalar_one_or_none()
+        if not mem:
+            raise HTTPException(
+                status_code=http_status.HTTP_403_FORBIDDEN,
+                detail="Access denied to this investigation's workspace",
+            )
 
     return InvestigationRead.from_orm(
         inv,
@@ -300,9 +382,9 @@ async def update_investigation(
     if payload.status is not None:
         inv.status = payload.status
         if payload.status == InvestigationStatus.closed:
-            inv.closed_at = datetime.now(timezone.utc)
+            inv.closed_at = datetime.now(UTC)
 
-    inv.updated_at = datetime.now(timezone.utc)
+    inv.updated_at = datetime.now(UTC)
 
     await record_audit_event(
         db,
@@ -324,7 +406,7 @@ async def update_investigation(
 @router.post(
     "/{investigation_id}/findings",
     response_model=FindingRead,
-    status_code=status.HTTP_201_CREATED,
+    status_code=http_status.HTTP_201_CREATED,
     summary="Create finding with evidence backing",
 )
 async def create_finding(
@@ -374,7 +456,7 @@ async def create_finding(
 
     if not valid_event_uuids and not payload.justification:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=http_status.HTTP_400_BAD_REQUEST,
             detail="Findings must either be backed by valid supporting event telemetry or include an explicit justification.",
         )
 

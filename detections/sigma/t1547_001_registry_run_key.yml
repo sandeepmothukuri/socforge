@@ -1,0 +1,23 @@
+title: Persistence via Registry Run and RunOnce Keys
+id: c712a4b8-9f30-4e2b-bb48-89abcdef0123
+status: test
+description: Detects modification of Registry Run or RunOnce keys commonly abused by malware for persistent startup execution
+author: Sandeep Mothukuri
+references:
+  - https://attack.mitre.org/techniques/T1547/001/
+tags:
+  - attack.persistence
+  - attack.t1547.001
+logsource:
+  category: registry_event
+  product: windows
+detection:
+  selection_target:
+    TargetObject|contains:
+      - CurrentVersion\Run
+      - CurrentVersion\RunOnce
+      - CurrentVersion\RunServices
+  condition: selection_target
+falsepositives:
+  - Legitimate third-party software updates and installers
+level: medium

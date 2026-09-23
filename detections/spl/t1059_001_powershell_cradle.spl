@@ -1,0 +1,4 @@
+index=* sourcetype="WinEventLog:Security" EventCode=4688
+(NewProcessName="*powershell.exe" OR NewProcessName="*pwsh.exe")
+(CommandLine="*DownloadString*" OR CommandLine="*DownloadFile*" OR CommandLine="*IEX*" OR CommandLine="*-enc*" OR CommandLine="*-encodedcommand*")
+| table _time, ComputerName, AccountName, NewProcessName, CommandLine

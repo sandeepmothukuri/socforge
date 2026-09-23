@@ -1,0 +1,4 @@
+index=* sourcetype="WinEventLog:Security" EventCode=4688 
+(NewProcessName="*mimikatz*" OR NewProcessName="*procdump*" OR NewProcessName="*comsvcs.dll*" OR NewProcessName="*rundll32.exe*")
+(CommandLine="*sekurlsa*" OR CommandLine="*MiniDump*" OR CommandLine="*lsass*")
+| table _time, ComputerName, AccountName, NewProcessName, CommandLine

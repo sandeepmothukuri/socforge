@@ -95,6 +95,17 @@ jobs:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           REDIS_URL: ${{ env.REDIS_URL }}
 
+      - name: Run security tests
+        run: pytest tests/security -v --tb=short
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          REDIS_URL: ${{ env.REDIS_URL }}
+
+      - name: Verify CLI commands
+        run: |
+          pip install -e ../cli
+          python -m socforge_cli.main --help
+
   # ─────────────────────────────────────────────────────────────
   web-checks:
     name: Web — Type Check & Build
