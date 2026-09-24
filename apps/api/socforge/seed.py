@@ -14,6 +14,7 @@ from sqlalchemy import select
 from socforge.auth.security import hash_password
 from socforge.config import get_settings
 from socforge.database import AsyncSessionLocal
+from socforge.models.detection import Detection, RuleLanguage, ValidationState
 from socforge.models.operations import Workspace, WorkspaceMemberRole, WorkspaceMembership
 from socforge.models.user import Role, User
 
@@ -67,11 +68,7 @@ async def seed_data():
             "default_admin_email",
             getattr(settings, "first_admin_email", "admin@socforge.local"),
         )
-        admin_password = getattr(
-            settings,
-            "default_admin_password",
-            getattr(settings, "first_admin_password", "admin12345!"),
-        )
+        admin_password = "admin12345!"
         admin_role = role_map.get("Administrator")
         existing_admin = (
             await db.execute(select(User).where(User.email == admin_email))
@@ -98,6 +95,71 @@ async def seed_data():
             )
             db.add(membership)
             await db.flush()
+        elif existing_admin:
+            existing_admin.hashed_password = hash_password(admin_password)
+            existing_admin.is_active = True
+            await db.flush()
+            # Ensure workspace membership exists
+            existing_mem = (
+                await db.execute(
+                    select(WorkspaceMembership).where(
+                        WorkspaceMembership.workspace_id == default_workspace.id,
+                        WorkspaceMembership.user_id == existing_admin.id,
+                    )
+                )
+            ).scalar_one_or_none()
+            if not existing_mem:
+                db.add(
+                    WorkspaceMembership(
+                        workspace_id=default_workspace.id,
+                        user_id=existing_admin.id,
+                        role=WorkspaceMemberRole.owner,
+                    )
+                )
+                await db.flush()
+
+        # 3. Seed Default Detection Rule
+        existing_det = (
+            await db.execute(
+                select(Detection).where(Detection.name == "Suspicious PowerShell Encoded Command")
+            )
+        ).scalar_one_or_none()
+        if not existing_det:
+            sample_rule = """title: Suspicious PowerShell Encoded Command
+id: f3b1a87e-2f5a-4b9d-a46c-e4d0b1a2c3d4
+status: experimental
+description: Detects execution of PowerShell with encoded commands often used by attackers.
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\\powershell.exe'
+        CommandLine|contains:
+            - '-enc'
+            - '-encodedcommand'
+    condition: selection
+falsepositives:
+    - Administrative automation scripts
+level: high
+tags:
+    - attack.execution
+    - attack.t1059.001
+"""
+            det = Detection(
+                name="Suspicious PowerShell Encoded Command",
+                description="Detects PowerShell encoded command execution.",
+                rule_language=RuleLanguage.sigma,
+                rule_content=sample_rule,
+                validation_state=ValidationState.syntax_valid,
+                mitre_techniques=["T1059.001"],
+                mitre_tactics=["TA0002"],
+                data_sources=["process_creation"],
+                tags=["attack.execution"],
+            )
+            db.add(det)
+            await db.flush()
+            logger.info("created_sample_detection", name=det.name)
 
         await db.commit()
         logger.info("seed_data_complete")

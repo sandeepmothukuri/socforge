@@ -284,7 +284,12 @@ class EntityRelationship(Base):
         UUID(as_uuid=True), ForeignKey("entities.id", ondelete="CASCADE"), nullable=False
     )
     relationship_type: Mapped[RelationshipType] = mapped_column(
-        Enum(RelationshipType, name="relationship_type"), nullable=False
+        Enum(
+            RelationshipType,
+            name="relationship_type",
+            values_callable=lambda x: [e.value for e in x],
+        ),
+        nullable=False,
     )
     investigation_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("investigations.id", ondelete="SET NULL"), index=True

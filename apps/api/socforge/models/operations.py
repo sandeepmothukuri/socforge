@@ -224,7 +224,8 @@ class AuditEvent(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_new_uuid)
     action: Mapped[AuditAction] = mapped_column(
-        Enum(AuditAction, name="audit_action"), nullable=False
+        Enum(AuditAction, name="audit_action", values_callable=lambda x: [e.value for e in x]),
+        nullable=False,
     )
     actor_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
     actor_email: Mapped[str | None] = mapped_column(String(256), index=True)
