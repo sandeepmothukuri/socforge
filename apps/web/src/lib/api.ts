@@ -447,6 +447,77 @@ export async function testIntegrationHealth(name: string): Promise<any> {
   });
 }
 
+// ── Entities & Assets ────────────────────────────────────────────────────────
+export interface EntityItem {
+  id: string;
+  entity_type: "ip" | "domain" | "url" | "file_hash" | "user" | "host";
+  value: string;
+  display_name?: string;
+  first_seen_at: string;
+  last_seen_at: string;
+  event_count: number;
+  risk_score?: number;
+  is_malicious: boolean;
+  enrichment?: Record<string, any>;
+  metadata?: Record<string, any>;
+}
+
+export async function getEntities(params?: {
+  entity_type?: string;
+  search?: string;
+  is_malicious?: boolean;
+}): Promise<EntityItem[]> {
+  try {
+    const query = new URLSearchParams();
+    if (params?.entity_type) query.append("entity_type", params.entity_type);
+    if (params?.search) query.append("search", params.search);
+    if (params?.is_malicious !== undefined) query.append("is_malicious", String(params.is_malicious));
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const res = await request<any>(`/entities${qs}`);
+    return Array.isArray(res) ? res : res?.items || [];
+  } catch {
+    await login();
+    const query = new URLSearchParams();
+    if (params?.entity_type) query.append("entity_type", params.entity_type);
+    if (params?.search) query.append("search", params.search);
+    if (params?.is_malicious !== undefined) query.append("is_malicious", String(params.is_malicious));
+    const qs = query.toString() ? `?${query.toString()}` : "";
+    const res = await request<any>(`/entities${qs}`);
+    return Array.isArray(res) ? res : res?.items || [];
+  }
+}
+
+// ── Workspaces & Health ──────────────────────────────────────────────────────
+export interface WorkspaceItem {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export async function getWorkspaces(): Promise<WorkspaceItem[]> {
+  try {
+    const res = await request<any>("/workspaces");
+    return Array.isArray(res) ? res : [];
+  } catch {
+    await login();
+    const res = await request<any>("/workspaces");
+    return Array.isArray(res) ? res : [];
+  }
+}
+
+export async function getHealthStatus(): Promise<{ status: string; uptime_seconds: number; components: Record<string, string> }> {
+  try {
+    const res = await fetch("http://localhost:8000/health");
+    if (res.ok) return await res.json();
+    return { status: "degraded", uptime_seconds: 0, components: { database: "unreachable" } };
+  } catch {
+    return { status: "degraded", uptime_seconds: 0, components: { database: "unreachable" } };
+  }
+}
+
 // ── Audit Logs ──────────────────────────────────────────────────────────────
 export interface AuditItem {
   id: string;

@@ -12,6 +12,8 @@ import {
   ShieldAlert, 
   Database, 
   FileText,
+  BarChart3,
+  Globe,
   Home,
   ShieldCheck,
   Laptop
@@ -26,16 +28,18 @@ export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/dashboard", label: "Dashboard", icon: Activity },
-    { href: "/desktop", label: "Desktop App Guide", icon: Laptop },
-    { href: "/alerts", label: "Alerts", icon: AlertTriangle },
-    { href: "/investigations", label: "Investigations & Graph", icon: Share2 },
-    { href: "/detections", label: "Detection Studio", icon: FileCode },
+    { href: "/dashboard", label: "Operations Command", icon: Activity },
+    { href: "/alerts", label: "Alert Triage Queue", icon: AlertTriangle },
+    { href: "/investigations", label: "Investigations Studio", icon: Share2 },
+    { href: "/incidents", label: "Incident Management", icon: ShieldAlert },
+    { href: "/entities", label: "Assets & Indicators", icon: Globe },
+    { href: "/analytics", label: "Analytics & MITRE", icon: BarChart3 },
+    { href: "/detections", label: "Detection Engineering", icon: FileCode },
     { href: "/hunts", label: "Threat Hunting", icon: Crosshair },
-    { href: "/incidents", label: "Incidents", icon: ShieldAlert },
     { href: "/responses", label: "Response Ledger", icon: ShieldCheck },
-    { href: "/integrations", label: "Connectors", icon: Database },
-    { href: "/audit", label: "Audit Log", icon: FileText },
+    { href: "/integrations", label: "SIEM Connectors", icon: Database },
+    { href: "/audit", label: "Audit Log & Security", icon: FileText },
+    { href: "/desktop", label: "Mobile & Desktop Client", icon: Laptop },
   ];
 
   return (
