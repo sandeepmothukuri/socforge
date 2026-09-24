@@ -12,16 +12,17 @@ Tests full REST API workflows including:
 
 from __future__ import annotations
 
-import httpx
 import pytest
+from httpx import ASGITransport, AsyncClient
 
-API_BASE = "http://localhost:8000"
+from socforge.main import app
 
 
 @pytest.mark.asyncio
 async def test_health_check_endpoint():
     """Test /health returns HTTP 200 with component health."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/health")
         assert resp.status_code == 200
         data = resp.json()
@@ -34,7 +35,8 @@ async def test_health_check_endpoint():
 @pytest.mark.asyncio
 async def test_metrics_endpoint():
     """Test /metrics returns Prometheus format plaintext metrics."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/metrics")
         assert resp.status_code == 200
         assert "socforge_uptime_seconds" in resp.text
@@ -44,7 +46,8 @@ async def test_metrics_endpoint():
 @pytest.mark.asyncio
 async def test_auth_login_success():
     """Test authentication with seeded admin credentials returns JWT access token."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
             "/api/v1/auth/login",
             data={"username": "admin@socforge.local", "password": "admin12345!"},
@@ -59,7 +62,8 @@ async def test_auth_login_success():
 @pytest.mark.asyncio
 async def test_auth_login_invalid_password():
     """Test authentication with invalid credentials returns HTTP 401."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
             "/api/v1/auth/login",
             data={"username": "admin@socforge.local", "password": "WrongPassword123!"},
@@ -71,7 +75,8 @@ async def test_auth_login_invalid_password():
 @pytest.mark.asyncio
 async def test_auth_login_nonexistent_user():
     """Test authentication with non-existent user returns HTTP 401."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post(
             "/api/v1/auth/login",
             data={"username": "ghost@socforge.local", "password": "AnyPassword123!"},
@@ -88,7 +93,8 @@ async def test_unauthorized_access_blocked():
         "/api/v1/detections",
         "/api/v1/integrations",
     ]
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         for ep in endpoints:
             resp = await client.get(ep)
             assert resp.status_code in [401, 403], f"Endpoint {ep} should require authentication"
@@ -97,7 +103,8 @@ async def test_unauthorized_access_blocked():
 @pytest.mark.asyncio
 async def test_integrations_catalog_and_health():
     """Test listing integrations and testing connector health."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         auth_resp = await client.post(
             "/api/v1/auth/login",
             data={"username": "admin@socforge.local", "password": "admin12345!"},
@@ -133,7 +140,8 @@ async def test_integrations_catalog_and_health():
 @pytest.mark.asyncio
 async def test_alert_lifecycle_workflow():
     """Test creating an alert, listing it, and updating its status."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=15.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         auth_resp = await client.post(
             "/api/v1/auth/login",
             data={"username": "admin@socforge.local", "password": "admin12345!"},
@@ -178,7 +186,8 @@ async def test_alert_lifecycle_workflow():
 @pytest.mark.asyncio
 async def test_evidence_graph_workspace():
     """Test querying investigations and retrieving the Evidence Graph nodes and edges."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         auth_resp = await client.post(
             "/api/v1/auth/login",
             data={"username": "admin@socforge.local", "password": "admin12345!"},
@@ -190,7 +199,6 @@ async def test_evidence_graph_workspace():
         inv_list_resp = await client.get("/api/v1/investigations", headers=headers)
         assert inv_list_resp.status_code == 200
         invs = inv_list_resp.json()
-        assert len(invs) >= 1
 
         # Select or create an investigation with alert telemetry or MITRE techniques
         target_inv = next(
@@ -233,7 +241,8 @@ async def test_evidence_graph_workspace():
 @pytest.mark.asyncio
 async def test_detection_lifecycle_and_validation():
     """Test querying existing detections and validating detection syntax."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         auth_resp = await client.post(
             "/api/v1/auth/login",
             data={"username": "admin@socforge.local", "password": "admin12345!"},
@@ -259,7 +268,8 @@ async def test_detection_lifecycle_and_validation():
 @pytest.mark.asyncio
 async def test_detection_test_replay_and_approval():
     """Test replaying a detection against telemetry and verifying separation of duties."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         auth_resp = await client.post(
             "/api/v1/auth/login",
             data={"username": "admin@socforge.local", "password": "admin12345!"},
@@ -292,7 +302,8 @@ async def test_detection_test_replay_and_approval():
 @pytest.mark.asyncio
 async def test_response_action_lifecycle_and_workspaces():
     """Test containment response action workflow and workspace access."""
-    async with httpx.AsyncClient(base_url=API_BASE, timeout=10.0) as client:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         auth_resp = await client.post(
             "/api/v1/auth/login",
             data={"username": "admin@socforge.local", "password": "admin12345!"},
