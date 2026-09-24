@@ -30,7 +30,9 @@ import {
   Network,
   Radio,
   Sparkles,
-  Zap
+  Zap,
+  Cpu,
+  Users
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
@@ -109,6 +111,7 @@ export default function AppShell({ children }: AppShellProps) {
         { href: "/incidents", label: "Incident War Room", icon: ShieldAlert },
         { href: "/investigations", label: "Investigation Studio", icon: Share2 },
         { href: "/graph", label: "Attack Path Visualizer", icon: Network },
+        { href: "/operations", label: "Shift Handoff & SLAs", icon: Users },
         { href: "/wallboard", label: "OLED Command Wallboard", icon: Radio },
       ]
     },
@@ -117,9 +120,12 @@ export default function AppShell({ children }: AppShellProps) {
       items: [
         { href: "/detections", label: "Detection Engineering", icon: FileCode },
         { href: "/playbooks", label: "Visual SOAR Playbooks", icon: Zap },
+        { href: "/hunts", label: "Threat Hunting Studio", icon: Crosshair },
+        { href: "/simulation", label: "Adversary BAS Simulator", icon: ShieldCheck },
+        { href: "/intel", label: "Threat Actor Matrix", icon: Globe },
+        { href: "/forensics", label: "Malware & YARA Lab", icon: Cpu },
         { href: "/analytics", label: "Analytics & MITRE", icon: BarChart3 },
-        { href: "/entities", label: "Assets & Indicators", icon: Globe },
-        { href: "/hunts", label: "Threat Hunting", icon: Crosshair },
+        { href: "/entities", label: "Assets & Indicators", icon: Layers },
       ]
     },
     {
