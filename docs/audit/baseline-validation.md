@@ -2,7 +2,7 @@
 
 **Date**: 2026-09-24  
 **Repository**: [https://github.com/sandeepmothukuri/socforge](https://github.com/sandeepmothukuri/socforge)  
-**Maintainer**: Sandeep Mothukuri `<sandeepmothukuri12@gmail.com>`  
+**Maintainer**: Sandeep Mothukuri `<sandeep.mothukuris@gmail.com>`  
 **Objective**: Record exact baseline validation results, reproducing and documenting all initial defects before repair.
 
 ---

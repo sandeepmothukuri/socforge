@@ -2,7 +2,7 @@
 
 **Date**: 2026-09-23  
 **Repository**: [https://github.com/sandeepmothukuri/socforge](https://github.com/sandeepmothukuri/socforge)  
-**Primary Maintainer**: Sandeep Mothukuri `<sandeepmothukuri12@gmail.com>`  
+**Primary Maintainer**: Sandeep Mothukuri `<sandeep.mothukuris@gmail.com>`  
 **Status**: COMPLETE — ALL QUALITY GATES GREEN & BLOCKING
 
 ---
@@ -166,6 +166,6 @@ $ alembic current
 ---
 
 ## 5. Authorship & Commit Integrity
-- **Author**: Sandeep Mothukuri `<sandeepmothukuri12@gmail.com>`
+- **Author**: Sandeep Mothukuri `<sandeep.mothukuris@gmail.com>`
 - **Co-authored-by Trailers**: None (0 external contributors or AI attributions).
 - **Git Push Policy**: Push will only be executed after explicit user command.

@@ -1,7 +1,7 @@
 # SOCForge Final Engineering Audit & Readiness Report
 
 **Repository**: `https://github.com/sandeepmothukuri/socforge`  
-**Project Owner & Maintainer**: Sandeep Mothukuri <sandeepmothukuri12@gmail.com>  
+**Project Owner & Maintainer**: Sandeep Mothukuri <sandeep.mothukuris@gmail.com>  
 **Audit Date**: September 23, 2026  
 **Final Engineering Readiness Score**: **95 / 100** (Elevated from Baseline: **68 / 100**)  
 **Audit Status**: **APPROVED & PRODUCTION HARDENED**
@@ -200,7 +200,7 @@ TOTAL                                       3710   1033    72%
 
 ## 4. Verification and Readiness Checklist
 
-- [x] **Zero Synthetically Attributed Commits**: Maintainer authorship strictly verified as `Sandeep Mothukuri <sandeepmothukuri12@gmail.com>`.
+- [x] **Zero Synthetically Attributed Commits**: Maintainer authorship strictly verified as `Sandeep Mothukuri <sandeep.mothukuris@gmail.com>`.
 - [x] **All Tests Pass**: 65 tests executed across all categories with 100% pass rate.
 - [x] **No Flaky Tests**: Database connection pools safely configured (`NullPool` under test conditions).
 - [x] **Multi-Tenancy Protected**: Cross-tenant discovery and execution blocked by database-level membership checks.

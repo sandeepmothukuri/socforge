@@ -1,7 +1,7 @@
 # SOCForge Security & Multi-Tenant Authorization Architecture
 
 **Date**: 2026-09-24  
-**Primary Maintainer**: Sandeep Mothukuri `<sandeepmothukuri12@gmail.com>`  
+**Primary Maintainer**: Sandeep Mothukuri `<sandeep.mothukuris@gmail.com>`  
 **Status**: ACTIVE SECURITY SPECIFICATION
 
 ---

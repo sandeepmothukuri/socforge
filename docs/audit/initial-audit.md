@@ -2,7 +2,7 @@
 
 **Audit Date**: September 23, 2026  
 **Repository**: [https://github.com/sandeepmothukuri/socforge](https://github.com/sandeepmothukuri/socforge)  
-**Project Owner & Maintainer**: Sandeep Mothukuri (<sandeepmothukuri12@gmail.com>)  
+**Project Owner & Maintainer**: Sandeep Mothukuri (<sandeep.mothukuris@gmail.com>)  
 **Auditor**: Principal Security Engineer & AI Architecture Lead  
 **Current Engineering Readiness Score**: **68 / 100**  
 **Target Readiness Score**: **95 / 100**

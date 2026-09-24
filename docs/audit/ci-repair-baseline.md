@@ -2,7 +2,7 @@
 
 **Date**: 2026-09-23  
 **Repository**: `https://github.com/sandeepmothukuri/socforge`  
-**Primary Maintainer**: Sandeep Mothukuri `<sandeepmothukuri12@gmail.com>`  
+**Primary Maintainer**: Sandeep Mothukuri `<sandeep.mothukuris@gmail.com>`  
 **Starting Commit**: `505c20a8764a85ba46a066bc6e6f1f4a9b231926`  
 **Target**: Resolve all current CI failures, eliminate Ruff lint/format errors, repair Mypy type-checking defects, harden database/async boundaries, and establish green, reproducible CI pipeline.
 

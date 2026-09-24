@@ -2,7 +2,7 @@
 
 **Date**: 2026-09-24  
 **Repository**: [https://github.com/sandeepmothukuri/socforge](https://github.com/sandeepmothukuri/socforge)  
-**Primary Maintainer**: Sandeep Mothukuri `<sandeepmothukuri12@gmail.com>`  
+**Primary Maintainer**: Sandeep Mothukuri `<sandeep.mothukuris@gmail.com>`  
 **Scope**: Full codebase audit across Backend (FastAPI), Frontend (Next.js), CLI, Workers, Deployments, Migrations, and Tests.
 
 ---

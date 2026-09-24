@@ -2,7 +2,7 @@
 
 **Date**: 2026-09-24  
 **Repository**: [https://github.com/sandeepmothukuri/socforge](https://github.com/sandeepmothukuri/socforge)  
-**Maintainer**: Sandeep Mothukuri `<sandeepmothukuri12@gmail.com>`  
+**Maintainer**: Sandeep Mothukuri `<sandeep.mothukuris@gmail.com>`  
 **Final Status**: ALL QUALITY GATES PASSING (100% REPRODUCIBLE)
 
 ---
@@ -39,5 +39,5 @@
 ---
 
 ## 3. Authorship & Commit Statement
-- All code changes, schema alignments, and documentation are strictly attributed to **Sandeep Mothukuri** (`sandeepmothukuri12@gmail.com`).
+- All code changes, schema alignments, and documentation are strictly attributed to **Sandeep Mothukuri** (`sandeep.mothukuris@gmail.com`).
 - Zero AI credits, external contributor trailers, or fictional names were introduced.
