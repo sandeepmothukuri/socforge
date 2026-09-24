@@ -221,6 +221,8 @@ export interface DetectionItem {
   rule_language: "sigma" | "spl" | "kql";
   rule_content: string;
   validation_state: string;
+  severity?: string;
+  version?: string;
   mitre_techniques: string[];
   mitre_tactics: string[];
   author_id?: string;

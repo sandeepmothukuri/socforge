@@ -26,10 +26,15 @@ import {
   Layers,
   HeartPulse,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Network,
+  Radio,
+  Sparkles,
+  Zap
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
+import { SOCCopilotDrawer } from "@/components/SOCCopilotDrawer";
 import { getHealthStatus } from "@/lib/api";
 
 interface AppShellProps {
@@ -39,6 +44,7 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [copilotOpen, setCopilotOpen] = useState(false);
   const [selectedEnv, setSelectedEnv] = useState<"Production" | "Staging" | "Sandbox">("Production");
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>("24h");
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<string>("60s");
@@ -59,16 +65,26 @@ export default function AppShell({ children }: AppShellProps) {
     }).catch(() => {});
   }, []);
 
-  // Global Keyboard Listener for Search (Cmd+K / Ctrl+K)
+  // Global Keyboard Listener for Search (Cmd+K) and Copilot (Cmd+J)
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setSearchOpen((prev) => !prev);
       }
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "j") {
+        e.preventDefault();
+        setCopilotOpen((prev) => !prev);
+      }
     }
+
+    const handleCustomOpenCopilot = () => setCopilotOpen(true);
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("socforge-open-copilot", handleCustomOpenCopilot);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("socforge-open-copilot", handleCustomOpenCopilot);
+    };
   }, []);
 
   const handleManualRefresh = () => {
@@ -90,14 +106,17 @@ export default function AppShell({ children }: AppShellProps) {
       items: [
         { href: "/dashboard", label: "SOC Command Center", icon: Activity },
         { href: "/alerts", label: "Alert Triage Queue", icon: AlertTriangle },
-        { href: "/incidents", label: "Incident Command", icon: ShieldAlert },
+        { href: "/incidents", label: "Incident War Room", icon: ShieldAlert },
         { href: "/investigations", label: "Investigation Studio", icon: Share2 },
+        { href: "/graph", label: "Attack Path Visualizer", icon: Network },
+        { href: "/wallboard", label: "OLED Command Wallboard", icon: Radio },
       ]
     },
     {
       title: "ENGINEERING & INTEL",
       items: [
         { href: "/detections", label: "Detection Engineering", icon: FileCode },
+        { href: "/playbooks", label: "Visual SOAR Playbooks", icon: Zap },
         { href: "/analytics", label: "Analytics & MITRE", icon: BarChart3 },
         { href: "/entities", label: "Assets & Indicators", icon: Globe },
         { href: "/hunts", label: "Threat Hunting", icon: Crosshair },
@@ -117,6 +136,7 @@ export default function AppShell({ children }: AppShellProps) {
   return (
     <div className="flex h-screen bg-[#0B1020] text-[#F8FAFC] overflow-hidden font-sans">
       <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+      <SOCCopilotDrawer isOpen={copilotOpen} onClose={() => setCopilotOpen(false)} />
 
       {/* Sidebar */}
       <aside className="w-64 border-r border-[#263248] bg-[#111827] flex flex-col flex-shrink-0 z-30">
@@ -208,6 +228,18 @@ export default function AppShell({ children }: AppShellProps) {
               <span className="hidden sm:inline">Search telemetry, IOCs, rules...</span>
               <kbd className="px-1.5 py-0.5 rounded bg-[#0B1020] text-[10px] text-[#64748B] border border-[#263248]">
                 ⌘K
+              </kbd>
+            </button>
+
+            {/* SOC AI Copilot Button (⌘J) */}
+            <button
+              onClick={() => setCopilotOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-indigo-500/30 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-300 hover:text-indigo-200 transition text-xs font-mono shadow-sm"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="hidden sm:inline font-semibold">SOC Copilot</span>
+              <kbd className="px-1.5 py-0.5 rounded bg-[#0B1020] text-[10px] text-indigo-400 border border-indigo-500/30">
+                ⌘J
               </kbd>
             </button>
           </div>
