@@ -28,7 +28,8 @@ import {
   Sliders,
   Download,
   Flame,
-  Network
+  Network,
+  Activity
 } from "lucide-react";
 
 interface SOCCopilotDrawerProps {

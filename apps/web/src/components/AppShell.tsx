@@ -39,7 +39,8 @@ import {
   FolderOpen,
   Boxes,
   Compass,
-  Eye
+  Eye,
+  X
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
@@ -65,6 +66,45 @@ export default function AppShell({ children }: AppShellProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<string>("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(3);
+  const [notifications, setNotifications] = useState([
+    {
+      id: "notif-1",
+      severity: "CRITICAL",
+      title: "CVE-2024-1709 Active In-Wild Exploit",
+      desc: "Added to CISA Known Exploited Vulnerabilities catalog. Remote authentication bypass observed.",
+      time: "2m ago",
+      href: "/incidents",
+      actionText: "Triage Alert"
+    },
+    {
+      id: "notif-2",
+      severity: "HIGH",
+      title: "LSASS Memory Dump Signature Intercepted",
+      desc: "Wazuh EDR blocked OpenProcess mask 0x1F0FFF on WIN-FIN-04. 4-eyes containment approval pending.",
+      time: "14m ago",
+      href: "/investigations",
+      actionText: "View Case"
+    },
+    {
+      id: "notif-3",
+      severity: "INFO",
+      title: "TAXII 2.1 STIX Threat Feed Ingested",
+      desc: "Synchronized 26,002 verified IOCs from AlienVault OTX and Mandiant feeds.",
+      time: "38m ago",
+      href: "/detections",
+      actionText: "Inspect IOCs"
+    },
+    {
+      id: "notif-4",
+      severity: "SUCCESS",
+      title: "Automated Host Isolation Succeeded",
+      desc: "Host DC-PROD-01 network quarantine enforced via CrowdStrike Falcon API integration.",
+      time: "1h ago",
+      href: "/operations",
+      actionText: "Audit Event"
+    }
+  ]);
   const [healthStatus, setHealthStatus] = useState<{ status: string; uptime_seconds: number; components: Record<string, string> }>({
     status: "healthy",
     uptime_seconds: 3600,
@@ -351,30 +391,115 @@ export default function AppShell({ children }: AppShellProps) {
                 aria-label="Notifications"
               >
                 <Bell className="w-3.5 h-3.5" />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                )}
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-[#0A0A0A] border border-neutral-800 rounded-xl shadow-2xl p-4 z-50 space-y-3 font-sans">
-                  <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-                    <span className="text-xs font-bold text-white">Live Threat Intelligence Alerts</span>
-                    <span className="text-[10px] text-emerald-400 font-mono font-semibold">3 New</span>
-                  </div>
-                  <div className="space-y-2 text-xs">
-                    <div className="p-2 rounded bg-[#000000] border border-neutral-800 space-y-1">
-                      <div className="flex items-center gap-1.5 text-red-400 font-semibold text-[11px]">
-                        <AlertTriangle className="w-3.5 h-3.5" /> New High-Confidence Exploit
+                <>
+                  {/* Invisible backdrop for clicking outside */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setNotificationsOpen(false)}
+                  />
+
+                  {/* Notification Dropdown Panel */}
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-[#080808] border border-[#262626] rounded-xl shadow-2xl z-50 overflow-hidden font-mono text-xs">
+                    <div className="p-3 bg-[#0d0d0d] border-b border-[#262626] flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Bell className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="font-bold text-white text-xs">Live Telemetry Alerts</span>
+                        {unreadCount > 0 && (
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+                            {unreadCount} New
+                          </span>
+                        )}
                       </div>
-                      <p className="text-neutral-400 text-[11px]">CVE-2024-1709 added to CISA Known Exploited Vulnerabilities</p>
-                    </div>
-                    <div className="p-2 rounded bg-[#000000] border border-neutral-800 space-y-1">
-                      <div className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px]">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> TAXII Feed Ingested
+                      <div className="flex items-center gap-2">
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={() => setUnreadCount(0)}
+                            className="text-[10px] text-neutral-400 hover:text-white underline"
+                          >
+                            Mark all read
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setNotificationsOpen(false)}
+                          className="p-1 rounded text-neutral-400 hover:text-white hover:bg-neutral-800"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
                       </div>
-                      <p className="text-neutral-400 text-[11px]">Processed 26,002 new IP/domain IOC observables</p>
+                    </div>
+
+                    <div className="max-h-80 overflow-y-auto divide-y divide-[#1a1a1a]">
+                      {notifications.length === 0 ? (
+                        <div className="p-6 text-center text-neutral-500 text-xs">
+                          No active threat alerts
+                        </div>
+                      ) : (
+                        notifications.map((n) => (
+                          <div key={n.id} className="p-3 hover:bg-[#0d0d0d] transition space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                                n.severity === "CRITICAL" ? "bg-red-500/20 text-red-400 border border-red-500/30" :
+                                n.severity === "HIGH" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
+                                n.severity === "SUCCESS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
+                                "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                              }`}>
+                                {n.severity}
+                              </span>
+                              <span className="text-[10px] text-neutral-500">{n.time}</span>
+                            </div>
+                            <div className="text-white font-semibold text-xs leading-snug">{n.title}</div>
+                            <div className="text-neutral-400 text-[11px] leading-relaxed font-sans">{n.desc}</div>
+                            <div className="flex items-center justify-between pt-1">
+                              <Link
+                                href={n.href}
+                                onClick={() => setNotificationsOpen(false)}
+                                className="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1"
+                              >
+                                <span>{n.actionText}</span>
+                                <ChevronRight className="w-3 h-3" />
+                              </Link>
+                              <button
+                                onClick={() => {
+                                  setNotifications(prev => prev.filter(item => item.id !== n.id));
+                                  setUnreadCount(prev => Math.max(0, prev - 1));
+                                }}
+                                className="text-[10px] text-neutral-500 hover:text-neutral-300"
+                              >
+                                Dismiss
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    <div className="p-2.5 bg-[#0a0a0a] border-t border-[#262626] flex items-center justify-between text-[11px]">
+                      <Link
+                        href="/audit"
+                        onClick={() => setNotificationsOpen(false)}
+                        className="text-neutral-400 hover:text-white flex items-center gap-1 font-mono"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Security Audit Log</span>
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setNotifications([]);
+                          setUnreadCount(0);
+                        }}
+                        className="text-neutral-500 hover:text-neutral-300 text-[10px]"
+                      >
+                        Clear All
+                      </button>
                     </div>
                   </div>
-                </div>
+                </>
               )}
             </div>
 

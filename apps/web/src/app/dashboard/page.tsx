@@ -46,7 +46,9 @@ import {
   BarChart3,
   Crosshair,
   TrendingUp,
-  Cpu
+  Cpu,
+  X,
+  ArrowRight
 } from "lucide-react";
 import { SeverityBadge } from "@/components/ui/SeverityBadge";
 import { StatusBadge } from "@/components/ui/StatusBadge";
