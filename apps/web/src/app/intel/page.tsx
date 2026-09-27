@@ -637,124 +637,171 @@ export default function ThreatIntelPage() {
                 </div>
 
                 {/* SVG Visualizer */}
-                <div className="relative rounded-2xl bg-[#050505] border border-[#262626] p-6 shadow-2xl overflow-hidden flex items-center justify-center min-h-[320px]">
-                  <svg viewBox="0 0 700 320" className="w-full max-w-2xl h-auto select-none">
+                <div className="relative rounded-2xl bg-[#050505] border border-[#262626] p-6 shadow-2xl overflow-hidden flex items-center justify-center min-h-[440px]">
+                  <style>{`
+                    @keyframes dash-flow {
+                      to { stroke-dashoffset: -24; }
+                    }
+                    .diamond-line { animation: dash-flow 2s linear infinite; }
+                    .diamond-node { transition: opacity 0.2s ease; }
+                    .diamond-node:hover { opacity: 0.85; }
+                    .diamond-node circle.vertex { transition: stroke-width 0.2s ease, stroke 0.2s ease; }
+                    .diamond-node:hover circle.vertex { stroke-width: 3; }
+                  `}</style>
+                  <svg viewBox="0 0 800 440" className="w-full max-w-2xl h-auto select-none">
                     <defs>
-                      {/* Animated Glow Filters */}
-                      <filter id="glow-amber" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="3" result="blur" />
+                      <filter id="glow-amber" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                       </filter>
-                      <filter id="glow-emerald" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="3" result="blur" />
+                      <filter id="glow-emerald" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                       </filter>
-                      <filter id="glow-purple" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="3" result="blur" />
+                      <filter id="glow-purple" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                      </filter>
+                      <filter id="glow-red" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="5" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                      </filter>
+                      <filter id="glow-white" x="-30%" y="-30%" width="160%" height="160%">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                       </filter>
                     </defs>
 
-                    {/* Outer Diamond Connecting Lines */}
+                    {/* Subtle grid dots background */}
+                    {Array.from({ length: 16 }).map((_, i) =>
+                      Array.from({ length: 9 }).map((_, j) => (
+                        <circle key={`${i}-${j}`} cx={50 * i + 25} cy={50 * j + 20} r="0.8" fill="#1a1a1a" />
+                      ))
+                    )}
+
+                    {/* Outer Diamond Connecting Lines with animated dash */}
                     <polygon
-                      points="350,30 630,160 350,290 70,160"
+                      points="400,70 700,220 400,370 100,220"
                       fill="none"
-                      stroke="#262626"
-                      strokeWidth="2"
-                      strokeDasharray="6,6"
+                      stroke="#333"
+                      strokeWidth="1.5"
+                      strokeDasharray="8,4"
+                      className="diamond-line"
                     />
-                    {/* Central Cross Axis */}
-                    <line x1="350" y1="30" x2="350" y2="290" stroke="#1f1f1f" strokeWidth="1.5" />
-                    <line x1="70" y1="160" x2="630" y2="160" stroke="#1f1f1f" strokeWidth="1.5" />
+                    {/* Inner subtle diamond fill */}
+                    <polygon
+                      points="400,70 700,220 400,370 100,220"
+                      fill="url(#diamond-fill)"
+                      opacity="0.03"
+                    />
+                    <defs>
+                      <linearGradient id="diamond-fill" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor="#f59e0b" />
+                        <stop offset="50%" stopColor="#ef4444" />
+                        <stop offset="100%" stopColor="#10b981" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Central Cross Axis Lines */}
+                    <line x1="400" y1="70" x2="400" y2="370" stroke="#1a1a1a" strokeWidth="1" strokeDasharray="4,8" />
+                    <line x1="100" y1="220" x2="700" y2="220" stroke="#1a1a1a" strokeWidth="1" strokeDasharray="4,8" />
 
                     {/* Central Threat Group Node */}
                     <g
                       onClick={() => setSelectedDiamondVertex("core")}
-                      className="cursor-pointer transition-transform hover:scale-110"
+                      className="diamond-node cursor-pointer"
                     >
                       <circle
-                        cx="350"
-                        cy="160"
-                        r="30"
-                        fill="#121212"
-                        stroke={selectedDiamondVertex === "core" ? "#ef4444" : "#262626"}
+                        cx="400" cy="220" r="34"
+                        fill="#0a0a0a"
+                        stroke={selectedDiamondVertex === "core" ? "#ef4444" : "#333"}
                         strokeWidth={selectedDiamondVertex === "core" ? "3" : "2"}
-                        className="animate-pulse"
+                        className="vertex"
+                        filter={selectedDiamondVertex === "core" ? "url(#glow-red)" : undefined}
                       />
-                      <text x="350" y="164" textAnchor="middle" fill="#ffffff" fontSize="10" fontFamily="monospace" fontWeight="bold">
-                        {selectedActor.id.toUpperCase()}
+                      <circle cx="400" cy="220" r="28" fill="none" stroke="#1f1f1f" strokeWidth="1" />
+                      <text x="400" y="216" textAnchor="middle" fill="#ef4444" fontSize="9" fontFamily="monospace" fontWeight="bold" letterSpacing="1">
+                        THREAT
+                      </text>
+                      <text x="400" y="228" textAnchor="middle" fill="#ffffff" fontSize="10" fontFamily="monospace" fontWeight="bold">
+                        {selectedActor.id.toUpperCase().slice(0, 7)}
                       </text>
                     </g>
 
                     {/* Top Node: ADVERSARY */}
                     <g
-                      transform="translate(350, 30)"
                       onClick={() => setSelectedDiamondVertex("adversary")}
-                      className="cursor-pointer transition-transform hover:scale-110"
+                      className="diamond-node cursor-pointer"
                     >
                       <circle
-                        r="22"
-                        fill="#121212"
+                        cx="400" cy="70" r="24"
+                        fill="#0a0a0a"
                         stroke={selectedDiamondVertex === "adversary" ? "#f59e0b" : "#333"}
                         strokeWidth={selectedDiamondVertex === "adversary" ? "3" : "1.5"}
+                        className="vertex"
                         filter="url(#glow-amber)"
                       />
-                      <text y="4" textAnchor="middle" fill="#f59e0b" fontSize="10" fontFamily="monospace" fontWeight="bold">ADV</text>
-                      <text y="-28" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="sans-serif" fontWeight="bold">ADVERSARY</text>
-                      <text y="-14" textAnchor="middle" fill="#a1a1aa" fontSize="9" fontFamily="monospace">{selectedActor.origin}</text>
+                      <text x="400" y="74" textAnchor="middle" fill="#f59e0b" fontSize="11" fontFamily="monospace" fontWeight="bold">ADV</text>
+                      {/* Label above the node with enough clearance */}
+                      <text x="400" y="30" textAnchor="middle" fill="#ffffff" fontSize="13" fontFamily="sans-serif" fontWeight="bold" letterSpacing="2">ADVERSARY</text>
+                      <text x="400" y="44" textAnchor="middle" fill="#71717a" fontSize="9" fontFamily="monospace">{selectedActor.origin}</text>
                     </g>
 
                     {/* Left Node: CAPABILITY */}
                     <g
-                      transform="translate(70, 160)"
                       onClick={() => setSelectedDiamondVertex("capability")}
-                      className="cursor-pointer transition-transform hover:scale-110"
+                      className="diamond-node cursor-pointer"
                     >
                       <circle
-                        r="22"
-                        fill="#121212"
+                        cx="100" cy="220" r="24"
+                        fill="#0a0a0a"
                         stroke={selectedDiamondVertex === "capability" ? "#ffffff" : "#333"}
                         strokeWidth={selectedDiamondVertex === "capability" ? "3" : "1.5"}
+                        className="vertex"
+                        filter={selectedDiamondVertex === "capability" ? "url(#glow-white)" : undefined}
                       />
-                      <text y="4" textAnchor="middle" fill="#ffffff" fontSize="10" fontFamily="monospace" fontWeight="bold">CAP</text>
-                      <text y="-28" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="sans-serif" fontWeight="bold">CAPABILITY</text>
-                      <text y="-14" textAnchor="middle" fill="#a1a1aa" fontSize="9" fontFamily="monospace">Malware &amp; TTPs</text>
+                      <text x="100" y="224" textAnchor="middle" fill="#e4e4e7" fontSize="11" fontFamily="monospace" fontWeight="bold">CAP</text>
+                      {/* Label to the left of the node */}
+                      <text x="100" y="260" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="sans-serif" fontWeight="bold" letterSpacing="1">CAPABILITY</text>
+                      <text x="100" y="274" textAnchor="middle" fill="#71717a" fontSize="9" fontFamily="monospace">Malware &amp; TTPs</text>
                     </g>
 
                     {/* Right Node: INFRASTRUCTURE */}
                     <g
-                      transform="translate(630, 160)"
                       onClick={() => setSelectedDiamondVertex("infrastructure")}
-                      className="cursor-pointer transition-transform hover:scale-110"
+                      className="diamond-node cursor-pointer"
                     >
                       <circle
-                        r="22"
-                        fill="#121212"
+                        cx="700" cy="220" r="24"
+                        fill="#0a0a0a"
                         stroke={selectedDiamondVertex === "infrastructure" ? "#a855f7" : "#333"}
                         strokeWidth={selectedDiamondVertex === "infrastructure" ? "3" : "1.5"}
+                        className="vertex"
                         filter="url(#glow-purple)"
                       />
-                      <text y="4" textAnchor="middle" fill="#a855f7" fontSize="10" fontFamily="monospace" fontWeight="bold">INF</text>
-                      <text y="-28" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="sans-serif" fontWeight="bold">INFRASTRUCTURE</text>
-                      <text y="-14" textAnchor="middle" fill="#a1a1aa" fontSize="9" fontFamily="monospace">C2 &amp; Proxies</text>
+                      <text x="700" y="224" textAnchor="middle" fill="#a855f7" fontSize="11" fontFamily="monospace" fontWeight="bold">INF</text>
+                      {/* Label below the node for right vertex */}
+                      <text x="700" y="260" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="sans-serif" fontWeight="bold" letterSpacing="1">INFRASTRUCTURE</text>
+                      <text x="700" y="274" textAnchor="middle" fill="#71717a" fontSize="9" fontFamily="monospace">C2 &amp; Proxies</text>
                     </g>
 
                     {/* Bottom Node: VICTIM */}
                     <g
-                      transform="translate(350, 290)"
                       onClick={() => setSelectedDiamondVertex("victim")}
-                      className="cursor-pointer transition-transform hover:scale-110"
+                      className="diamond-node cursor-pointer"
                     >
                       <circle
-                        r="22"
-                        fill="#121212"
+                        cx="400" cy="370" r="24"
+                        fill="#0a0a0a"
                         stroke={selectedDiamondVertex === "victim" ? "#10b981" : "#333"}
                         strokeWidth={selectedDiamondVertex === "victim" ? "3" : "1.5"}
+                        className="vertex"
                         filter="url(#glow-emerald)"
                       />
-                      <text y="4" textAnchor="middle" fill="#10b981" fontSize="10" fontFamily="monospace" fontWeight="bold">VIC</text>
-                      <text y="32" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="sans-serif" fontWeight="bold">VICTIM</text>
-                      <text y="44" textAnchor="middle" fill="#a1a1aa" fontSize="9" fontFamily="monospace">{selectedActor.targetSectors[0]}</text>
+                      <text x="400" y="374" textAnchor="middle" fill="#10b981" fontSize="11" fontFamily="monospace" fontWeight="bold">VIC</text>
+                      {/* Label below the node */}
+                      <text x="400" y="406" textAnchor="middle" fill="#ffffff" fontSize="13" fontFamily="sans-serif" fontWeight="bold" letterSpacing="2">VICTIM</text>
+                      <text x="400" y="420" textAnchor="middle" fill="#71717a" fontSize="9" fontFamily="monospace">{selectedActor.targetSectors[0]}</text>
                     </g>
                   </svg>
                 </div>
