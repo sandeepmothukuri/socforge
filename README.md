@@ -160,27 +160,32 @@ All visual assets below represent empirical operational evidence captured direct
 | **09. Forensics Studio** | Malware & YARA Engine | PE hex memory dump, high-signal string dissector, entropy scoring (7.82/8.00), and in-browser YARA | [Section 3.9 &mdash; Malware Forensics](#39-malware-forensics--in-browser-yara-engine) |
 | **10. Threat Intel** | Diamond Model & STIX | Adversary profiling (APT29, Volt Typhoon, LockBit 3.0), Diamond Model correlation, STIX 2.1 exporter | [Section 3.10 &mdash; Threat Intel](#310-threat-actor-intelligence--diamond-model-hub) |
 | **11. Containment Ledger** | Controlled Response Actions | Dual-gated host isolation, user token revocation, and immutable audit logging | [Section 3.11 &mdash; Response Ledger](#311-dual-gated-response--containment-ledger) |
-| **12. Integrations Hub** | Connectors & Vault | AES-256-GCM vault encryption, live latency probes for Wazuh, Splunk, Sentinel, and Redis | [Section 3.12 &mdash; Integrations Hub](#312-security-connectors--integrations-hub) |
-| **13. Analytics & ATT&CK** | Matrix Coverage Heatmap | Quantitative MITRE matrix coverage, MTTD/MTTR SLAs, and detection replay benchmark statistics | [Section 3.13 &mdash; ATT&CK Matrix](#313-analytics--enterprise-mitre-attck-matrix) |
-| **14. Desktop Suite** | Native Windows Binaries | Local control center for `SOCForge-Operations.exe` and `SOCForge-Window.exe` with Edge WebView2 | [Section 3.14 &mdash; Desktop Suite](#314-standalone-windows-desktop-operations-suite) |
-| **15. SOC Wallboard** | High-Density Operations Display | Live wallboard tracking critical alerts, incident timelines, and automated response actions | [Section 3.15 &mdash; SOC Wallboard](#315-real-time-soc-operations-wallboard) |
+| **12. SOAR Playbooks** | Automation & Orchestration | Visual workflow builder, automated triage conditionals, and webhook containment dispatchers | [Section 3.12 &mdash; SOAR Playbooks](#312-soar-automation--security-playbook-engine) |
+| **13. Adversary Simulation** | Atomic Red Team Studio | Controlled telemetry generation, ATT&CK execution replays, and detection validation tests | [Section 3.13 &mdash; Simulation](#313-atomic-red-team--adversary-emulation-studio) |
+| **14. Entity Profiling** | User & Host Behavioral Risk | Behavioral anomaly baseline tracking, host risk indexing, and lateral movement timeline | [Section 3.14 &mdash; Entity Profiling](#314-entity-threat-profiling--user-behavior-analytics-uba) |
+| **15. Fleet Operations** | Ingestion & Connector Health | Agent heartbeat telemetry, EPS velocity charts, queue backpressure, and pipeline telemetry | [Section 3.15 &mdash; Fleet Operations](#315-telemetry-pipeline--fleet-health-matrix) |
+| **16. Integrations Hub** | Connectors & Vault | AES-256-GCM vault encryption, live latency probes for Wazuh, Splunk, Sentinel, and Redis | [Section 3.16 &mdash; Integrations Hub](#316-security-connectors--integrations-hub) |
+| **17. Analytics & ATT&CK** | Matrix Coverage Heatmap | Quantitative MITRE matrix coverage, MTTD/MTTR SLAs, and detection replay benchmark statistics | [Section 3.17 &mdash; ATT&CK Matrix](#317-analytics--enterprise-mitre-attck-matrix) |
+| **18. Audit & Event Trail** | Cryptographic Ledger | SHA-256 tamper-evident security audit log, operator access ledger, and forensic session history | [Section 3.18 &mdash; Audit Ledger](#318-immutable-cryptographic-audit-trail--ingestion-ledger) |
+| **19. Desktop Suite** | Native Windows Binaries | Local control center for `SOCForge-Operations.exe` and `SOCForge-Window.exe` with Edge WebView2 | [Section 3.19 &mdash; Desktop Suite](#319-standalone-windows-desktop-operations-suite) |
+| **20. SOC Wallboard** | High-Density Operations Display | Live wallboard tracking critical alerts, incident timelines, and automated response actions | [Section 3.20 &mdash; SOC Wallboard](#320-real-time-soc-operations-wallboard) |
 
 ---
 
 ### 3.1 Enterprise Launch Portal
-Executive launchpad providing direct single-click access to all 9 SOC studios, real-time container health diagnostics, and native client setup.
+Executive launchpad providing direct single-click access to all 9 core SOC studios, real-time container health diagnostics, and native client setup guides.
 ![SOCForge Launch Portal](docs/assets/socforge_landing.png)
 
 ---
 
 ### 3.2 Cyber Threat Intelligence & Telemetry Dashboard
-Real-time CTI dashboard featuring interactive D3 world threat visualization, polar rose tactic breakdown, high-velocity telemetry logs, and CVE tracking.
+Real-time CTI dashboard featuring interactive D3 world threat visualization, polar rose tactic breakdown, high-velocity telemetry logs, and CVE tracking feeds.
 ![SOCForge Dashboard Overview](docs/assets/socforge_dashboard.png)
 
 ---
 
 ### 3.3 Security Alert Triage Queue
-Multi-tenant telemetry ingestion ledger with multi-level severity classification, MITRE ATT&CK technique mapping, and rapid case escalation.
+Multi-tenant telemetry ingestion ledger with multi-level severity classification, MITRE ATT&CK technique mapping, and rapid case escalation pipelines.
 ![SOCForge Alerts Ledger](docs/assets/socforge_alerts.png)
 
 ---
@@ -192,7 +197,7 @@ Authoritative typed graph visualizer mapping directed entity relationships (`Use
 ---
 
 ### 3.5 Authoritative Attack Path Graph
-Detailed interactive attack path graph displaying lateral pivots, compromised process lineages (`mimikatz.exe` targeting `lsass.exe`), and risk scoring.
+Detailed interactive attack path graph displaying lateral pivots, compromised process lineages (`mimikatz.exe` targeting `lsass.exe`), and quantitative risk scoring.
 ![SOCForge Evidence Graph](docs/assets/socforge_graph.png)
 
 ---
@@ -233,31 +238,61 @@ Controlled incident mitigation console enforcing strict separation-of-duties app
 
 ---
 
-### 3.12 Security Connectors & Integrations Hub
+### 3.12 SOAR Automation & Security Playbook Engine
+Visual drag-and-drop SOAR playbook builder with automated conditional branches, webhook dispatchers, and containment action orchestration.
+![SOCForge SOAR Playbooks](docs/assets/socforge_playbooks.png)
+
+---
+
+### 3.13 Atomic Red Team & Adversary Emulation Studio
+Controlled telemetry generation console executing MITRE ATT&CK adversary technique simulations and measuring detection coverage efficacy in real time.
+![SOCForge Adversary Emulation Studio](docs/assets/socforge_simulation.png)
+
+---
+
+### 3.14 Entity Threat Profiling & User Behavior Analytics (UBA)
+Entity risk indexing and behavioral anomaly analysis across domain users, service accounts, and enterprise endpoints with lateral movement timelines.
+![SOCForge Entity Profiling](docs/assets/socforge_entities.png)
+
+---
+
+### 3.15 Telemetry Pipeline & Fleet Health Matrix
+High-throughput telemetry ingestion monitoring tracking EPS velocity, Kafka/Redis broker queues, worker thread health, and active Wazuh/Sysmon forwarders.
+![SOCForge Fleet Health Matrix](docs/assets/socforge_operations.png)
+
+---
+
+### 3.16 Security Connectors & Integrations Hub
 Vendor-neutral telemetry adapters connecting external SIEM and EDR platforms (Wazuh, Splunk, Microsoft Sentinel) with live connectivity diagnostics and AES-256 vault encryption.
 ![SOCForge Integrations Hub](docs/assets/socforge_integrations.png)
 
 ---
 
-### 3.13 Analytics & Enterprise MITRE ATT&CK Matrix
-Adversary tactic heatmaps, operational SLA telemetry (MTTD 4.2m / MTTR 18.5m), and automated detection efficacy metrics.
+### 3.17 Analytics & Enterprise MITRE ATT&CK Matrix
+Adversary tactic heatmaps, operational SLA telemetry (MTTD 4.2m / MTTR 18.5m), and automated detection replay efficacy benchmarks.
 ![SOCForge Analytics & ATT&CK Matrix](docs/assets/socforge_analytics.png)
 
 ---
 
-### 3.14 Standalone Windows Desktop Operations Suite
+### 3.18 Immutable Cryptographic Audit Trail & Ingestion Ledger
+Tamper-evident SHA-256 forensic audit ledger tracking all operator logins, containment executions, rule modifications, and case status transitions.
+![SOCForge Audit Ledger](docs/assets/socforge_audit.png)
+
+---
+
+### 3.19 Standalone Windows Desktop Operations Suite
 Native executable support (`SOCForge-Operations.exe` and `SOCForge-Window.exe`) providing a dedicated desktop analyst experience with local health probes.
 ![SOCForge Desktop Guide](docs/assets/socforge_desktop.png)
 
 ---
 
-### 3.15 Real-Time SOC Operations Wallboard
+### 3.20 Real-Time SOC Operations Wallboard
 High-density tactical wallboard designed for continuous SOC operations center monitoring with real-time incident counters and active mitigation telemetry.
 ![SOCForge Wallboard](docs/assets/socforge_wallboard.png)
 
 ---
 
-### 3.16 Automated Test Suite Verification Evidence
+### 3.21 Automated Test Suite Verification Evidence
 All core domain models, policies, and pipelines are verified continuously with automated unit, integration, and security test suites (**66 tests, 0 failures, 100% pass rate**):
 
 ```text
