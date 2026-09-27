@@ -636,174 +636,349 @@ export default function ThreatIntelPage() {
                   </span>
                 </div>
 
-                {/* SVG Visualizer */}
-                <div className="relative rounded-2xl bg-[#050505] border border-[#262626] p-6 shadow-2xl overflow-hidden flex items-center justify-center min-h-[440px]">
-                  <style>{`
-                    @keyframes dash-flow {
-                      to { stroke-dashoffset: -24; }
-                    }
-                    .diamond-line { animation: dash-flow 2s linear infinite; }
-                    .diamond-node { transition: opacity 0.2s ease; }
-                    .diamond-node:hover { opacity: 0.85; }
-                    .diamond-node circle.vertex { transition: stroke-width 0.2s ease, stroke 0.2s ease; }
-                    .diamond-node:hover circle.vertex { stroke-width: 3; }
-                  `}</style>
-                  <svg viewBox="0 0 800 440" className="w-full max-w-2xl h-auto select-none">
-                    <defs>
-                      <filter id="glow-amber" x="-30%" y="-30%" width="160%" height="160%">
-                        <feGaussianBlur stdDeviation="4" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                      </filter>
-                      <filter id="glow-emerald" x="-30%" y="-30%" width="160%" height="160%">
-                        <feGaussianBlur stdDeviation="4" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                      </filter>
-                      <filter id="glow-purple" x="-30%" y="-30%" width="160%" height="160%">
-                        <feGaussianBlur stdDeviation="4" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                      </filter>
-                      <filter id="glow-red" x="-30%" y="-30%" width="160%" height="160%">
-                        <feGaussianBlur stdDeviation="5" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                      </filter>
-                      <filter id="glow-white" x="-30%" y="-30%" width="160%" height="160%">
-                        <feGaussianBlur stdDeviation="4" result="blur" />
-                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
-                      </filter>
-                    </defs>
+                {/* Professional Diamond Model Visualizer */}
+                <div className="relative rounded-2xl bg-[#050505] border border-[#262626] shadow-2xl overflow-hidden">
+                  {/* Model Header & Explanatory Legend */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 border-b border-[#1f1f1f] bg-[#080808]">
+                    <div className="flex items-center gap-3">
+                      <div className="p-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400">
+                        <Activity className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-white tracking-wide">Diamond Model of Intrusion Analysis</span>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-900 text-neutral-400 border border-neutral-800 font-mono">
+                            Caltagirone et al. Standard
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-neutral-500 font-mono">
+                          Vertical Socio-Political intent aligned with Horizontal Technical execution
+                        </p>
+                      </div>
+                    </div>
 
-                    {/* Subtle grid dots background */}
-                    {Array.from({ length: 16 }).map((_, i) =>
-                      Array.from({ length: 9 }).map((_, j) => (
-                        <circle key={`${i}-${j}`} cx={50 * i + 25} cy={50 * j + 20} r="0.8" fill="#1a1a1a" />
-                      ))
-                    )}
+                    {/* Quick Vertex Focus Filter */}
+                    <div className="flex items-center gap-1.5 text-[10px] font-mono">
+                      {[
+                        { id: "core", label: "Intrusion", color: "text-red-400 bg-red-500/10 border-red-500/30" },
+                        { id: "adversary", label: "Adversary (Who)", color: "text-amber-400 bg-amber-500/10 border-amber-500/30" },
+                        { id: "capability", label: "Capability (How)", color: "text-sky-400 bg-sky-500/10 border-sky-500/30" },
+                        { id: "infrastructure", label: "Infrastructure (Where)", color: "text-purple-400 bg-purple-500/10 border-purple-500/30" },
+                        { id: "victim", label: "Victim (Whom)", color: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30" }
+                      ].map((v) => (
+                        <button
+                          key={v.id}
+                          onClick={() => setSelectedDiamondVertex(v.id as any)}
+                          className={`px-2.5 py-1 rounded-lg border transition ${
+                            selectedDiamondVertex === v.id
+                              ? `${v.color} font-bold shadow-sm`
+                              : "border-[#262626] bg-[#0a0a0a] text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          {v.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-                    {/* Outer Diamond Connecting Lines with animated dash */}
-                    <polygon
-                      points="400,70 700,220 400,370 100,220"
-                      fill="none"
-                      stroke="#333"
-                      strokeWidth="1.5"
-                      strokeDasharray="8,4"
-                      className="diamond-line"
+                  {/* Diamond Diagram Canvas */}
+                  <div className="relative px-6 py-8" style={{ minHeight: 520 }}>
+                    {/* Background Matrix Grid */}
+                    <div
+                      className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                      style={{
+                        backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)",
+                        backgroundSize: "28px 28px"
+                      }}
                     />
-                    {/* Inner subtle diamond fill */}
-                    <polygon
-                      points="400,70 700,220 400,370 100,220"
-                      fill="url(#diamond-fill)"
-                      opacity="0.03"
-                    />
-                    <defs>
-                      <linearGradient id="diamond-fill" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#f59e0b" />
-                        <stop offset="50%" stopColor="#ef4444" />
-                        <stop offset="100%" stopColor="#10b981" />
-                      </linearGradient>
-                    </defs>
 
-                    {/* Central Cross Axis Lines */}
-                    <line x1="400" y1="70" x2="400" y2="370" stroke="#1a1a1a" strokeWidth="1" strokeDasharray="4,8" />
-                    <line x1="100" y1="220" x2="700" y2="220" stroke="#1a1a1a" strokeWidth="1" strokeDasharray="4,8" />
+                    {/* SVG Connector Layer */}
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ minHeight: 520 }}>
+                      <defs>
+                        <linearGradient id="line-adv-cap" x1="50%" y1="18%" x2="22%" y2="50%">
+                          <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.8" />
+                          <stop offset="100%" stopColor="#38bdf8" stopOpacity="0.8" />
+                        </linearGradient>
+                        <linearGradient id="line-adv-inf" x1="50%" y1="18%" x2="78%" y2="50%">
+                          <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.8" />
+                          <stop offset="100%" stopColor="#a855f7" stopOpacity="0.8" />
+                        </linearGradient>
+                        <linearGradient id="line-cap-vic" x1="22%" y1="50%" x2="50%" y2="82%">
+                          <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
+                          <stop offset="100%" stopColor="#10b981" stopOpacity="0.8" />
+                        </linearGradient>
+                        <linearGradient id="line-inf-vic" x1="78%" y1="50%" x2="50%" y2="82%">
+                          <stop offset="0%" stopColor="#a855f7" stopOpacity="0.8" />
+                          <stop offset="100%" stopColor="#10b981" stopOpacity="0.8" />
+                        </linearGradient>
+                      </defs>
 
-                    {/* Central Threat Group Node */}
-                    <g
-                      onClick={() => setSelectedDiamondVertex("core")}
-                      className="diamond-node cursor-pointer"
+                      {/* Diamond Perimeter Lines */}
+                      <line x1="50%" y1="18%" x2="20%" y2="50%" stroke="url(#line-adv-cap)" strokeWidth="1.5" strokeDasharray="5,4" />
+                      <line x1="50%" y1="18%" x2="80%" y2="50%" stroke="url(#line-adv-inf)" strokeWidth="1.5" strokeDasharray="5,4" />
+                      <line x1="20%" y1="50%" x2="50%" y2="82%" stroke="url(#line-cap-vic)" strokeWidth="1.5" strokeDasharray="5,4" />
+                      <line x1="80%" y1="50%" x2="50%" y2="82%" stroke="url(#line-inf-vic)" strokeWidth="1.5" strokeDasharray="5,4" />
+
+                      {/* Central Cross Axes */}
+                      {/* Vertical: Socio-Political Axis */}
+                      <line x1="50%" y1="20%" x2="50%" y2="80%" stroke="#262626" strokeWidth="1" strokeDasharray="3,3" />
+                      {/* Horizontal: Technical Axis */}
+                      <line x1="22%" y1="50%" x2="78%" y2="50%" stroke="#262626" strokeWidth="1" strokeDasharray="3,3" />
+                    </svg>
+
+                    {/* Edge Relationship Badges (Absolute positioned for crystal clarity) */}
+                    {/* Top-Left: EMPLOYS */}
+                    <div className="absolute top-[28%] left-[28%] -translate-x-1/2 -translate-y-1/2 z-10">
+                      <div className="px-2 py-0.5 rounded-full bg-[#0a0a0a]/95 border border-amber-500/40 text-[9px] font-mono font-bold text-amber-400 shadow-md backdrop-blur-sm flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        EMPLOYS
+                      </div>
+                    </div>
+
+                    {/* Top-Right: OPERATES */}
+                    <div className="absolute top-[28%] right-[28%] translate-x-1/2 -translate-y-1/2 z-10">
+                      <div className="px-2 py-0.5 rounded-full bg-[#0a0a0a]/95 border border-purple-500/40 text-[9px] font-mono font-bold text-purple-400 shadow-md backdrop-blur-sm flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                        OPERATES
+                      </div>
+                    </div>
+
+                    {/* Bottom-Left: EXPLOITS */}
+                    <div className="absolute bottom-[28%] left-[28%] -translate-x-1/2 translate-y-1/2 z-10">
+                      <div className="px-2 py-0.5 rounded-full bg-[#0a0a0a]/95 border border-sky-500/40 text-[9px] font-mono font-bold text-sky-400 shadow-md backdrop-blur-sm flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                        EXPLOITS
+                      </div>
+                    </div>
+
+                    {/* Bottom-Right: DELIVERS */}
+                    <div className="absolute bottom-[28%] right-[28%] translate-x-1/2 translate-y-1/2 z-10">
+                      <div className="px-2 py-0.5 rounded-full bg-[#0a0a0a]/95 border border-emerald-500/40 text-[9px] font-mono font-bold text-emerald-400 shadow-md backdrop-blur-sm flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        DELIVERS
+                      </div>
+                    </div>
+
+                    {/* Axis Labels */}
+                    <div className="absolute top-[37%] left-[50%] -translate-x-1/2 z-10 pointer-events-none">
+                      <span className="text-[8px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-black/80 border border-[#222] text-neutral-500">
+                        ↕ Socio-Political Axis
+                      </span>
+                    </div>
+                    <div className="absolute top-[50%] left-[34%] -translate-y-1/2 z-10 pointer-events-none">
+                      <span className="text-[8px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-black/80 border border-[#222] text-neutral-500">
+                        Technical Axis ↔
+                      </span>
+                    </div>
+
+                    {/* ─── VERTEX 1: ADVERSARY (Top) ─── */}
+                    <div className="flex justify-center mb-6 relative z-20">
+                      <div
+                        onClick={() => setSelectedDiamondVertex("adversary")}
+                        className={`w-80 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none ${
+                          selectedDiamondVertex === "adversary"
+                            ? "border-amber-500 bg-[#140f06] shadow-xl shadow-amber-500/20 ring-1 ring-amber-500/50"
+                            : "border-[#262626] bg-[#0A0A0A] hover:border-amber-500/50 hover:bg-[#0d0a05]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+                              <User className="w-4 h-4 text-amber-400" />
+                            </div>
+                            <div>
+                              <div className="text-[9px] font-mono text-amber-500/80 uppercase tracking-widest font-bold">1. Adversary</div>
+                              <div className="text-xs font-bold text-white leading-tight">WHO? Threat Actor</div>
+                            </div>
+                          </div>
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                            {selectedActor.origin}
+                          </span>
+                        </div>
+                        <p className="text-xs text-neutral-200 font-semibold leading-snug line-clamp-1">
+                          {selectedActor.diamondModel.adversary.title}
+                        </p>
+                        <div className="text-[10px] text-neutral-500 mt-1 flex items-center justify-between border-t border-[#1f1f1f] pt-1">
+                          <span>Motivation: <strong className="text-neutral-300">{selectedActor.motivation}</strong></span>
+                          <span className="text-amber-400/90 font-mono">{selectedActor.diamondModel.adversary.confidence}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ─── MIDDLE ROW: CAPABILITY — INTRUSION CORE — INFRASTRUCTURE ─── */}
+                    <div className="flex items-center justify-between gap-4 my-2 relative z-20">
+                      {/* VERTEX 2: CAPABILITY (Left) */}
+                      <div
+                        onClick={() => setSelectedDiamondVertex("capability")}
+                        className={`w-72 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none ${
+                          selectedDiamondVertex === "capability"
+                            ? "border-sky-400 bg-[#061017] shadow-xl shadow-sky-400/20 ring-1 ring-sky-400/50"
+                            : "border-[#262626] bg-[#0A0A0A] hover:border-sky-400/50 hover:bg-[#060c12]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-sky-400/10 border border-sky-400/30 flex items-center justify-center">
+                              <Zap className="w-4 h-4 text-sky-400" />
+                            </div>
+                            <div>
+                              <div className="text-[9px] font-mono text-sky-400/80 uppercase tracking-widest font-bold">2. Capability</div>
+                              <div className="text-xs font-bold text-white leading-tight">HOW? Weapons & TTPs</div>
+                            </div>
+                          </div>
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-sky-400/10 text-sky-300 border border-sky-500/30">
+                            {selectedActor.ttpList.length} TTPs
+                          </span>
+                        </div>
+                        <p className="text-xs text-neutral-200 font-semibold leading-snug line-clamp-1">
+                          {selectedActor.diamondModel.capability.title}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-2 pt-1.5 border-t border-[#1f1f1f]">
+                          {selectedActor.diamondModel.capability.weapons.slice(0, 3).map((w) => (
+                            <span key={w} className="px-1.5 py-0.5 rounded text-[9px] bg-sky-500/10 text-sky-300 border border-sky-500/20 font-mono">
+                              {w}
+                            </span>
+                          ))}
+                          {selectedActor.diamondModel.capability.weapons.length > 3 && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] text-neutral-500 font-mono">
+                              +{selectedActor.diamondModel.capability.weapons.length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* INTRUSION CORE NODE (Center) */}
+                      <div
+                        onClick={() => setSelectedDiamondVertex("core")}
+                        className={`flex-shrink-0 w-32 h-32 rounded-2xl border-2 cursor-pointer flex flex-col items-center justify-center transition-all duration-200 select-none ${
+                          selectedDiamondVertex === "core"
+                            ? "border-red-500 bg-[#150505] shadow-2xl shadow-red-500/30 ring-2 ring-red-500/60"
+                            : "border-[#333] bg-[#0A0A0A] hover:border-red-500/60 hover:bg-[#100707]"
+                        }`}
+                      >
+                        <div className="w-3.5 h-3.5 rounded-full bg-red-500 mb-1 animate-pulse" style={{ boxShadow: "0 0 10px rgba(239,68,68,0.7)" }} />
+                        <span className="text-[8px] font-mono text-red-400/80 uppercase tracking-widest font-bold">Intrusion Core</span>
+                        <span className="text-xs font-mono text-white font-bold tracking-tight">
+                          {selectedActor.id.toUpperCase().replace("-", " ")}
+                        </span>
+                        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 mt-1 font-bold">
+                          {selectedActor.threatLevel}
+                        </span>
+                        <span className="text-[8px] font-mono text-neutral-500 mt-1">Active Since {selectedActor.activeSince}</span>
+                      </div>
+
+                      {/* VERTEX 3: INFRASTRUCTURE (Right) */}
+                      <div
+                        onClick={() => setSelectedDiamondVertex("infrastructure")}
+                        className={`w-72 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none ${
+                          selectedDiamondVertex === "infrastructure"
+                            ? "border-purple-500 bg-[#120617] shadow-xl shadow-purple-500/20 ring-1 ring-purple-500/50"
+                            : "border-[#262626] bg-[#0A0A0A] hover:border-purple-500/50 hover:bg-[#0e0614]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/30 flex items-center justify-center">
+                              <Server className="w-4 h-4 text-purple-400" />
+                            </div>
+                            <div>
+                              <div className="text-[9px] font-mono text-purple-400/80 uppercase tracking-widest font-bold">3. Infrastructure</div>
+                              <div className="text-xs font-bold text-white leading-tight">WHERE? C2 & Nodes</div>
+                            </div>
+                          </div>
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 border border-purple-500/30">
+                            {selectedActor.diamondModel.infrastructure.protocols[0] || "TLS"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-neutral-200 font-semibold leading-snug line-clamp-1">
+                          {selectedActor.diamondModel.infrastructure.title}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-2 pt-1.5 border-t border-[#1f1f1f]">
+                          {selectedActor.diamondModel.infrastructure.nodes.slice(0, 2).map((n) => (
+                            <span key={n} className="px-1.5 py-0.5 rounded text-[9px] bg-purple-500/10 text-purple-300 border border-purple-500/20 font-mono">
+                              {n}
+                            </span>
+                          ))}
+                          {selectedActor.diamondModel.infrastructure.nodes.length > 2 && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] text-neutral-500 font-mono">
+                              +{selectedActor.diamondModel.infrastructure.nodes.length - 2}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ─── VERTEX 4: VICTIM (Bottom) ─── */}
+                    <div className="flex justify-center mt-6 relative z-20">
+                      <div
+                        onClick={() => setSelectedDiamondVertex("victim")}
+                        className={`w-80 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 select-none ${
+                          selectedDiamondVertex === "victim"
+                            ? "border-emerald-500 bg-[#05140b] shadow-xl shadow-emerald-500/20 ring-1 ring-emerald-500/50"
+                            : "border-[#262626] bg-[#0A0A0A] hover:border-emerald-500/50 hover:bg-[#06110a]"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+                              <Target className="w-4 h-4 text-emerald-400" />
+                            </div>
+                            <div>
+                              <div className="text-[9px] font-mono text-emerald-500/80 uppercase tracking-widest font-bold">4. Victim</div>
+                              <div className="text-xs font-bold text-white leading-tight">WHOM? Targeted Assets</div>
+                            </div>
+                          </div>
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">
+                            {selectedActor.diamondModel.victim.regions[0] || "Global"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-neutral-200 font-semibold leading-snug line-clamp-1">
+                          {selectedActor.diamondModel.victim.title}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-2 pt-1.5 border-t border-[#1f1f1f]">
+                          {selectedActor.diamondModel.victim.sectors.slice(0, 3).map((s) => (
+                            <span key={s} className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-mono">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Active Vertex Detail Drawer / Guidance Footer */}
+                  <div className="px-6 py-3 border-t border-[#1f1f1f] bg-[#080808] flex items-center justify-between text-xs font-mono">
+                    <div className="flex items-center gap-2 text-neutral-400">
+                      <span className="text-white font-bold uppercase">Focus:</span>
+                      <span className="capitalize text-emerald-400 font-bold">{selectedDiamondVertex}</span>
+                      <span className="text-neutral-600">|</span>
+                      <span className="text-neutral-400 text-[11px]">
+                        {selectedDiamondVertex === "adversary" && `Attribution: ${selectedActor.diamondModel.adversary.attribution}`}
+                        {selectedDiamondVertex === "capability" && `Exploits: ${selectedActor.diamondModel.capability.exploits.join(", ")}`}
+                        {selectedDiamondVertex === "infrastructure" && `Protocols: ${selectedActor.diamondModel.infrastructure.protocols.join(", ")}`}
+                        {selectedDiamondVertex === "victim" && `Impacted Regions: ${selectedActor.diamondModel.victim.regions.join(", ")}`}
+                        {selectedDiamondVertex === "core" && `Full Intrusion Event: ${selectedActor.name} (${selectedActor.campaigns.length} Recorded Campaigns)`}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        if (typeof window !== "undefined") {
+                          window.dispatchEvent(
+                            new CustomEvent("socforge-open-copilot", {
+                              detail: {
+                                prompt: `Provide deep Diamond Model threat intelligence and MITRE correlation for ${selectedActor.name}, focusing on the ${selectedDiamondVertex.toUpperCase()} vertex.`
+                              }
+                            })
+                          );
+                        }
+                      }}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white border border-[#262626] transition text-[11px] font-bold"
                     >
-                      <circle
-                        cx="400" cy="220" r="34"
-                        fill="#0a0a0a"
-                        stroke={selectedDiamondVertex === "core" ? "#ef4444" : "#333"}
-                        strokeWidth={selectedDiamondVertex === "core" ? "3" : "2"}
-                        className="vertex"
-                        filter={selectedDiamondVertex === "core" ? "url(#glow-red)" : undefined}
-                      />
-                      <circle cx="400" cy="220" r="28" fill="none" stroke="#1f1f1f" strokeWidth="1" />
-                      <text x="400" y="216" textAnchor="middle" fill="#ef4444" fontSize="9" fontFamily="monospace" fontWeight="bold" letterSpacing="1">
-                        THREAT
-                      </text>
-                      <text x="400" y="228" textAnchor="middle" fill="#ffffff" fontSize="10" fontFamily="monospace" fontWeight="bold">
-                        {selectedActor.id.toUpperCase().slice(0, 7)}
-                      </text>
-                    </g>
-
-                    {/* Top Node: ADVERSARY */}
-                    <g
-                      onClick={() => setSelectedDiamondVertex("adversary")}
-                      className="diamond-node cursor-pointer"
-                    >
-                      <circle
-                        cx="400" cy="70" r="24"
-                        fill="#0a0a0a"
-                        stroke={selectedDiamondVertex === "adversary" ? "#f59e0b" : "#333"}
-                        strokeWidth={selectedDiamondVertex === "adversary" ? "3" : "1.5"}
-                        className="vertex"
-                        filter="url(#glow-amber)"
-                      />
-                      <text x="400" y="74" textAnchor="middle" fill="#f59e0b" fontSize="11" fontFamily="monospace" fontWeight="bold">ADV</text>
-                      {/* Label above the node with enough clearance */}
-                      <text x="400" y="30" textAnchor="middle" fill="#ffffff" fontSize="13" fontFamily="sans-serif" fontWeight="bold" letterSpacing="2">ADVERSARY</text>
-                      <text x="400" y="44" textAnchor="middle" fill="#71717a" fontSize="9" fontFamily="monospace">{selectedActor.origin}</text>
-                    </g>
-
-                    {/* Left Node: CAPABILITY */}
-                    <g
-                      onClick={() => setSelectedDiamondVertex("capability")}
-                      className="diamond-node cursor-pointer"
-                    >
-                      <circle
-                        cx="100" cy="220" r="24"
-                        fill="#0a0a0a"
-                        stroke={selectedDiamondVertex === "capability" ? "#ffffff" : "#333"}
-                        strokeWidth={selectedDiamondVertex === "capability" ? "3" : "1.5"}
-                        className="vertex"
-                        filter={selectedDiamondVertex === "capability" ? "url(#glow-white)" : undefined}
-                      />
-                      <text x="100" y="224" textAnchor="middle" fill="#e4e4e7" fontSize="11" fontFamily="monospace" fontWeight="bold">CAP</text>
-                      {/* Label to the left of the node */}
-                      <text x="100" y="260" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="sans-serif" fontWeight="bold" letterSpacing="1">CAPABILITY</text>
-                      <text x="100" y="274" textAnchor="middle" fill="#71717a" fontSize="9" fontFamily="monospace">Malware &amp; TTPs</text>
-                    </g>
-
-                    {/* Right Node: INFRASTRUCTURE */}
-                    <g
-                      onClick={() => setSelectedDiamondVertex("infrastructure")}
-                      className="diamond-node cursor-pointer"
-                    >
-                      <circle
-                        cx="700" cy="220" r="24"
-                        fill="#0a0a0a"
-                        stroke={selectedDiamondVertex === "infrastructure" ? "#a855f7" : "#333"}
-                        strokeWidth={selectedDiamondVertex === "infrastructure" ? "3" : "1.5"}
-                        className="vertex"
-                        filter="url(#glow-purple)"
-                      />
-                      <text x="700" y="224" textAnchor="middle" fill="#a855f7" fontSize="11" fontFamily="monospace" fontWeight="bold">INF</text>
-                      {/* Label below the node for right vertex */}
-                      <text x="700" y="260" textAnchor="middle" fill="#ffffff" fontSize="12" fontFamily="sans-serif" fontWeight="bold" letterSpacing="1">INFRASTRUCTURE</text>
-                      <text x="700" y="274" textAnchor="middle" fill="#71717a" fontSize="9" fontFamily="monospace">C2 &amp; Proxies</text>
-                    </g>
-
-                    {/* Bottom Node: VICTIM */}
-                    <g
-                      onClick={() => setSelectedDiamondVertex("victim")}
-                      className="diamond-node cursor-pointer"
-                    >
-                      <circle
-                        cx="400" cy="370" r="24"
-                        fill="#0a0a0a"
-                        stroke={selectedDiamondVertex === "victim" ? "#10b981" : "#333"}
-                        strokeWidth={selectedDiamondVertex === "victim" ? "3" : "1.5"}
-                        className="vertex"
-                        filter="url(#glow-emerald)"
-                      />
-                      <text x="400" y="374" textAnchor="middle" fill="#10b981" fontSize="11" fontFamily="monospace" fontWeight="bold">VIC</text>
-                      {/* Label below the node */}
-                      <text x="400" y="406" textAnchor="middle" fill="#ffffff" fontSize="13" fontFamily="sans-serif" fontWeight="bold" letterSpacing="2">VICTIM</text>
-                      <text x="400" y="420" textAnchor="middle" fill="#71717a" fontSize="9" fontFamily="monospace">{selectedActor.targetSectors[0]}</text>
-                    </g>
-                  </svg>
+                      <Sparkles className="w-3.5 h-3.5 text-red-400" />
+                      <span>Synthesize {selectedDiamondVertex.toUpperCase()}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Vertex Deep Inspector Cards */}
@@ -838,22 +1013,22 @@ export default function ThreatIntelPage() {
                     onClick={() => setSelectedDiamondVertex("capability")}
                     className={`p-4 rounded-xl border transition cursor-pointer space-y-2 ${
                       selectedDiamondVertex === "capability"
-                        ? "bg-[#121212] border-white shadow-lg shadow-white/10"
-                        : "bg-[#050505] border-[#262626] hover:border-white/40"
+                        ? "bg-[#050a10] border-sky-400 shadow-lg shadow-sky-400/10"
+                        : "bg-[#050505] border-[#262626] hover:border-sky-400/40"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-white font-bold uppercase flex items-center gap-1.5">
-                        <Zap className="w-3.5 h-3.5 text-neutral-200" />
+                      <span className="text-sky-400 font-bold uppercase flex items-center gap-1.5">
+                        <Zap className="w-3.5 h-3.5 text-sky-300" />
                         2. CAPABILITY (WEAPONRY & TTPS)
                       </span>
-                      <span className="text-[10px] text-neutral-400">Custom Tooling</span>
+                      <span className="text-[10px] text-sky-300/80">Custom Tooling</span>
                     </div>
                     <p className="text-white font-bold">{selectedActor.diamondModel.capability.title}</p>
                     <p className="text-neutral-400 text-[11px]">{selectedActor.diamondModel.capability.desc}</p>
                     <div className="flex flex-wrap gap-1 pt-1 border-t border-[#262626]">
                       {selectedActor.diamondModel.capability.weapons.map((w) => (
-                        <span key={w} className="px-1.5 py-0.5 rounded bg-[#171717] text-white border border-[#333] text-[10px]">
+                        <span key={w} className="px-1.5 py-0.5 rounded bg-sky-400/10 text-sky-300 border border-sky-500/30 text-[10px]">
                           {w}
                         </span>
                       ))}
