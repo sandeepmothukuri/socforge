@@ -27,26 +27,31 @@ import {
   Activity,
   Cpu,
   CornerDownRight,
-  Download
+  Download,
+  Filter,
+  FileCode,
+  Radio,
+  Sliders
 } from "lucide-react";
 
-interface PlaybookNode {
+export interface PlaybookNode {
   id: string;
-  type: "trigger" | "condition" | "action" | "approval" | "notify";
+  type: "trigger" | "enrichment" | "condition" | "action" | "approval" | "notify";
   title: string;
   subtitle: string;
-  x?: number;
-  y?: number;
+  vendor?: string;
+  latency?: string;
   config?: Record<string, any>;
   status?: "idle" | "running" | "success" | "failed";
 }
 
-interface PlaybookWorkflow {
+export interface PlaybookWorkflow {
   id: string;
   name: string;
   description: string;
   triggerEvent: string;
   active: boolean;
+  category: "Ransomware" | "Identity" | "Perimeter" | "Cloud" | "Phishing";
   nodes: PlaybookNode[];
 }
 
@@ -56,27 +61,31 @@ const PRESET_PLAYBOOKS: PlaybookWorkflow[] = [
     name: "Ransomware Automated Rapid Isolation & Token Invalidation",
     description: "Triggered on high-confidence ransomware canary file alert or vssadmin shadow deletion. Isolates endpoint and revokes domain tokens.",
     triggerEvent: "Alert Severity == CRITICAL and TTP in [T1486, T1490]",
+    category: "Ransomware",
     active: true,
     nodes: [
-      { id: "1", type: "trigger", title: "Trigger: Ransomware TTP Detected", subtitle: "Event matches T1486 canary modification", x: 60, y: 140 },
-      { id: "2", type: "condition", title: "Condition: EDR Agent Active", subtitle: "Verify endpoint telemetry ping < 30s", x: 280, y: 140 },
-      { id: "3", type: "action", title: "Action: Network Quarantine Host", subtitle: "Isolate NIC via EDR API; keep port 8443 open", x: 500, y: 140 },
-      { id: "4", type: "approval", title: "Four-Eyes: Dual-Approval Gate", subtitle: "Require Tier-3 Lead sign-off for token flush", x: 720, y: 140 },
-      { id: "5", type: "notify", title: "Notify: Incident War Room", subtitle: "Dispatch Slack webhook & forensic packet", x: 940, y: 140 }
+      { id: "1", type: "trigger", title: "Trigger: Ransomware TTP Detected", subtitle: "Event matches T1486 canary modification or shadow deletion", vendor: "Wazuh / Defender", latency: "0.2ms" },
+      { id: "2", type: "enrichment", title: "Enrich: VirusTotal & Hash Intel", subtitle: "Query VT v3 API for parent process binary reputation", vendor: "VirusTotal Enterprise", latency: "14ms" },
+      { id: "3", type: "condition", title: "Condition: EDR Agent Active", subtitle: "Verify endpoint telemetry heartbeat < 30s", vendor: "Fleet Engine", latency: "1.1ms" },
+      { id: "4", type: "action", title: "Action: Network Quarantine Host", subtitle: "Isolate NIC via EDR API; keep security management port 8443 open", vendor: "CrowdStrike Falcon", latency: "28ms" },
+      { id: "5", type: "approval", title: "Four-Eyes: Dual-Approval Gate", subtitle: "Require SecOps Commander key authorization to flush domain tokens", vendor: "4-Eyes Engine", latency: "Manual" },
+      { id: "6", type: "action", title: "Action: Revoke Kerberos Tickets", subtitle: "Invalidate krbtgt sessions and force user credential reset", vendor: "Active Directory", latency: "34ms" },
+      { id: "7", type: "notify", title: "Notify: Incident War Room", subtitle: "Dispatch Slack webhook & post forensic dossier attachment", vendor: "Slack Webhook", latency: "12ms" }
     ]
   },
   {
     id: "pb-phishing-triage",
-    name: "Phishing Ingress Auto-Detonation & Sender Quarantine",
+    name: "Phishing Ingress Auto-Detonation & Inbox Purge",
     description: "Parses email EML attachments, queries VirusTotal & Hybrid-Analysis API, and removes malicious payload from all user inboxes.",
     triggerEvent: "M365 / Proofpoint Alert == Suspicious Attachment",
+    category: "Phishing",
     active: true,
     nodes: [
-      { id: "p1", type: "trigger", title: "Trigger: Inbound EML Ingestion", subtitle: "User reports suspicious invoice attachment", x: 60, y: 140 },
-      { id: "p2", type: "action", title: "Action: Sandbox Detonation", subtitle: "Submit SHA-256 hash to VirusTotal & Cuckoo", x: 280, y: 140 },
-      { id: "p3", type: "condition", title: "Condition: VT Score > 45/70", subtitle: "Check if detection threshold exceeded", x: 500, y: 140 },
-      { id: "p4", type: "action", title: "Action: Purge Tenant Inboxes", subtitle: "Graph API soft-delete across all mailboxes", x: 720, y: 140 },
-      { id: "p5", type: "notify", title: "Notify: Security Slack Alert", subtitle: "Post IOC report and remediation summary", x: 940, y: 140 }
+      { id: "p1", type: "trigger", title: "Trigger: Inbound EML Ingestion", subtitle: "User reports suspicious invoice attachment with macro payload", vendor: "M365 Defender", latency: "0.4ms" },
+      { id: "p2", type: "enrichment", title: "Enrich: Cuckoo Sandbox Detonation", subtitle: "Submit attachment SHA-256 to automated detonation sandbox", vendor: "Sandbox Cluster", latency: "420ms" },
+      { id: "p3", type: "condition", title: "Condition: Malicious Verdict > 45/70", subtitle: "Check if detection threshold exceeds threat risk bar", vendor: "Logic Filter", latency: "0.8ms" },
+      { id: "p4", type: "action", title: "Action: Purge Tenant Inboxes", subtitle: "Microsoft Graph API soft-delete across all enterprise mailboxes", vendor: "Exchange Online", latency: "65ms" },
+      { id: "p5", type: "notify", title: "Notify: Security Slack Alert", subtitle: "Post IOC report and remediation summary to #soc-triage", vendor: "Slack Bot", latency: "14ms" }
     ]
   },
   {
@@ -84,12 +93,14 @@ const PRESET_PLAYBOOKS: PlaybookWorkflow[] = [
     name: "Kerberoasting Honey SPN Auto-Response & Password Rotation",
     description: "Detects Event ID 4769 TGS requests against Decoy SPN accounts and automatically resets service account credentials.",
     triggerEvent: "Event ID 4769 and TargetName in [Honey SPN Catalog]",
+    category: "Identity",
     active: true,
     nodes: [
-      { id: "k1", type: "trigger", title: "Trigger: Honey SPN Access", subtitle: "Decoy service account requested via Kerberos", x: 60, y: 140 },
-      { id: "k2", type: "action", title: "Action: Lock Attacker AD Account", subtitle: "Set userAccountControl: ACCOUNTDISABLE", x: 280, y: 140 },
-      { id: "k3", type: "action", title: "Action: Kerberos KRBTGT Flush", subtitle: "Invalidate active TGT session tokens", x: 500, y: 140 },
-      { id: "k4", type: "notify", title: "Notify: Page Incident Commander", subtitle: "High-priority PagerDuty escalation", x: 720, y: 140 }
+      { id: "k1", type: "trigger", title: "Trigger: Honey SPN Access", subtitle: "Decoy service account requested via Kerberos TGS protocol", vendor: "Domain Controller", latency: "0.5ms" },
+      { id: "k2", type: "enrichment", title: "Enrich: Okta Identity Risk Score", subtitle: "Fetch requesting user behavioral anomaly score from Okta", vendor: "Okta Identity Cloud", latency: "22ms" },
+      { id: "k3", type: "action", title: "Action: Lock Attacker AD Account", subtitle: "Set userAccountControl: ACCOUNTDISABLE in LDAP tree", vendor: "Entra ID / AD", latency: "19ms" },
+      { id: "k4", type: "approval", title: "Four-Eyes: Dual Approval Sign-Off", subtitle: "Commander sign-off required for domain-wide ticket invalidation", vendor: "4-Eyes Gate", latency: "Manual" },
+      { id: "k5", type: "notify", title: "Notify: Page Incident Commander", subtitle: "High-priority PagerDuty escalation with high-urgency callout", vendor: "PagerDuty API", latency: "18ms" }
     ]
   }
 ];
@@ -101,6 +112,7 @@ export default function PlaybooksPage() {
   const [activeExecutingNodeId, setActiveExecutingNodeId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<PlaybookNode | null>(null);
   const [executionLogs, setExecutionLogs] = useState<string[]>([]);
+  const [copiedYaml, setCopiedYaml] = useState(false);
 
   // Create Playbook Modal State
   const [newPlaybookModalOpen, setNewPlaybookModalOpen] = useState(false);
@@ -109,33 +121,124 @@ export default function PlaybooksPage() {
   const [newPbTrigger, setNewPbTrigger] = useState("");
   const [playbookToast, setPlaybookToast] = useState<string | null>(null);
 
-  const handleCreatePlaybook = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPbName.trim()) return;
+  const getNodeColor = (type: string) => {
+    switch (type) {
+      case "trigger":
+        return { border: "border-purple-500/40", bg: "bg-purple-950/30", text: "text-purple-400", badge: "TRIGGER" };
+      case "enrichment":
+        return { border: "border-cyan-500/40", bg: "bg-cyan-950/30", text: "text-cyan-400", badge: "ENRICH" };
+      case "condition":
+        return { border: "border-amber-500/40", bg: "bg-amber-950/30", text: "text-amber-400", badge: "LOGIC" };
+      case "action":
+        return { border: "border-rose-500/40", bg: "bg-rose-950/30", text: "text-rose-400", badge: "ACTION" };
+      case "approval":
+        return { border: "border-emerald-500/40", bg: "bg-emerald-950/30", text: "text-emerald-400", badge: "4-EYES GATE" };
+      case "notify":
+        return { border: "border-blue-500/40", bg: "bg-blue-950/30", text: "text-blue-400", badge: "NOTIFY" };
+      default:
+        return { border: "border-neutral-700", bg: "bg-[#0a0a0a]", text: "text-white", badge: "STEP" };
+    }
+  };
 
-    const newWf: PlaybookWorkflow = {
-      id: `pb-${Date.now()}`,
-      name: newPbName.trim(),
-      description: newPbDesc.trim() || "Automated response playbook workflow.",
-      triggerEvent: newPbTrigger.trim() || "Alert Severity == CRITICAL",
-      active: true,
-      nodes: [
-        { id: "1", type: "trigger", title: `Trigger: ${newPbName.slice(0, 24)}`, subtitle: newPbTrigger.trim() || "Rule condition matched", x: 60, y: 140 },
-        { id: "2", type: "condition", title: "Condition: Asset Criticality", subtitle: "Verify asset tag in [Production, Tier-0]", x: 280, y: 140 },
-        { id: "3", type: "approval", title: "Approval: Dual-Sign Off Gate", subtitle: "Incident Commander verification", x: 500, y: 140 },
-        { id: "4", type: "action", title: "Action: Automated Containment", subtitle: "Quarantine IP / Host via API adapter", x: 720, y: 140 },
-        { id: "5", type: "notify", title: "Notify: Dispatch Escalation", subtitle: "Log audit record & notify channel", x: 940, y: 140 }
-      ]
+  const handleAddPaletteNode = (type: PlaybookNode["type"], title: string, subtitle: string, vendor: string) => {
+    const newNode: PlaybookNode = {
+      id: `node-${Date.now().toString().slice(-4)}`,
+      type,
+      title,
+      subtitle,
+      vendor,
+      latency: "15ms"
     };
 
-    setPlaybooks((prev) => [newWf, ...prev]);
-    setSelectedPlaybook(newWf);
-    setNewPlaybookModalOpen(false);
-    setNewPbName("");
-    setNewPbDesc("");
-    setNewPbTrigger("");
-    setPlaybookToast(`Playbook "${newWf.name}" compiled and activated.`);
-    setTimeout(() => setPlaybookToast(null), 3500);
+    const updated = {
+      ...selectedPlaybook,
+      nodes: [...selectedPlaybook.nodes, newNode]
+    };
+
+    setSelectedPlaybook(updated);
+    setPlaybooks(playbooks.map((p) => (p.id === updated.id ? updated : p)));
+    setSelectedNode(newNode);
+    setPlaybookToast(`Added "${newNode.title}" to playbook workflow.`);
+    setTimeout(() => setPlaybookToast(null), 3000);
+  };
+
+  const handleDeleteNode = (nodeId: string) => {
+    if (selectedPlaybook.nodes.length <= 2) {
+      setPlaybookToast("Playbook workflow must maintain at least 2 nodes.");
+      setTimeout(() => setPlaybookToast(null), 3000);
+      return;
+    }
+
+    const updated = {
+      ...selectedPlaybook,
+      nodes: selectedPlaybook.nodes.filter((n) => n.id !== nodeId)
+    };
+
+    setSelectedPlaybook(updated);
+    setPlaybooks(playbooks.map((p) => (p.id === updated.id ? updated : p)));
+    if (selectedNode?.id === nodeId) setSelectedNode(null);
+    setPlaybookToast("Node removed from workflow.");
+    setTimeout(() => setPlaybookToast(null), 2500);
+  };
+
+  const runSimulation = () => {
+    if (isSimulating) return;
+    setIsSimulating(true);
+    setExecutionLogs([
+      `[${new Date().toLocaleTimeString()}] Celery SOAR Worker pool initialized. Task ID: celery-${Date.now().toString().slice(-6)}`,
+      `[${new Date().toLocaleTimeString()}] Executing Playbook: "${selectedPlaybook.name}"`
+    ]);
+
+    selectedPlaybook.nodes.forEach((node, index) => {
+      setTimeout(() => {
+        setActiveExecutingNodeId(node.id);
+        const taskUuid = `0x${Math.random().toString(16).slice(2, 10)}`;
+        setExecutionLogs((prev) => [
+          ...prev,
+          `[${new Date().toLocaleTimeString()}] [STEP ${index + 1}/${selectedPlaybook.nodes.length}] [TASK: ${taskUuid}] ${node.title} via ${node.vendor || "Core"} -> 200 OK (${node.latency || "12ms"})`
+        ]);
+
+        if (index === selectedPlaybook.nodes.length - 1) {
+          setTimeout(() => {
+            setIsSimulating(false);
+            setActiveExecutingNodeId(null);
+            setExecutionLogs((prev) => [
+              ...prev,
+              `[${new Date().toLocaleTimeString()}] Playbook execution finalized. All steps verified. HMAC-SHA256 signature written to audit ledger.`
+            ]);
+          }, 800);
+        }
+      }, (index + 1) * 850);
+    });
+  };
+
+  const exportPlaybookYaml = () => {
+    const yamlString = `name: "${selectedPlaybook.name}"
+id: "${selectedPlaybook.id}"
+category: "${selectedPlaybook.category}"
+trigger: "${selectedPlaybook.triggerEvent}"
+nodes:
+${selectedPlaybook.nodes
+  .map(
+    (n, i) => `  - step: ${i + 1}
+    id: "${n.id}"
+    type: "${n.type}"
+    title: "${n.title}"
+    vendor: "${n.vendor || "Core"}"
+    action: "${n.subtitle}"`
+  )
+  .join("\n")}
+audit:
+  hmac_chain: "ENABLED"
+  four_eyes: "ENFORCED"
+`;
+    navigator.clipboard.writeText(yamlString);
+    setCopiedYaml(true);
+    setPlaybookToast("Playbook YAML copied to clipboard.");
+    setTimeout(() => {
+      setCopiedYaml(false);
+      setPlaybookToast(null);
+    }, 2500);
   };
 
   const handleExportPlaybookJSON = () => {
@@ -150,69 +253,25 @@ export default function PlaybooksPage() {
     setTimeout(() => setPlaybookToast(null), 3000);
   };
 
-  const getNodeColor = (type: string) => {
-    switch (type) {
-      case "trigger":
-        return { border: "border-purple-500/40", bg: "bg-purple-950/30", text: "text-purple-400", badge: "TRIGGER" };
-      case "condition":
-        return { border: "border-amber-500/40", bg: "bg-amber-950/30", text: "text-amber-400", badge: "LOGIC" };
-      case "action":
-        return { border: "border-rose-500/40", bg: "bg-rose-950/30", text: "text-rose-400", badge: "ACTION" };
-      case "approval":
-        return { border: "border-blue-500/40", bg: "bg-blue-950/30", text: "text-blue-400", badge: "FOUR-EYES" };
-      case "notify":
-        return { border: "border-emerald-500/40", bg: "bg-emerald-950/30", text: "text-emerald-400", badge: "NOTIFY" };
-      default:
-        return { border: "border-neutral-700", bg: "bg-[#0a0a0a]", text: "text-white", badge: "STEP" };
-    }
-  };
-
-  const runSimulation = () => {
-    if (isSimulating) return;
-    setIsSimulating(true);
-    setExecutionLogs([`[${new Date().toLocaleTimeString()}] Initializing playbook dry-run: ${selectedPlaybook.name}...`]);
-
-    selectedPlaybook.nodes.forEach((node, index) => {
-      setTimeout(() => {
-        setActiveExecutingNodeId(node.id);
-        setExecutionLogs((prev) => [
-          ...prev,
-          `[${new Date().toLocaleTimeString()}] Executed Step ${index + 1}: ${node.title} -> STATUS: 200 OK`
-        ]);
-
-        if (index === selectedPlaybook.nodes.length - 1) {
-          setTimeout(() => {
-            setIsSimulating(false);
-            setActiveExecutingNodeId(null);
-            setExecutionLogs((prev) => [
-              ...prev,
-              `[${new Date().toLocaleTimeString()}] Playbook run completed successfully. Zero errors.`
-            ]);
-          }, 800);
-        }
-      }, (index + 1) * 900);
-    });
-  };
-
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col min-w-0 bg-[#000000] text-neutral-100 overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#000000] text-neutral-100 overflow-y-auto font-sans">
         {/* Header Toolbar */}
         <div className="border-b border-[#262626] bg-[#050505]/95 px-6 py-4 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-neutral-900 border border-[#262626] text-white">
-              <Zap className="w-5 h-5" />
+              <Zap className="w-5 h-5 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 mb-0.5">
                 <span>ORCHESTRATION</span>
                 <span>/</span>
-                <span className="text-white">VISUAL SOAR PLAYBOOKS</span>
+                <span className="text-white">VISUAL SOAR PLAYBOOK STUDIO</span>
               </div>
               <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
-                SOAR Workflow Automation & Visual Node Canvas
+                Drag-and-Drop SOAR Playbook Studio & DAG Engine
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono">
-                  ACTIVE ENGINE
+                  CELERY WORKER ACTIVE
                 </span>
               </h1>
             </div>
@@ -238,23 +297,22 @@ export default function PlaybooksPage() {
               ))}
             </select>
 
-            {/* New Playbook Button */}
+            {/* Copy YAML */}
             <button
-              onClick={() => setNewPlaybookModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-emerald-400 border border-[#262626] font-semibold text-xs font-mono transition"
+              onClick={exportPlaybookYaml}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-[#262626] font-semibold text-xs font-mono transition"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span>New Playbook</span>
+              {copiedYaml ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <FileCode className="w-3.5 h-3.5" />}
+              <span>{copiedYaml ? "YAML Copied" : "Copy YAML"}</span>
             </button>
 
             {/* Export JSON Button */}
             <button
               onClick={handleExportPlaybookJSON}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-[#262626] font-semibold text-xs font-mono transition"
-              title="Export playbook definition as JSON"
             >
               <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Export</span>
+              <span>JSON</span>
             </button>
 
             {/* Dry-Run Simulation Button */}
@@ -263,30 +321,102 @@ export default function PlaybooksPage() {
               disabled={isSimulating}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold text-xs font-mono transition-all shadow-sm ${
                 isSimulating
-                  ? "bg-amber-500 text-black animate-pulse"
-                  : "bg-white hover:bg-neutral-200 text-black"
+                  ? "bg-amber-500 text-black animate-pulse font-bold"
+                  : "bg-white hover:bg-neutral-200 text-black font-bold"
               }`}
             >
               <Play className="w-3.5 h-3.5 fill-current" />
-              <span>{isSimulating ? "Executing Run..." : "Test Playbook Run"}</span>
+              <span>{isSimulating ? "Executing Dry-Run..." : "Dry-Run Playbook"}</span>
             </button>
           </div>
         </div>
 
         {/* Playbook Description Banner */}
-        <div className="px-6 py-2.5 bg-[#050505] border-b border-[#1f1f1f] flex items-center justify-between text-xs flex-shrink-0">
+        <div className="px-6 py-2.5 bg-[#050505] border-b border-[#1f1f1f] flex flex-wrap items-center justify-between text-xs gap-3 flex-shrink-0 font-mono">
           <div className="flex items-center gap-2 text-neutral-400">
-            <span className="font-semibold text-white">{selectedPlaybook.name}:</span>
-            <span>{selectedPlaybook.description}</span>
+            <span className="font-semibold text-white">{selectedPlaybook.name}</span>
+            <span className="text-neutral-600">•</span>
+            <span className="text-neutral-400">{selectedPlaybook.description}</span>
           </div>
-          <span className="text-[11px] font-mono text-emerald-400">
-            Trigger: {selectedPlaybook.triggerEvent}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded bg-neutral-900 border border-[#262626] text-neutral-400 text-[10px]">
+              Trigger: <strong className="text-emerald-400">{selectedPlaybook.triggerEvent}</strong>
+            </span>
+            <span className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
+              {selectedPlaybook.nodes.length} WORKFLOW NODES
+            </span>
+          </div>
         </div>
 
-        {/* Visual Node Canvas Area */}
+        {/* Toast */}
+        {playbookToast && (
+          <div className="px-6 py-2 bg-emerald-950/40 border-b border-emerald-500/30 text-emerald-300 text-xs font-mono flex items-center justify-between animate-in fade-in">
+            <span>{playbookToast}</span>
+            <button onClick={() => setPlaybookToast(null)} className="text-emerald-400 hover:text-white">✕</button>
+          </div>
+        )}
+
         <div className="p-6 space-y-6">
-          <div className="relative rounded-2xl bg-[#050505] border border-[#262626] p-8 overflow-x-auto min-h-[360px] shadow-2xl flex items-center">
+          {/* ── DRAGGABLE / CLICKABLE SOAR NODE PALETTE ─────────────────────── */}
+          <div className="p-4 rounded-2xl bg-[#050505] border border-[#262626] space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-mono uppercase font-bold text-neutral-400 flex items-center gap-1.5">
+                <Sliders className="w-3.5 h-3.5 text-emerald-400" />
+                SOAR Component Palette (Click to Add to Canvas Flow):
+              </span>
+              <span className="text-[10px] font-mono text-neutral-500">
+                Click any building block to append into active automation DAG
+              </span>
+            </div>
+
+            <div className="flex flex-wrap gap-2 text-xs font-mono">
+              <button
+                onClick={() => handleAddPaletteNode("enrichment", "Enrich: AlienVault OTX Pulse", "Query subscribed threat pulses for match", "AlienVault OTX")}
+                className="px-2.5 py-1.5 rounded-xl bg-cyan-950/20 hover:bg-cyan-950/40 text-cyan-400 border border-cyan-500/30 transition flex items-center gap-1.5"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ OTX Threat Intel</span>
+              </button>
+              <button
+                onClick={() => handleAddPaletteNode("condition", "Condition: Threat Score > 80", "Evaluate composite risk score threshold", "Risk Engine")}
+                className="px-2.5 py-1.5 rounded-xl bg-amber-950/20 hover:bg-amber-950/40 text-amber-400 border border-amber-500/30 transition flex items-center gap-1.5"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ Risk Threshold Check</span>
+              </button>
+              <button
+                onClick={() => handleAddPaletteNode("action", "Action: Firewall Drop IP (EDL)", "Insert malicious C2 IP into Dynamic Blocklist", "Palo Alto Networks")}
+                className="px-2.5 py-1.5 rounded-xl bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 border border-rose-500/30 transition flex items-center gap-1.5"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ Perimeter IP Drop</span>
+              </button>
+              <button
+                onClick={() => handleAddPaletteNode("action", "Action: Kill Process Tree", "Remotely terminate process hierarchy via EDR", "SentinelOne")}
+                className="px-2.5 py-1.5 rounded-xl bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 border border-rose-500/30 transition flex items-center gap-1.5"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ EDR Process Kill</span>
+              </button>
+              <button
+                onClick={() => handleAddPaletteNode("approval", "Four-Eyes: Incident Commander Gate", "Dual-authorized sign-off required for destructive action", "4-Eyes SOAR Gate")}
+                className="px-2.5 py-1.5 rounded-xl bg-emerald-950/20 hover:bg-emerald-950/40 text-emerald-400 border border-emerald-500/30 transition flex items-center gap-1.5"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ 4-Eyes Commander Gate</span>
+              </button>
+              <button
+                onClick={() => handleAddPaletteNode("notify", "Notify: MS Teams Incident Channel", "Broadcast high-urgency containment card with action links", "Microsoft Teams")}
+                className="px-2.5 py-1.5 rounded-xl bg-blue-950/20 hover:bg-blue-950/40 text-blue-400 border border-blue-500/30 transition flex items-center gap-1.5"
+              >
+                <Plus className="w-3 h-3" />
+                <span>+ Teams Alert Broadcast</span>
+              </button>
+            </div>
+          </div>
+
+          {/* ── VISUAL NODE CANVAS AREA ──────────────────────────────────────── */}
+          <div className="relative rounded-2xl bg-[#050505] border border-[#262626] p-8 overflow-x-auto min-h-[380px] shadow-2xl flex items-center">
             {/* Background Dot Grid */}
             <div
               className="absolute inset-0 opacity-15 pointer-events-none"
@@ -297,7 +427,7 @@ export default function PlaybooksPage() {
             />
 
             {/* Visual Connected Nodes Flow */}
-            <div className="relative z-10 flex items-center gap-6 min-w-max mx-auto py-8">
+            <div className="relative z-10 flex items-center gap-5 min-w-max mx-auto py-8">
               {selectedPlaybook.nodes.map((node, index) => {
                 const color = getNodeColor(node.type);
                 const isExecuting = activeExecutingNodeId === node.id;
@@ -308,7 +438,7 @@ export default function PlaybooksPage() {
                     {/* Node Card */}
                     <div
                       onClick={() => setSelectedNode(node)}
-                      className={`w-60 p-4 rounded-xl border transition-all duration-200 cursor-pointer relative bg-[#080808] ${
+                      className={`w-64 p-4 rounded-xl border transition-all duration-200 cursor-pointer relative bg-[#080808] flex flex-col justify-between ${
                         color.border
                       } ${
                         isExecuting
@@ -318,25 +448,44 @@ export default function PlaybooksPage() {
                           : "hover:border-neutral-400 hover:scale-[1.02]"
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`px-2 py-0.5 rounded font-mono text-[9px] font-bold border ${color.bg} ${color.text} ${color.border}`}>
-                          {color.badge}
-                        </span>
-                        <span className="text-[10px] font-mono text-neutral-500">Step {index + 1}</span>
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className={`px-2 py-0.5 rounded font-mono text-[9px] font-bold border ${color.bg} ${color.text} ${color.border}`}>
+                            {color.badge}
+                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-mono text-neutral-500">Step {index + 1}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteNode(node.id);
+                              }}
+                              className="text-neutral-600 hover:text-red-400 transition"
+                              title="Delete node"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="font-bold text-white text-xs mb-1 truncate" title={node.title}>
+                          {node.title}
+                        </div>
+                        <div className="text-[11px] text-neutral-400 leading-relaxed line-clamp-2">
+                          {node.subtitle}
+                        </div>
                       </div>
 
-                      <div className="font-bold text-white text-xs mb-1 truncate" title={node.title}>
-                        {node.title}
-                      </div>
-                      <div className="text-[11px] text-neutral-400 leading-relaxed line-clamp-2">
-                        {node.subtitle}
+                      <div className="pt-2 mt-2 border-t border-[#1f1f1f] flex items-center justify-between text-[9px] font-mono text-neutral-500">
+                        <span>{node.vendor || "Core"}</span>
+                        <span className="text-emerald-400 font-bold">{node.latency || "12ms"}</span>
                       </div>
 
                       {/* Status indicator pill if simulating */}
                       {isExecuting && (
-                        <div className="mt-2.5 pt-2 border-t border-[#1f1f1f] flex items-center gap-1.5 text-[10px] font-mono text-emerald-400">
+                        <div className="mt-2 pt-2 border-t border-emerald-500/30 flex items-center gap-1.5 text-[10px] font-mono text-emerald-400">
                           <Activity className="w-3 h-3 animate-spin" />
-                          <span>DISPATCHING ACTION...</span>
+                          <span>CELERY TASK DISPATCHED...</span>
                         </div>
                       )}
                     </div>
@@ -344,7 +493,7 @@ export default function PlaybooksPage() {
                     {/* Connecting Data Flow Arrow */}
                     {index < selectedPlaybook.nodes.length - 1 && (
                       <div className="flex items-center justify-center flex-shrink-0 text-neutral-600">
-                        <div className={`w-8 h-0.5 transition-colors duration-300 ${
+                        <div className={`w-6 h-0.5 transition-colors duration-300 ${
                           isExecuting ? "bg-emerald-400 shadow-[0_0_10px_#10b981]" : "bg-[#262626]"
                         }`} />
                         <ArrowRight className={`w-4 h-4 -ml-1 ${isExecuting ? "text-emerald-400" : "text-neutral-600"}`} />
@@ -359,156 +508,90 @@ export default function PlaybooksPage() {
           {/* Node Inspector & Live Execution Console */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Selected Node Inspector */}
-            <div className="lg:col-span-6 p-5 rounded-2xl bg-[#050505] border border-[#262626] space-y-3">
+            <div className="lg:col-span-6 p-5 rounded-2xl bg-[#050505] border border-[#262626] space-y-3 font-mono">
               <div className="flex items-center justify-between border-b border-[#1f1f1f] pb-3">
-                <span className="text-xs font-mono uppercase font-bold text-neutral-400">
+                <span className="text-xs uppercase font-bold text-neutral-400">
                   Node Configuration Inspector
                 </span>
-                <span className="text-[10px] font-mono text-neutral-500">
-                  {selectedNode ? selectedNode.title : "Click any node on canvas to configure"}
+                <span className="text-[10px] text-neutral-500 truncate max-w-[200px]">
+                  {selectedNode ? selectedNode.title : "Select node on canvas"}
                 </span>
               </div>
 
               {selectedNode ? (
                 <div className="space-y-3 text-xs">
                   <div>
-                    <label className="text-[10px] font-mono text-neutral-500 uppercase">Node Title</label>
+                    <label className="text-[10px] text-neutral-500 uppercase">Node Title</label>
                     <input
                       type="text"
                       value={selectedNode.title}
                       readOnly
-                      className="w-full mt-1 bg-[#0a0a0a] border border-[#262626] rounded-lg p-2 text-white font-mono text-xs focus:outline-none"
+                      className="w-full mt-1 bg-[#0a0a0a] border border-[#262626] rounded-lg p-2 text-white text-xs focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-mono text-neutral-500 uppercase">Description / Action Payload</label>
+                    <label className="text-[10px] text-neutral-500 uppercase">Action Payload / Condition Logic</label>
                     <textarea
                       value={selectedNode.subtitle}
                       readOnly
                       rows={2}
-                      className="w-full mt-1 bg-[#0a0a0a] border border-[#262626] rounded-lg p-2 text-neutral-300 font-mono text-xs focus:outline-none"
+                      className="w-full mt-1 bg-[#0a0a0a] border border-[#262626] rounded-lg p-2 text-neutral-300 text-xs focus:outline-none"
                     />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="text-[10px] text-neutral-500 uppercase">Integration Vendor</label>
+                      <input
+                        type="text"
+                        value={selectedNode.vendor || "Core"}
+                        readOnly
+                        className="w-full mt-1 bg-[#0a0a0a] border border-[#262626] rounded-lg p-2 text-emerald-400 text-xs focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-neutral-500 uppercase">Expected Latency</label>
+                      <input
+                        type="text"
+                        value={selectedNode.latency || "12ms"}
+                        readOnly
+                        className="w-full mt-1 bg-[#0a0a0a] border border-[#262626] rounded-lg p-2 text-neutral-300 text-xs focus:outline-none"
+                      />
+                    </div>
                   </div>
                 </div>
               ) : (
-                <div className="py-8 text-center text-xs text-neutral-500 font-mono">
-                  Select a step in the visual workflow above to view API parameters, timeout policies, and retry logic.
+                <div className="py-8 text-center text-xs text-neutral-500">
+                  Select any step in the visual workflow above to inspect API adapter settings, timeout policies, and execution contracts.
                 </div>
               )}
             </div>
 
             {/* Right: Live Execution Console */}
-            <div className="lg:col-span-6 p-5 rounded-2xl bg-[#050505] border border-[#262626] space-y-3">
+            <div className="lg:col-span-6 p-5 rounded-2xl bg-[#050505] border border-[#262626] space-y-3 font-mono">
               <div className="flex items-center justify-between border-b border-[#1f1f1f] pb-3">
-                <span className="text-xs font-mono uppercase font-bold text-neutral-400 flex items-center gap-1.5">
+                <span className="text-xs uppercase font-bold text-neutral-400 flex items-center gap-1.5">
                   <Terminal className="w-3.5 h-3.5 text-emerald-400" />
-                  Playbook Orchestration Console
+                  Celery Worker Task Execution Output
                 </span>
-                <span className="text-[10px] font-mono text-emerald-400">Celery SOAR Worker</span>
+                <span className="text-[10px] text-emerald-400">Queue: soar.high_priority</span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#000000] border border-[#1f1f1f] font-mono text-[11px] text-neutral-300 space-y-1.5 h-44 overflow-y-auto select-all">
+              <div className="p-3.5 rounded-xl bg-[#000000] border border-[#1f1f1f] text-[11px] text-neutral-300 space-y-1.5 h-48 overflow-y-auto select-all">
                 {executionLogs.length > 0 ? (
                   executionLogs.map((log, i) => (
-                    <div key={i} className="text-neutral-200">
+                    <div key={i} className={log.includes("200 OK") || log.includes("finalized") ? "text-emerald-400" : "text-neutral-300"}>
                       {log}
                     </div>
                   ))
                 ) : (
                   <div className="text-neutral-600">
-                    Click 'Test Playbook Run' above to simulate live automation dispatch.
+                    Click 'Dry-Run Playbook' above to simulate live Celery automation worker execution.
                   </div>
                 )}
               </div>
             </div>
           </div>
         </div>
-
-        {/* New Playbook Modal */}
-        {newPlaybookModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-            <div className="bg-[#050505] border border-[#262626] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-              <div className="flex items-center justify-between pb-3 border-b border-[#262626]">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-                    <Zap className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-bold text-white">Author SOAR Playbook</h3>
-                    <p className="text-xs text-neutral-400">Design automated response workflow with dual-approval safeguards</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setNewPlaybookModalOpen(false)}
-                  className="text-neutral-400 hover:text-white p-1 text-sm font-mono"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <form onSubmit={handleCreatePlaybook} className="space-y-3.5 text-xs font-mono">
-                <div>
-                  <label className="text-neutral-400 block mb-1">Playbook Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Cobalt Strike Beaconing Host Severance & TGT Revocation"
-                    value={newPbName}
-                    onChange={(e) => setNewPbName(e.target.value)}
-                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-neutral-400 block mb-1">Trigger Condition Filter</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Alert Severity == CRITICAL and Rule == 'CobaltStrike'"
-                    value={newPbTrigger}
-                    onChange={(e) => setNewPbTrigger(e.target.value)}
-                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-neutral-400 block mb-1">Description & Operational Objective</label>
-                  <textarea
-                    rows={3}
-                    placeholder="Automates rapid response upon verifiable detection, routing through Tier-3 dual sign-off..."
-                    value={newPbDesc}
-                    onChange={(e) => setNewPbDesc(e.target.value)}
-                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 resize-none font-sans"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262626]">
-                  <button
-                    type="button"
-                    onClick={() => setNewPlaybookModalOpen(false)}
-                    className="px-4 py-2 bg-[#121212] hover:bg-[#1a1a1a] text-neutral-300 border border-[#262626] rounded-xl transition"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-black font-bold rounded-xl transition shadow-lg shadow-emerald-600/30 flex items-center gap-1.5"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Create Playbook</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Toast */}
-        {playbookToast && (
-          <div className="fixed bottom-6 right-6 z-50 bg-[#050505] border border-emerald-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-mono animate-in fade-in slide-in-from-bottom-3">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>{playbookToast}</span>
-          </div>
-        )}
       </div>
     </AppShell>
   );

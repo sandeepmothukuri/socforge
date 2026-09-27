@@ -24,8 +24,10 @@ import {
   Bell
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
+import GlobalThreatMap from "@/components/analytics/GlobalThreatMap";
 
 export default function WallboardPage() {
+  const [centerView, setCenterView] = useState<"map" | "radar">("map");
   const [timeUtc, setTimeUtc] = useState<string>("");
   const [timeLocal, setTimeLocal] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -208,33 +210,69 @@ export default function WallboardPage() {
 
       {/* Center Radar & Live Alert Stream */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
-        {/* Left 2 Cols: Threat Radar & Fleet Matrix */}
+        {/* Left 2 Cols: Threat Radar / Global Threat Map & Fleet Matrix */}
         <div className="lg:col-span-2 flex flex-col space-y-4">
-          <div className="p-6 rounded-2xl bg-[#050505] border border-neutral-800 flex flex-col items-center justify-center relative overflow-hidden min-h-[320px]">
-            {/* Animated Radar Canvas */}
-            <div className="relative w-64 h-64 rounded-full border border-emerald-500/20 flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full border border-emerald-500/10 scale-75" />
-              <div className="absolute inset-0 rounded-full border border-emerald-500/10 scale-50" />
-              <div className="absolute inset-0 rounded-full border border-emerald-500/10 scale-25" />
-              <div className="absolute w-full h-px bg-emerald-500/20" />
-              <div className="absolute h-full w-px bg-emerald-500/20" />
-              
-              {/* Sweeping Beam */}
-              <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,rgba(16,185,129,0.25)_60deg,transparent_65deg)] animate-[spin_4s_linear_infinite]" />
-
-              {/* Blips */}
-              <div className="absolute top-12 right-16 w-2.5 h-2.5 rounded-full bg-red-500 shadow-lg shadow-red-500 animate-ping" />
-              <div className="absolute bottom-20 left-14 w-2 h-2 rounded-full bg-amber-400 shadow-md shadow-amber-400" />
-              <div className="absolute top-28 left-20 w-2 h-2 rounded-full bg-white" />
+          {/* View Mode Toggle Header */}
+          <div className="flex items-center justify-between px-1 font-mono text-xs">
+            <div className="flex items-center gap-1 bg-[#050505] p-1 rounded-xl border border-neutral-800">
+              <button
+                onClick={() => setCenterView("map")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  centerView === "map"
+                    ? "bg-white text-black shadow-md"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5" />
+                <span>Global Threat Arc Map (DEFCON 3)</span>
+              </button>
+              <button
+                onClick={() => setCenterView("radar")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  centerView === "radar"
+                    ? "bg-white text-black shadow-md"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                <Radio className="w-3.5 h-3.5" />
+                <span>360° Threat Radar Sensor</span>
+              </button>
             </div>
 
-            <div className="absolute bottom-4 left-6 text-xs font-mono text-neutral-400">
-              <span className="text-emerald-400 font-bold">RADAR-SCAN:</span> GLOBAL SENSOR BEACONING 360° ACTIVE
-            </div>
-            <div className="absolute bottom-4 right-6 text-xs font-mono text-emerald-400">
-              PROTECTED ENDPOINTS: 1,480 / 1,480 ONLINE
+            <div className="text-[11px] text-neutral-500 font-mono hidden sm:block">
+              {centerView === "map" ? "Real-time Equirectangular Ballistic Ingress" : "Local Sensor Frequency Sweep"}
             </div>
           </div>
+
+          {centerView === "map" ? (
+            <GlobalThreatMap compact={true} />
+          ) : (
+            <div className="p-6 rounded-2xl bg-[#050505] border border-neutral-800 flex flex-col items-center justify-center relative overflow-hidden min-h-[320px]">
+              {/* Animated Radar Canvas */}
+              <div className="relative w-64 h-64 rounded-full border border-emerald-500/20 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border border-emerald-500/10 scale-75" />
+                <div className="absolute inset-0 rounded-full border border-emerald-500/10 scale-50" />
+                <div className="absolute inset-0 rounded-full border border-emerald-500/10 scale-25" />
+                <div className="absolute w-full h-px bg-emerald-500/20" />
+                <div className="absolute h-full w-px bg-emerald-500/20" />
+                
+                {/* Sweeping Beam */}
+                <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg,transparent_0deg,rgba(16,185,129,0.25)_60deg,transparent_65deg)] animate-[spin_4s_linear_infinite]" />
+
+                {/* Blips */}
+                <div className="absolute top-12 right-16 w-2.5 h-2.5 rounded-full bg-red-500 shadow-lg shadow-red-500 animate-ping" />
+                <div className="absolute bottom-20 left-14 w-2 h-2 rounded-full bg-amber-400 shadow-md shadow-amber-400" />
+                <div className="absolute top-28 left-20 w-2 h-2 rounded-full bg-white" />
+              </div>
+
+              <div className="absolute bottom-4 left-6 text-xs font-mono text-neutral-400">
+                <span className="text-emerald-400 font-bold">RADAR-SCAN:</span> GLOBAL SENSOR BEACONING 360° ACTIVE
+              </div>
+              <div className="absolute bottom-4 right-6 text-xs font-mono text-emerald-400">
+                PROTECTED ENDPOINTS: 1,480 / 1,480 ONLINE
+              </div>
+            </div>
+          )}
 
           {/* Infrastructure Health Status Tiles */}
           <div className="grid grid-cols-4 gap-3 font-mono text-xs">

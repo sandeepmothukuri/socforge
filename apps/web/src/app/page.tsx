@@ -49,6 +49,7 @@ import { runDemoWorkflow } from "@/lib/api";
 import { TelemetryPipelineVisualizer } from "@/components/home/TelemetryPipelineVisualizer";
 import { AutonomousAIAgentPlayground } from "@/components/home/AutonomousAIAgentPlayground";
 import EnterpriseConnectorsMatrix from "@/components/home/EnterpriseConnectorsMatrix";
+import GlobalThreatMap from "@/components/analytics/GlobalThreatMap";
 
 export default function HomePage() {
   const [demoRunning, setDemoRunning] = useState(false);
@@ -499,6 +500,13 @@ export default function HomePage() {
 
       {/* ── AUTONOMOUS AI AGENT TRIAGE PLAYGROUND ────────────────────────────── */}
       <AutonomousAIAgentPlayground />
+
+      {/* ── GLOBAL THREAT ARC MAP & C2 RADAR ─────────────────────────────────── */}
+      <section className="py-16 px-6 border-b border-[#262626] bg-[#000000]">
+        <div className="max-w-7xl mx-auto space-y-4">
+          <GlobalThreatMap />
+        </div>
+      </section>
 
       {/* ── WORKSPACE EXPLORER CATEGORIZED TABS ─────────────────────────────────── */}
       <section className="py-16 px-6 border-b border-[#262626] bg-[#050505]">
