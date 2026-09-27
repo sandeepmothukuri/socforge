@@ -20,9 +20,9 @@ import {
   ShieldCheck,
   Server,
   Crosshair,
-  Sliders,
-  Sparkles,
-  Maximize2
+  Layers,
+  MapPin,
+  AlertTriangle
 } from "lucide-react";
 import worldMapData from "./worldMapData.json";
 
@@ -30,14 +30,12 @@ export interface ThreatArc {
   id: string;
   sourceCity: string;
   sourceCountry: string;
-  sourceCode: string;
   sourceIp: string;
   sourceAsn: string;
   sourceCoords: [number, number]; // [lat, lng]
   targetCity: string;
   targetRegion: string;
   targetVpc: string;
-  targetCode: string;
   targetCoords: [number, number]; // [lat, lng]
   threatActor: string;
   technique: string;
@@ -54,36 +52,32 @@ export const INITIAL_THREAT_ARCS: ThreatArc[] = [
     id: "arc-01",
     sourceCity: "Moscow",
     sourceCountry: "RU",
-    sourceCode: "SVO",
     sourceIp: "185.220.101.45",
     sourceAsn: "AS49210 (RedRelay)",
     sourceCoords: [55.75, 37.62],
-    targetCity: "Ashburn",
-    targetRegion: "AWS US-East",
+    targetCity: "Ashburn (US-East AWS)",
+    targetRegion: "AWS VPC Production",
     targetVpc: "vpc-prod-east-01",
-    targetCode: "IAD",
     targetCoords: [39.04, -77.48],
     threatActor: "APT29 (Nobelium)",
-    technique: "OAuth Token Forgery via Azure Service Principal",
+    technique: "Cloud Token Minting via Compromised Key",
     mitreId: "T1078.004",
     protocol: "HTTPS / TLS 1.3",
     severity: "CRITICAL",
     status: "BLOCKED_BY_SOAR",
-    color: "#f43f5e", // Rose/Crimson
+    color: "#ef4444", // Bright Red
     timestamp: "12s ago"
   },
   {
     id: "arc-02",
     sourceCity: "Shanghai",
     sourceCountry: "CN",
-    sourceCode: "PVG",
     sourceIp: "112.90.44.18",
     sourceAsn: "AS4134 (Chinanet)",
     sourceCoords: [31.23, 121.47],
-    targetCity: "Frankfurt",
-    targetRegion: "GCP EU-Central",
+    targetCity: "Frankfurt (EU-Central GCP)",
+    targetRegion: "GCP Kubernetes Cluster",
     targetVpc: "gcp-prod-k8s-de",
-    targetCode: "FRA",
     targetCoords: [50.11, 8.68],
     threatActor: "Volt Typhoon",
     technique: "Living-Off-The-Land PowerShell Discovery",
@@ -98,14 +92,12 @@ export const INITIAL_THREAT_ARCS: ThreatArc[] = [
     id: "arc-03",
     sourceCity: "Pyongyang",
     sourceCountry: "KP",
-    sourceCode: "FNJ",
     sourceIp: "175.45.176.8",
     sourceAsn: "AS131279 (Star-KP)",
     sourceCoords: [39.03, 125.75],
-    targetCity: "Tokyo",
-    targetRegion: "AWS APAC-Core",
+    targetCity: "Tokyo (APAC AWS)",
+    targetRegion: "Financial Core Engine",
     targetVpc: "aws-fin-core-ap",
-    targetCode: "NRT",
     targetCoords: [35.68, 139.69],
     threatActor: "Lazarus Group",
     technique: "Encrypted C2 Beacon over WebSockets",
@@ -113,21 +105,19 @@ export const INITIAL_THREAT_ARCS: ThreatArc[] = [
     protocol: "WSS / Port 443",
     severity: "CRITICAL",
     status: "BLOCKED_BY_SOAR",
-    color: "#d946ef", // Fuchsia
+    color: "#ec4899", // Neon Pink
     timestamp: "1m ago"
   },
   {
     id: "arc-04",
     sourceCity: "St. Petersburg",
     sourceCountry: "RU",
-    sourceCode: "LED",
     sourceIp: "194.26.29.112",
     sourceAsn: "AS48282 (Selectel)",
     sourceCoords: [59.93, 30.33],
-    targetCity: "Quincy",
-    targetRegion: "Azure US-West",
+    targetCity: "Quincy (US-West Azure)",
+    targetRegion: "Azure Sovereign Cloud",
     targetVpc: "az-uswest-sec01",
-    targetCode: "SEA",
     targetCoords: [47.23, -119.85],
     threatActor: "Sandworm Team",
     technique: "VPN Perimeter Credential Stuffing",
@@ -135,21 +125,19 @@ export const INITIAL_THREAT_ARCS: ThreatArc[] = [
     protocol: "IPsec / IKEv2",
     severity: "HIGH",
     status: "WAF_DROP",
-    color: "#38bdf8", // Sky Blue
+    color: "#38bdf8", // Electric Blue
     timestamp: "2m ago"
   },
   {
     id: "arc-05",
     sourceCity: "Bucharest",
     sourceCountry: "RO",
-    sourceCode: "OTP",
     sourceIp: "91.240.118.66",
     sourceAsn: "AS200019 (HostSailor)",
     sourceCoords: [44.43, 26.10],
-    targetCity: "London",
-    targetRegion: "Equinix UK-Edge",
+    targetCity: "London (UK Edge)",
+    targetRegion: "Equinix LD4 Financial Node",
     targetVpc: "ld4-edge-uk",
-    targetCode: "LHR",
     targetCoords: [51.51, -0.13],
     threatActor: "FIN7 (Carbanak)",
     technique: "Automated MFA Push Fatigue Spray",
@@ -164,34 +152,32 @@ export const INITIAL_THREAT_ARCS: ThreatArc[] = [
     id: "arc-06",
     sourceCity: "Tehran",
     sourceCountry: "IR",
-    sourceCode: "IKA",
     sourceIp: "185.143.232.19",
     sourceAsn: "AS44244 (Irancell)",
     sourceCoords: [35.69, 51.39],
-    targetCity: "Singapore",
-    targetRegion: "GCP APAC-South",
+    targetCity: "Singapore (APAC GCP)",
+    targetRegion: "GCP Cloud Run Gateway",
     targetVpc: "gcp-apac-sg-01",
-    targetCode: "SIN",
     targetCoords: [1.35, 103.82],
     threatActor: "Charming Kitten",
-    technique: "Spearphishing OAuth Delegated Token Theft",
+    technique: "Spearphishing OAuth Delegated Token Exfiltration",
     mitreId: "T1528",
     protocol: "HTTPS / REST API",
     severity: "HIGH",
     status: "BLOCKED_BY_SOAR",
-    color: "#a855f7", // Purple
+    color: "#a855f7", // Violet
     timestamp: "4m ago"
   }
 ];
 
-// Target Protected Data Centers / VPC Hubs with Precision Crosshair Points
+// Target Protected Data Centers / VPC Hubs
 export const DEFENSE_DATACENTERS = [
-  { name: "Ashburn", label: "US-EAST-VPC", code: "IAD", provider: "AWS", coords: [39.04, -77.48], vpcId: "vpc-prod-east-01" },
-  { name: "Quincy", label: "US-WEST-AZURE", code: "SEA", provider: "Azure", coords: [47.23, -119.85], vpcId: "az-uswest-sec01" },
-  { name: "London", label: "UK-FIN-EDGE", code: "LHR", provider: "Equinix", coords: [51.51, -0.13], vpcId: "ld4-edge-uk" },
-  { name: "Frankfurt", label: "EU-CENTRAL-K8S", code: "FRA", provider: "GCP", coords: [50.11, 8.68], vpcId: "gcp-prod-k8s-de" },
-  { name: "Tokyo", label: "APAC-CORE", code: "NRT", provider: "AWS", coords: [35.68, 139.69], vpcId: "aws-fin-core-ap" },
-  { name: "Singapore", label: "APAC-SOUTH", code: "SIN", provider: "GCP", coords: [1.35, 103.82], vpcId: "gcp-apac-sg-01" }
+  { name: "US-East AWS (Ashburn)", coords: [39.04, -77.48], label: "US-EAST-VPC", vpcId: "vpc-prod-east-01", provider: "AWS", status: "100% BLOCKED" },
+  { name: "US-West Azure (Quincy)", coords: [47.23, -119.85], label: "US-WEST-AZURE", vpcId: "az-uswest-sec01", provider: "Azure", status: "100% BLOCKED" },
+  { name: "London Edge (Equinix LD4)", coords: [51.51, -0.13], label: "UK-FIN-EDGE", vpcId: "ld4-edge-uk", provider: "Equinix", status: "100% BLOCKED" },
+  { name: "EU-Central GCP (Frankfurt)", coords: [50.11, 8.68], label: "EU-CENTRAL-K8S", vpcId: "gcp-prod-k8s-de", provider: "GCP", status: "100% BLOCKED" },
+  { name: "APAC Core AWS (Tokyo)", coords: [35.68, 139.69], label: "APAC-CORE", vpcId: "aws-fin-core-ap", provider: "AWS", status: "100% BLOCKED" },
+  { name: "APAC South GCP (Singapore)", coords: [1.35, 103.82], label: "APAC-SOUTH", vpcId: "gcp-apac-sg-01", provider: "GCP", status: "100% BLOCKED" }
 ];
 
 // Mathematical Equirectangular Projection: maps [lat, lng] to 1000x500 coordinates
@@ -201,14 +187,14 @@ export function projectCoordinates(lat: number, lng: number): [number, number] {
   return [Number(x.toFixed(2)), Number(y.toFixed(2))];
 }
 
-// Generate Parabolic Quad Bezier path for thin marked attack trajectory
+// Generate Parabolic Quad Bezier path for attack trajectory
 function getTrajectoryPath(source: [number, number], target: [number, number]) {
   const [x1, y1] = source;
   const [x2, y2] = target;
   const midX = (x1 + x2) / 2;
   const midY = (y1 + y2) / 2;
   const dist = Math.hypot(x2 - x1, y2 - y1);
-  const arcHeight = Math.max(35, Math.min(130, dist * 0.3));
+  const arcHeight = Math.max(45, Math.min(135, dist * 0.32));
   const cx = midX;
   const cy = midY - arcHeight;
   return `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
@@ -231,17 +217,14 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
   const [showTelemetryModal, setShowTelemetryModal] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Map Visual Style: "matrix" (Cyber Dots), "hairline" (Thin Vector Outline), "hybrid" (Both)
-  const [mapStyle, setMapStyle] = useState<"matrix" | "hairline" | "hybrid">("matrix");
-  // Line Style: "marked" (Thin dashed marks), "laser" (Thin solid laser)
-  const [lineStyle, setLineStyle] = useState<"marked" | "laser">("marked");
-
-  // Layers
+  // Layer Toggles
+  const [showBorders, setShowBorders] = useState<boolean>(true);
+  const [showUnderseaCables, setShowUnderseaCables] = useState<boolean>(true);
   const [showGraticule, setShowGraticule] = useState<boolean>(true);
-  const [showFiberNetwork, setShowFiberNetwork] = useState<boolean>(true);
-  const [showTargetCrosshairs, setShowTargetCrosshairs] = useState<boolean>(true);
+  const [showRadarRings, setShowRadarRings] = useState<boolean>(true);
+  const [showRadarSweep, setShowRadarSweep] = useState<boolean>(true);
 
-  // ViewBox Zoom & Pan
+  // Zoom & Pan ViewBox state
   const [viewBox, setViewBox] = useState<{ x: number; y: number; w: number; h: number }>({
     x: 0,
     y: 0,
@@ -249,7 +232,10 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
     h: 500
   });
 
-  // Synthesized Tactical Audio Radar Ping (Web Audio API)
+  // Country hover tooltip
+  const [hoveredCountry, setHoveredCountry] = useState<{ name: string; code: string; x: number; y: number } | null>(null);
+
+  // Audio Radar Chime (Web Audio API)
   const audioContextRef = useRef<AudioContext | null>(null);
   const playRadarPing = () => {
     if (!audioEnabled || typeof window === "undefined") return;
@@ -262,32 +248,32 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.12);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.18);
 
-      gain.gain.setValueAtTime(0.05, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
+      gain.gain.setValueAtTime(0.08, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
 
       osc.connect(gain);
       gain.connect(ctx.destination);
 
       osc.start();
-      osc.stop(ctx.currentTime + 0.15);
+      osc.stop(ctx.currentTime + 0.23);
     } catch {
       // Audio fallback suppression
     }
   };
 
-  // Periodic Live Threat Stream
+  // Periodic threat stream
   useEffect(() => {
     if (!isPlaying) return;
     const interval = setInterval(() => {
       const candidates = [
-        { city: "Shenzhen", country: "CN", code: "SZX", ip: "183.14.30.99", asn: "AS4134", coords: [22.54, 114.05], actor: "Volt Typhoon", tech: "WMI Command Obfuscation", mitre: "T1047", color: "#f59e0b" },
-        { city: "Khabarovsk", country: "RU", code: "KHV", ip: "92.38.150.12", asn: "AS12389", coords: [48.48, 135.07], actor: "APT29 (Nobelium)", tech: "Kerberos TGT Golden Ticket Request", mitre: "T1558.001", color: "#f43f5e" },
-        { city: "Hanoi", country: "VN", code: "HAN", ip: "118.70.180.45", asn: "AS7552", coords: [21.02, 105.83], actor: "OceanLotus", tech: "In-Memory Shellcode Injection", mitre: "T1055.002", color: "#10b981" },
-        { city: "Kazan", country: "RU", code: "KZN", ip: "178.208.76.10", asn: "AS31133", coords: [55.79, 49.12], actor: "Sandworm Team", tech: "OT SCADA Modbus Remote Command", mitre: "T0855", color: "#38bdf8" }
+        { city: "Shenzhen", country: "CN", ip: "183.14.30.99", asn: "AS4134", coords: [22.54, 114.05], actor: "Volt Typhoon", tech: "Living-off-the-Land WMI Query", mitre: "T1047", color: "#f59e0b" },
+        { city: "Khabarovsk", country: "RU", ip: "92.38.150.12", asn: "AS12389", coords: [48.48, 135.07], actor: "APT29 (Nobelium)", tech: "Active Directory Kerberoasting", mitre: "T1558.003", color: "#ef4444" },
+        { city: "Hanoi", country: "VN", ip: "118.70.180.45", asn: "AS7552", coords: [21.02, 105.83], actor: "OceanLotus", tech: "Cobalt Strike HTTPS Injection", mitre: "T1055.002", color: "#10b981" },
+        { city: "Kazan", country: "RU", ip: "178.208.76.10", asn: "AS31133", coords: [55.79, 49.12], actor: "Sandworm Team", tech: "ICS/SCADA Modbus Protocol Spoof", mitre: "T0855", color: "#38bdf8" }
       ];
       const targetList = DEFENSE_DATACENTERS;
       const pickSource = candidates[Math.floor(Math.random() * candidates.length)];
@@ -297,14 +283,12 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
         id: `arc-${Date.now().toString().slice(-4)}`,
         sourceCity: pickSource.city,
         sourceCountry: pickSource.country,
-        sourceCode: pickSource.code,
         sourceIp: pickSource.ip,
         sourceAsn: pickSource.asn,
         sourceCoords: pickSource.coords as [number, number],
         targetCity: pickTarget.name,
-        targetRegion: pickTarget.provider + " " + pickTarget.label,
+        targetRegion: pickTarget.label,
         targetVpc: pickTarget.vpcId,
-        targetCode: pickTarget.code,
         targetCoords: pickTarget.coords as [number, number],
         threatActor: pickSource.actor,
         technique: pickSource.tech,
@@ -318,26 +302,26 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
 
       setArcs((prev) => [newArc, ...prev.slice(0, 7)]);
       playRadarPing();
-    }, 10000);
+    }, 9000);
 
     return () => clearInterval(interval);
   }, [isPlaying, audioEnabled]);
 
-  // Filter Arcs
+  // Filter arcs by selected threat actor
   const filteredArcs = useMemo(() => {
     if (selectedActor === "ALL") return arcs;
     return arcs.filter((a) => a.threatActor.toLowerCase().includes(selectedActor.toLowerCase()));
   }, [arcs, selectedActor]);
 
-  // Zoom Handlers
-  const handleZoom = (dir: "in" | "out" | "reset") => {
-    if (dir === "reset") {
+  // Zoom handlers
+  const handleZoom = (direction: "in" | "out" | "reset") => {
+    if (direction === "reset") {
       setViewBox({ x: 0, y: 0, w: 1000, h: 500 });
       return;
     }
-    const factor = dir === "in" ? 0.75 : 1.33;
-    const newW = Math.max(280, Math.min(1000, viewBox.w * factor));
-    const newH = Math.max(140, Math.min(500, viewBox.h * factor));
+    const factor = direction === "in" ? 0.75 : 1.33;
+    const newW = Math.max(300, Math.min(1000, viewBox.w * factor));
+    const newH = Math.max(150, Math.min(500, viewBox.h * factor));
     const newX = Math.max(0, Math.min(1000 - newW, viewBox.x + (viewBox.w - newW) / 2));
     const newY = Math.max(0, Math.min(500 - newH, viewBox.y + (viewBox.h - newH) / 2));
     setViewBox({ x: newX, y: newY, w: newW, h: newH });
@@ -350,13 +334,13 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
         setViewBox({ x: 0, y: 0, w: 1000, h: 500 });
         break;
       case "na":
-        setViewBox({ x: 140, y: 40, w: 380, h: 240 });
+        setViewBox({ x: 120, y: 30, w: 420, h: 260 });
         break;
       case "eu":
-        setViewBox({ x: 440, y: 40, w: 290, h: 200 });
+        setViewBox({ x: 420, y: 40, w: 320, h: 220 });
         break;
       case "apac":
-        setViewBox({ x: 670, y: 60, w: 330, h: 250 });
+        setViewBox({ x: 650, y: 60, w: 350, h: 260 });
         break;
     }
   };
@@ -368,14 +352,12 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
       id: `sim-${Date.now().toString().slice(-4)}`,
       sourceCity: "St. Petersburg",
       sourceCountry: "RU",
-      sourceCode: "LED",
       sourceIp: "194.26.29.98",
       sourceAsn: "AS48282 (Selectel)",
       sourceCoords: [59.93, 30.33],
       targetCity: randomTarget.name,
       targetRegion: randomTarget.label,
       targetVpc: randomTarget.vpcId,
-      targetCode: randomTarget.code,
       targetCoords: randomTarget.coords as [number, number],
       threatActor: "Sandworm Team",
       technique: "Zero-Day Ingress VPN Tunnel Probe",
@@ -383,7 +365,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
       protocol: "UDP / WireGuard 51820",
       severity: "CRITICAL",
       status: "BLOCKED_BY_SOAR",
-      color: "#f43f5e",
+      color: "#ef4444",
       timestamp: "just now"
     };
 
@@ -391,17 +373,17 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
     setSelectedArc(simArc);
     playRadarPing();
 
-    setToastMessage(`[SOAR PERIMETER MITIGATION] Intercepted threat trajectory from [${simArc.sourceCode}] ${simArc.sourceCity} -> [${randomTarget.code}] ${randomTarget.label}`);
+    setToastMessage(`[SOAR TRIGGER] Intercepted zero-day trajectory from ${simArc.sourceCity} (${simArc.sourceIp}) -> ${randomTarget.label}`);
     setTimeout(() => setToastMessage(null), 4000);
   };
 
-  // Quarantine Action
+  // Quarantine C2 Action
   const handleQuarantineC2 = () => {
     if (!quarantinedIps.includes(selectedArc.sourceIp)) {
       setQuarantinedIps((prev) => [...prev, selectedArc.sourceIp]);
-      setToastMessage(`[EDGE FIREWALL DROP] Quarantined C2 Host ${selectedArc.sourceIp} across all perimeter edge points.`);
+      setToastMessage(`[FIREWALL MITIGATION] C2 IP ${selectedArc.sourceIp} quarantined across all 12 Edge Gateways.`);
     } else {
-      setToastMessage(`[ACTIVE RULE] IP ${selectedArc.sourceIp} is already in edge blacklist.`);
+      setToastMessage(`[ACTIVE RULE] IP ${selectedArc.sourceIp} is already in the Global Quarantine Blacklist.`);
     }
     setTimeout(() => setToastMessage(null), 4000);
   };
@@ -415,10 +397,10 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
   };
 
   return (
-    <div className={`flex flex-col bg-[#020408] border border-[#172033] rounded-2xl overflow-hidden shadow-2xl ${className}`}>
+    <div className={`flex flex-col bg-[#050811] border border-[#1e293b] rounded-2xl overflow-hidden shadow-2xl ${className}`}>
       {/* Toast Notification Banner */}
       {toastMessage && (
-        <div className="bg-[#041a14] border-b border-emerald-500/40 text-emerald-300 px-4 py-2 text-xs flex items-center justify-between font-mono animate-fadeIn z-50">
+        <div className="bg-emerald-950/90 border-b border-emerald-500/40 text-emerald-200 px-4 py-2 text-xs flex items-center justify-between font-mono animate-fadeIn z-50">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{toastMessage}</span>
@@ -429,124 +411,90 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
         </div>
       )}
 
-      {/* Clean Minimalist Command Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-5 py-3 border-b border-[#172033] bg-[#030712]/95 backdrop-blur-md">
+      {/* Header Bar */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 px-5 py-3.5 border-b border-[#1e293b] bg-[#070c18]/90 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-cyan-950/30 border border-cyan-500/30 text-cyan-400">
-            <Globe className="w-4 h-4" />
+          <div className="relative p-2.5 rounded-xl bg-cyan-950/40 border border-cyan-500/40 text-cyan-400 shadow-inner">
+            <Globe className="w-5 h-5 animate-pulse" />
+            <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500"></span>
+            </span>
           </div>
 
           <div>
             <div className="flex items-center gap-2.5">
-              <h2 className="text-xs font-bold text-white tracking-widest uppercase font-mono">
-                GLOBAL THREAT RADAR & C2 PERIMETER ARCS
+              <h2 className="text-sm font-bold text-white tracking-wide uppercase font-sans">
+                Global Threat Arc Map & C2 Defense Radar
               </h2>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
-                DEFCON 3
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-red-500/10 text-red-400 border border-red-500/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+                DEFCON 3 ACTIVE
               </span>
-              <span className="hidden sm:inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                100% INGRESS DROPPED
+              <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                100% INGRESS MITIGATION
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-mono">
-              Live vector telemetry • Thin marked trajectories • Precision datacenter shields
+            <p className="text-[11px] text-slate-400">
+              High-resolution cartographic tracking of nation-state threat vectors, C2 infrastructure, and automated SOAR perimeter drops.
             </p>
           </div>
         </div>
 
-        {/* Global Action Toolbar */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          {/* Map Display Mode: Matrix / Hairline / Hybrid */}
-          <div className="flex items-center rounded-lg bg-[#070d19] border border-[#1e293b] p-0.5 text-[10px] font-mono">
-            <button
-              onClick={() => setMapStyle("matrix")}
-              className={`px-2 py-1 rounded transition ${mapStyle === "matrix" ? "bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40" : "text-slate-400 hover:text-white"}`}
-              title="Clean Cyber Dot Matrix Cartography"
-            >
-              Dot Matrix
-            </button>
-            <button
-              onClick={() => setMapStyle("hairline")}
-              className={`px-2 py-1 rounded transition ${mapStyle === "hairline" ? "bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40" : "text-slate-400 hover:text-white"}`}
-              title="Razor-thin Hairline Wireframe Coastlines"
-            >
-              Hairline
-            </button>
-            <button
-              onClick={() => setMapStyle("hybrid")}
-              className={`px-2 py-1 rounded transition ${mapStyle === "hybrid" ? "bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/40" : "text-slate-400 hover:text-white"}`}
-              title="Hybrid Matrix & Hairline Cartography"
-            >
-              Hybrid
-            </button>
-          </div>
-
-          {/* Line Style Toggle: Marked Dash vs Thin Laser */}
-          <button
-            onClick={() => setLineStyle(lineStyle === "marked" ? "laser" : "marked")}
-            className={`px-2.5 py-1 rounded-lg border text-[10px] font-mono transition ${
-              lineStyle === "marked"
-                ? "bg-slate-900 border-cyan-500/40 text-cyan-300"
-                : "bg-slate-900 border-[#1e293b] text-slate-400 hover:text-white"
-            }`}
-            title="Toggle between Marked Dashes and Thin Laser lines"
-          >
-            Line: {lineStyle === "marked" ? "Marked Dashes" : "Thin Laser"}
-          </button>
-
-          {/* Simulate Threat Button */}
+        {/* Action Controls */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Simulate Attack Button */}
           <button
             onClick={handleSimulateNewAttack}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-mono text-xs font-bold transition shadow-sm active:scale-95"
-            title="Inject simulated ballistic vector"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white text-xs font-bold transition shadow-lg shadow-red-950/50 active:scale-95 border border-red-400/30"
           >
             <Flame className="w-3.5 h-3.5 text-amber-300" />
-            <span>Simulate</span>
+            <span>Simulate Ingress</span>
           </button>
 
-          {/* Audio Chime Toggle */}
+          {/* Sound Toggle */}
           <button
             onClick={() => setAudioEnabled(!audioEnabled)}
-            className={`p-1.5 rounded-lg border transition ${
+            className={`p-2 rounded-xl border text-xs transition ${
               audioEnabled
-                ? "bg-amber-500/20 border-amber-500/50 text-amber-300"
-                : "bg-[#070d19] border-[#1e293b] text-slate-400 hover:text-white"
+                ? "bg-amber-500/20 border-amber-500/50 text-amber-300 font-bold"
+                : "bg-slate-900 border-[#1e293b] text-slate-400 hover:text-white"
             }`}
-            title={audioEnabled ? "Mute Radar Ping" : "Enable Radar Ping Audio"}
+            title={audioEnabled ? "Mute Radar Ping" : "Enable Radar Ping Sound"}
           >
             {audioEnabled ? <Volume2 className="w-3.5 h-3.5 text-amber-400" /> : <VolumeX className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Pause / Resume Stream */}
+          {/* Pause / Play Stream */}
           <button
             onClick={() => setIsPlaying(!isPlaying)}
-            className={`p-1.5 rounded-lg border transition ${
+            className={`p-2 rounded-xl border text-xs transition ${
               isPlaying
                 ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300"
-                : "bg-[#070d19] border-[#1e293b] text-slate-400 hover:text-white"
+                : "bg-slate-900 border-[#1e293b] text-slate-400 hover:text-white"
             }`}
-            title={isPlaying ? "Pause Feed" : "Resume Feed"}
+            title={isPlaying ? "Pause Threat Feed" : "Resume Threat Feed"}
           >
             {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
           </button>
         </div>
       </div>
 
-      {/* Sub-bar: Threat Actor Filter Strip & Precision Theater Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-2 bg-[#010206] border-b border-[#172033] text-xs">
-        {/* Threat Actor Quick Filter Pills */}
-        <div className="flex flex-wrap items-center gap-1">
-          <span className="text-[10px] text-slate-500 uppercase font-mono font-bold mr-1 flex items-center gap-1">
-            <Crosshair className="w-3 h-3 text-cyan-400" /> ACTOR:
+      {/* Secondary Controls & Filter Strip */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-2.5 bg-[#030610] border-b border-[#1e293b] text-xs">
+        {/* Threat Actor Filter Pills */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] text-slate-400 uppercase font-bold mr-1 flex items-center gap-1">
+            <Crosshair className="w-3 h-3 text-cyan-400" /> Actor:
           </span>
           {["ALL", "APT29", "Volt Typhoon", "Lazarus", "Sandworm", "FIN7"].map((actor) => (
             <button
               key={actor}
               onClick={() => setSelectedActor(actor)}
-              className={`px-2 py-0.5 rounded text-[10px] font-mono transition ${
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition font-mono ${
                 selectedActor === actor
-                  ? "bg-cyan-500 text-black font-bold shadow-sm"
-                  : "bg-transparent text-slate-400 hover:text-white hover:bg-slate-900 border border-[#1e293b]"
+                  ? "bg-cyan-500 text-black shadow-md shadow-cyan-500/20"
+                  : "bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800"
               }`}
             >
               {actor}
@@ -554,50 +502,62 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
           ))}
         </div>
 
-        {/* Region Jumps & Zoom Controls */}
-        <div className="flex items-center gap-2">
-          {/* Theater Presets */}
-          <div className="flex items-center rounded bg-[#070d19] border border-[#1e293b] p-0.5 text-[10px] font-mono">
+        {/* Theater Presets, Layers & Zoom */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Theater Region Jumps */}
+          <div className="flex items-center rounded-lg bg-slate-900/90 border border-slate-800 p-0.5 text-[10px]">
             <button
               onClick={() => handleRegionPreset("global")}
               className={`px-2 py-0.5 rounded transition ${viewBox.w === 1000 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
             >
-              GLOBAL
+              Global
             </button>
             <button
               onClick={() => handleRegionPreset("na")}
-              className={`px-2 py-0.5 rounded transition ${viewBox.x === 140 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
+              className={`px-2 py-0.5 rounded transition ${viewBox.x === 120 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
             >
-              AMER
+              Americas
             </button>
             <button
               onClick={() => handleRegionPreset("eu")}
-              className={`px-2 py-0.5 rounded transition ${viewBox.x === 440 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
+              className={`px-2 py-0.5 rounded transition ${viewBox.x === 420 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
             >
               EMEA
             </button>
             <button
               onClick={() => handleRegionPreset("apac")}
-              className={`px-2 py-0.5 rounded transition ${viewBox.x === 670 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
+              className={`px-2 py-0.5 rounded transition ${viewBox.x === 650 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
             >
               APAC
             </button>
           </div>
 
-          {/* Undersea Fiber Highway Toggle */}
+          {/* Undersea Fiber Cables */}
           <button
-            onClick={() => setShowFiberNetwork(!showFiberNetwork)}
-            className={`px-2 py-0.5 rounded border text-[10px] font-mono transition ${
-              showFiberNetwork
-                ? "bg-cyan-950/40 border-cyan-500/40 text-cyan-300 font-bold"
-                : "bg-transparent border-[#1e293b] text-slate-500 hover:text-slate-300"
+            onClick={() => setShowUnderseaCables(!showUnderseaCables)}
+            className={`px-2 py-1 rounded-lg text-[10px] border transition font-mono ${
+              showUnderseaCables
+                ? "bg-cyan-950/40 border-cyan-500/50 text-cyan-300 font-bold"
+                : "bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-300"
             }`}
           >
-            FIBER {showFiberNetwork ? "ON" : "OFF"}
+            Fiber {showUnderseaCables ? "ON" : "OFF"}
           </button>
 
-          {/* Zoom In / Out / Reset */}
-          <div className="flex items-center rounded bg-[#070d19] border border-[#1e293b] p-0.5">
+          {/* Radar Concentric Rings */}
+          <button
+            onClick={() => setShowRadarRings(!showRadarRings)}
+            className={`px-2 py-1 rounded-lg text-[10px] border transition font-mono ${
+              showRadarRings
+                ? "bg-emerald-950/40 border-emerald-500/50 text-emerald-300 font-bold"
+                : "bg-slate-900 border-slate-800 text-slate-500 hover:text-slate-300"
+            }`}
+          >
+            Rings {showRadarRings ? "ON" : "OFF"}
+          </button>
+
+          {/* Zoom controls */}
+          <div className="flex items-center rounded-lg bg-slate-900/90 border border-slate-800 p-0.5">
             <button
               onClick={() => handleZoom("in")}
               className="p-1 text-slate-400 hover:text-white transition"
@@ -615,7 +575,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
             <button
               onClick={() => handleZoom("reset")}
               className="p-1 text-slate-400 hover:text-white transition"
-              title="Reset View"
+              title="Reset Zoom"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
@@ -623,15 +583,62 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
         </div>
       </div>
 
-      {/* SVG Canvas (Crisp Dot Matrix + Thin Marked Lines) */}
-      <div className="relative w-full aspect-[2/1] min-h-[380px] bg-[#010307] overflow-hidden select-none">
+      {/* Main SVG Interactive Map Canvas */}
+      <div className="relative w-full aspect-[2/1] min-h-[380px] bg-[#02050c] overflow-hidden select-none">
+        {/* Floating Country / Hub Hover Info Tooltip */}
+        {hoveredCountry && (
+          <div
+            className="absolute z-20 pointer-events-none px-3 py-1.5 rounded-lg bg-slate-900/95 border border-cyan-500/50 shadow-xl backdrop-blur-md text-white text-xs font-mono flex items-center gap-2 transform -translate-x-1/2 -translate-y-full mb-2"
+            style={{ left: `${(hoveredCountry.x / 1000) * 100}%`, top: `${(hoveredCountry.y / 500) * 100}%` }}
+          >
+            <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="font-bold text-cyan-200">{hoveredCountry.name || "Geographic Territory"}</span>
+            {hoveredCountry.code && (
+              <span className="px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-400 text-[10px] font-bold">
+                {hoveredCountry.code}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* SVG Viewport */}
         <svg
           viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`}
           className="w-full h-full block"
-          style={{ transition: "viewBox 0.35s ease-out" }}
+          style={{ transition: "viewBox 0.4s ease-out" }}
         >
           <defs>
-            {/* Subtle Gradient Arcs */}
+            {/* High-Tech Background Radial Glow */}
+            <radialGradient id="cyberOcean" cx="50%" cy="50%" r="70%">
+              <stop offset="0%" stopColor="#081024" stopOpacity="0.8" />
+              <stop offset="60%" stopColor="#030712" stopOpacity="0.95" />
+              <stop offset="100%" stopColor="#010308" stopOpacity="1" />
+            </radialGradient>
+
+            {/* Glowing Laser Drop Shadows */}
+            <filter id="laserGlowRed" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="3.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="laserGlowGreen" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="2.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="laserGlowCyan" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+
+            {/* Trajectory Arc Gradients */}
             {arcs.map((arc) => {
               const [x1] = projectCoordinates(arc.sourceCoords[0], arc.sourceCoords[1]);
               const [x2] = projectCoordinates(arc.targetCoords[0], arc.targetCoords[1]);
@@ -644,146 +651,155 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
                   x2={x1 < x2 ? "100%" : "0%"}
                   y2="100%"
                 >
-                  <stop offset="0%" stopColor={arc.color} stopOpacity="0.9" />
-                  <stop offset="80%" stopColor={arc.color} stopOpacity="0.6" />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.8" />
+                  <stop offset="0%" stopColor={arc.color} stopOpacity="1" />
+                  <stop offset="70%" stopColor={arc.color} stopOpacity="0.9" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0.7" />
                 </linearGradient>
               );
             })}
           </defs>
 
-          {/* Latitude & Longitude Coordinate Hairlines (30-Degree Grid) */}
+          {/* Deep Ocean Backdrop */}
+          <rect x="0" y="0" width="1000" height="500" fill="url(#cyberOcean)" />
+
+          {/* Lat/Long Military Graticule System */}
           {showGraticule && (
-            <g stroke="#0f192b" strokeWidth="0.5" strokeDasharray="2,5">
+            <g stroke="#172554" strokeWidth="0.6" strokeDasharray="3,4" opacity="0.65">
               <path d={worldMapData.graticulePath} fill="none" />
-              {/* Equator and Prime Meridian Solid Hairline */}
-              <line x1="0" y1="250" x2="1000" y2="250" stroke="#13233c" strokeWidth="0.75" />
-              <line x1="500" y1="0" x2="500" y2="500" stroke="#13233c" strokeWidth="0.75" />
+              {/* Equator & Prime Meridian Heavy Lines */}
+              <line x1="0" y1="250" x2="1000" y2="250" stroke="#1e3a8a" strokeWidth="1" strokeDasharray="none" opacity="0.4" />
+              <line x1="500" y1="0" x2="500" y2="500" stroke="#1e3a8a" strokeWidth="1" strokeDasharray="none" opacity="0.4" />
             </g>
           )}
 
-          {/* Latitude / Longitude Labels along Borders */}
-          <g fill="#24344d" fontSize="6.5" fontFamily="monospace" textAnchor="middle">
-            <text x="167" y="12">-120°</text>
-            <text x="333" y="12">-60°</text>
-            <text x="500" y="12">0° (GMT)</text>
-            <text x="667" y="12">+60°</text>
-            <text x="833" y="12">+120°</text>
-            <text x="985" y="85">+60°N</text>
-            <text x="985" y="167">+30°N</text>
-            <text x="985" y="253">0° (EQ)</text>
-            <text x="985" y="333">-30°S</text>
-            <text x="985" y="415">-60°S</text>
+          {/* High-Resolution Real Continental Landmass */}
+          <g fill="#0c1427" stroke="#1e293b" strokeWidth="0.8">
+            <path d={worldMapData.landPath} />
           </g>
 
+          {/* Individual Country Borders with Hover Interaction */}
+          {showBorders && (
+            <g>
+              {(worldMapData.countryFeatures || []).map((c: any) => {
+                const isThreatSource = arcs.some((a) => a.sourceCountry === c.code);
+                return (
+                  <path
+                    key={`country-${c.id}`}
+                    d={c.d}
+                    fill={isThreatSource ? "#ef444415" : "transparent"}
+                    stroke={isThreatSource ? "#ef444440" : "#1e293b"}
+                    strokeWidth={isThreatSource ? "1" : "0.5"}
+                    className="transition-colors duration-200 cursor-pointer hover:fill-cyan-500/20 hover:stroke-cyan-400"
+                    onMouseEnter={(e) => {
+                      const rect = (e.target as SVGPathElement).getBBox();
+                      setHoveredCountry({
+                        name: c.name || "Territory",
+                        code: c.code || "",
+                        x: rect.x + rect.width / 2,
+                        y: rect.y + rect.height / 2
+                      });
+                    }}
+                    onMouseLeave={() => setHoveredCountry(null)}
+                  />
+                );
+              })}
+            </g>
+          )}
+
           {/* Undersea Fiber Highways (Global Backbone) */}
-          {showFiberNetwork && (
-            <g stroke="#0284c7" strokeWidth="0.6" strokeDasharray="3,6" opacity="0.35" fill="none">
-              {/* Ashburn <-> London <-> Frankfurt */}
+          {showUnderseaCables && (
+            <g stroke="#0ea5e9" strokeWidth="0.9" strokeDasharray="3,5" opacity="0.45" fill="none">
+              {/* Trans-Atlantic Fiber (Ashburn <-> London <-> Frankfurt) */}
               <path d="M 284.78 141.56 Q 390 110 499.64 106.92" />
               <path d="M 499.64 106.92 L 524.11 110.81" />
-              {/* Ashburn <-> Quincy <-> Tokyo */}
+              {/* Trans-Pacific Fiber (Ashburn <-> Quincy <-> Tokyo) */}
               <path d="M 284.78 141.56 L 167.08 118.81" />
               <path d="M 167.08 118.81 Q 80 110 0 130" />
               <path d="M 1000 130 Q 940 140 888.03 150.89" />
-              {/* Frankfurt <-> Singapore <-> Tokyo */}
+              {/* Euro-Asia Fiber (Frankfurt <-> Singapore <-> Tokyo) */}
               <path d="M 524.11 110.81 Q 650 180 788.39 246.25" />
               <path d="M 788.39 246.25 Q 840 200 888.03 150.89" />
-              {/* Trans-Atlantic South (Ashburn <-> São Paulo) */}
-              <path d="M 284.78 141.56 Q 300 230 370 310" />
+              {/* Americas to South America */}
+              <path d="M 284.78 141.56 Q 300 230 360 310" />
             </g>
           )}
 
-          {/* MODE 1: Hairline Vector Coastline */}
-          {(mapStyle === "hairline" || mapStyle === "hybrid") && (
-            <path
-              d={worldMapData.landPath}
-              fill={mapStyle === "hybrid" ? "#060c1840" : "#040812"}
-              stroke="#1b2a40"
-              strokeWidth="0.65"
-            />
-          )}
-
-          {/* MODE 2: Clean Dot Matrix Grid (1,724 Cyber Points) */}
-          {(mapStyle === "matrix" || mapStyle === "hybrid") && (
-            <g>
-              {(worldMapData.dots as [number, number][]).map((pt, i) => (
-                <circle
-                  key={`dot-${i}`}
-                  cx={pt[0]}
-                  cy={pt[1]}
-                  r="1.0"
-                  fill="#152438"
-                  opacity="0.8"
-                />
-              ))}
-            </g>
-          )}
-
-          {/* Target Protected Data Centers Hubs (Clean Precision Crosshairs) */}
+          {/* Defense Hub Datacenters (VPC Targets) */}
           <g>
-            {DEFENSE_DATACENTERS.map((hub, i) => {
-              const [cx, cy] = projectCoordinates(hub.coords[0], hub.coords[1]);
-              const isSelected = selectedArc?.targetCoords[0] === hub.coords[0];
+            {DEFENSE_DATACENTERS.map((node, i) => {
+              const [cx, cy] = projectCoordinates(node.coords[0], node.coords[1]);
+              const isSelectedTarget = selectedArc?.targetCoords[0] === node.coords[0];
               return (
                 <g
-                  key={`hub-${i}`}
-                  className="cursor-pointer group"
+                  key={`datacenter-${i}`}
+                  className="group cursor-pointer"
                   onClick={() => {
-                    const match = arcs.find((a) => a.targetCoords[0] === hub.coords[0]);
+                    const match = arcs.find((a) => a.targetCoords[0] === node.coords[0]);
                     if (match) {
                       setSelectedArc(match);
                       if (onSelectThreat) onSelectThreat(match);
                     }
                   }}
                 >
-                  {/* Fine Crosshairs (Precision Reticle) */}
-                  <line x1={cx - 7} y1={cy} x2={cx + 7} y2={cy} stroke="#10b981" strokeWidth="0.6" opacity="0.6" />
-                  <line x1={cx} y1={cy - 7} x2={cx} y2={cy + 7} stroke="#10b981" strokeWidth="0.6" opacity="0.6" />
+                  {/* Defense Radar Rings */}
+                  {showRadarRings && (
+                    <>
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r="24"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="0.75"
+                        strokeDasharray="2,3"
+                        opacity="0.35"
+                      />
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r="14"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="1"
+                        opacity="0.5"
+                      />
+                    </>
+                  )}
 
-                  {/* Concentric Precision Rings */}
+                  {/* Datacenter Shield Hub Core */}
                   <circle
                     cx={cx}
                     cy={cy}
-                    r="8"
-                    fill="none"
-                    stroke="#10b981"
-                    strokeWidth="0.5"
-                    strokeDasharray="2,2"
-                    opacity="0.5"
+                    r={isSelectedTarget ? "6.5" : "4.5"}
+                    fill="#10b981"
+                    filter="url(#laserGlowGreen)"
+                    className="transition-all duration-300"
                   />
-                  <circle
-                    cx={cx}
-                    cy={cy}
-                    r={isSelected ? "4.5" : "3.5"}
-                    fill="#052e16"
-                    stroke="#10b981"
-                    strokeWidth="1"
-                  />
-                  <circle cx={cx} cy={cy} r="1.5" fill="#34d399" />
+                  <circle cx={cx} cy={cy} r="2" fill="#ffffff" />
 
-                  {/* Clean Monospace Node Badge */}
-                  <g transform={`translate(${cx}, ${cy - 10})`}>
+                  {/* Monospace Badge Label */}
+                  <g transform={`translate(${cx}, ${cy - 12})`}>
                     <rect
-                      x="-30"
-                      y="-9"
-                      width="60"
-                      height="11"
-                      rx="2"
-                      fill="#020408"
-                      stroke={isSelected ? "#10b981" : "#1a2a40"}
-                      strokeWidth="0.7"
+                      x="-38"
+                      y="-12"
+                      width="76"
+                      height="14"
+                      rx="3"
+                      fill="#030712"
+                      stroke={isSelectedTarget ? "#10b981" : "#1e293b"}
+                      strokeWidth="1"
+                      opacity="0.9"
                     />
                     <text
                       x="0"
-                      y="-1"
+                      y="-2"
                       textAnchor="middle"
-                      fill={isSelected ? "#34d399" : "#6ee7b7"}
-                      fontSize="6.5"
-                      fontFamily="monospace"
+                      fill={isSelectedTarget ? "#34d399" : "#a7f3d0"}
+                      fontSize="7.5"
                       fontWeight="bold"
+                      fontFamily="monospace"
                     >
-                      [{hub.code}] {hub.label}
+                      {node.label}
                     </text>
                   </g>
                 </g>
@@ -791,112 +807,100 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
             })}
           </g>
 
-          {/* Threat Origin Nodes (Thin Marked Reticles) */}
+          {/* Threat Origin Beacons */}
           <g>
             {filteredArcs.map((arc) => {
               const [sx, sy] = projectCoordinates(arc.sourceCoords[0], arc.sourceCoords[1]);
               const isSelected = selectedArc?.id === arc.id;
               return (
                 <g
-                  key={`source-${arc.id}`}
+                  key={`origin-${arc.id}`}
                   className="cursor-pointer"
                   onClick={() => {
                     setSelectedArc(arc);
                     if (onSelectThreat) onSelectThreat(arc);
                   }}
                 >
-                  {/* Origin Crosshair */}
-                  <line x1={sx - 5} y1={sy} x2={sx + 5} y2={sy} stroke={arc.color} strokeWidth="0.6" opacity="0.7" />
-                  <line x1={sx} y1={sy - 5} x2={sx} y2={sy + 5} stroke={arc.color} strokeWidth="0.6" opacity="0.7" />
-
-                  {/* Ping Ring */}
+                  {/* Expanding Threat Beacon Wave */}
                   <circle
                     cx={sx}
                     cy={sy}
-                    r={isSelected ? "9" : "6"}
+                    r={isSelected ? "14" : "10"}
                     fill="none"
                     stroke={arc.color}
-                    strokeWidth="0.6"
+                    strokeWidth="1"
+                    opacity="0.6"
                     className="animate-ping"
-                    opacity="0.5"
                   />
+                  {/* Origin Beacon Dot */}
                   <circle
                     cx={sx}
                     cy={sy}
-                    r={isSelected ? "3.5" : "2.5"}
+                    r={isSelected ? "5" : "3.5"}
                     fill={arc.color}
+                    filter="url(#laserGlowRed)"
                   />
-                  <circle cx={sx} cy={sy} r="1" fill="#ffffff" />
+                  <circle cx={sx} cy={sy} r="1.5" fill="#ffffff" />
 
-                  {/* Clean Monospace City Code Callout */}
+                  {/* Origin City Label */}
                   <text
                     x={sx}
-                    y={sy + 10}
+                    y={sy + 12}
                     textAnchor="middle"
-                    fill={isSelected ? "#ffffff" : "#94a3b8"}
-                    fontSize="6.5"
+                    fill="#e2e8f0"
+                    fontSize="7"
                     fontFamily="monospace"
                     fontWeight="bold"
+                    filter="drop-shadow(0 1px 2px rgba(0,0,0,0.8))"
                   >
-                    [{arc.sourceCode}] {arc.sourceCity}
+                    {arc.sourceCity}
                   </text>
                 </g>
               );
             })}
           </g>
 
-          {/* Ballistic Threat Trajectory Arcs — THIN MARKED LINES */}
+          {/* Ballistic Attack Trajectory Arcs — NORMAL/SOMEWHAT THICK GLOWING LINES */}
           <g>
             {filteredArcs.map((arc) => {
               const sourcePt = projectCoordinates(arc.sourceCoords[0], arc.sourceCoords[1]);
               const targetPt = projectCoordinates(arc.targetCoords[0], arc.targetCoords[1]);
               const d = getTrajectoryPath(sourcePt, targetPt);
               const isSelected = selectedArc?.id === arc.id;
-              const hasActiveSelection = Boolean(selectedArc);
-
-              // Thin marked lines logic
-              const strokeWidth = isSelected ? "1.4" : "0.85";
-              const strokeOpacity = isSelected ? "1" : hasActiveSelection ? "0.35" : "0.65";
-              const strokeDash = lineStyle === "marked"
-                ? (isSelected ? "5,3" : "3,3")
-                : (isSelected ? "none" : "none");
 
               return (
                 <g
-                  key={`arc-${arc.id}`}
+                  key={`arc-group-${arc.id}`}
                   className="cursor-pointer"
                   onClick={() => {
                     setSelectedArc(arc);
                     if (onSelectThreat) onSelectThreat(arc);
                   }}
                 >
-                  {/* Subtle Hairline Glow for Selected Arc Only */}
-                  {isSelected && (
-                    <path
-                      d={d}
-                      fill="none"
-                      stroke={arc.color}
-                      strokeWidth="2.8"
-                      opacity="0.25"
-                    />
-                  )}
-
-                  {/* Core Thin Marked Trajectory Line */}
+                  {/* Outer Trajectory Glow Line */}
                   <path
                     d={d}
                     fill="none"
-                    stroke={isSelected ? arc.color : `url(#grad-${arc.id})`}
-                    strokeWidth={strokeWidth}
-                    strokeDasharray={strokeDash}
-                    opacity={strokeOpacity}
+                    stroke={arc.color}
+                    strokeWidth={isSelected ? "4.5" : "3"}
+                    opacity={isSelected ? "0.65" : "0.35"}
+                    filter="url(#laserGlowRed)"
                   />
 
-                  {/* Precise Traveling Spark / Pulse Photon */}
+                  {/* Core Solid/Gradient Trajectory Line (Normal / Somewhat Thick) */}
+                  <path
+                    d={d}
+                    fill="none"
+                    stroke={`url(#grad-${arc.id})`}
+                    strokeWidth={isSelected ? "2.6" : "2.0"}
+                  />
+
+                  {/* High-Velocity Traveling Particle Pulse */}
                   {isPlaying && (
-                    <circle r={isSelected ? "1.8" : "1.3"} fill="#ffffff">
+                    <circle r={isSelected ? "3.5" : "2.8"} fill="#ffffff" filter="url(#laserGlowRed)">
                       <animateMotion
                         path={d}
-                        dur={arc.severity === "CRITICAL" ? "2.6s" : "3.6s"}
+                        dur={arc.severity === "CRITICAL" ? "2.4s" : "3.6s"}
                         repeatCount="indefinite"
                       />
                     </circle>
@@ -905,75 +909,97 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
               );
             })}
           </g>
+
+          {/* Radar Sweep Vertical Line */}
+          {showRadarSweep && isPlaying && (
+            <line
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="500"
+              stroke="#06b6d4"
+              strokeWidth="1.5"
+              opacity="0.35"
+              filter="url(#laserGlowCyan)"
+            >
+              <animate
+                attributeName="x1"
+                from="0"
+                to="1000"
+                dur="8s"
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="x2"
+                from="0"
+                to="1000"
+                dur="8s"
+                repeatCount="indefinite"
+              />
+            </line>
+          )}
         </svg>
 
-        {/* Clean Bottom HUD Metrics Watermark */}
-        <div className="absolute bottom-2.5 left-3 flex items-center gap-3 bg-[#030610]/90 backdrop-blur-md px-3 py-1 rounded border border-[#1b263b] text-[10px] font-mono">
+        {/* Live Attack Metric Watermark */}
+        <div className="absolute bottom-3 left-4 flex items-center gap-3 bg-[#030712]/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] font-mono">
           <div className="flex items-center gap-1.5 text-slate-400">
-            <Radio className="w-3 h-3 text-cyan-400 animate-pulse" />
-            <span>ACTIVE VECTORS:</span>
+            <Radio className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+            <span>ACTIVE ARCS:</span>
             <span className="text-white font-bold">{filteredArcs.length}</span>
           </div>
-          <span className="text-slate-700">|</span>
+          <span className="text-slate-600">|</span>
           <div className="flex items-center gap-1.5 text-slate-400">
-            <Crosshair className="w-3 h-3 text-emerald-400" />
-            <span>CONTAINMENT:</span>
+            <Lock className="w-3.5 h-3.5 text-emerald-400" />
+            <span>EDGE SHIELD:</span>
             <span className="text-emerald-400 font-bold">100% INGRESS MITIGATION</span>
-          </div>
-          <span className="text-slate-700">|</span>
-          <div className="flex items-center gap-1 text-slate-400">
-            <span>GRID:</span>
-            <span className="text-cyan-300 font-bold">{mapStyle.toUpperCase()}</span>
           </div>
         </div>
       </div>
 
       {/* Selected Threat Actor & Telemetry Inspection Card */}
       {selectedArc && (
-        <div className="px-5 py-3.5 border-t border-[#172033] bg-[#02050c] flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="px-5 py-4 border-t border-[#1e293b] bg-[#070c18] flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 flex-1">
-            {/* Threat Origin & Actor */}
+            {/* Source Actor */}
             <div className="space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">
-                THREAT ORIGIN & ACTOR
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                Attributed Threat Actor
               </span>
               <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: selectedArc.color }} />
-                <h4 className="text-xs font-bold text-white font-mono">{selectedArc.threatActor}</h4>
+                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: selectedArc.color }} />
+                <h4 className="text-sm font-bold text-white font-sans">{selectedArc.threatActor}</h4>
               </div>
-              <p className="text-[11px] text-slate-400 font-mono">
-                [{selectedArc.sourceCode}] {selectedArc.sourceCity}, {selectedArc.sourceCountry} •{" "}
-                <span className="text-cyan-400">{selectedArc.sourceIp}</span>
+              <p className="text-xs text-slate-400 font-mono">
+                Origin: <span className="text-slate-200">{selectedArc.sourceCity}, {selectedArc.sourceCountry}</span>
+                {" "}(<span className="text-cyan-400">{selectedArc.sourceIp}</span>)
               </p>
             </div>
 
-            {/* Target Datacenter Asset */}
+            {/* Target Asset */}
             <div className="space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">
-                TARGET DATACENTER & VPC
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                Target Asset & VPC
               </span>
-              <div className="flex items-center gap-1.5">
-                <Server className="w-3 h-3 text-emerald-400" />
-                <h4 className="text-xs font-bold text-emerald-300 font-mono">
-                  [{selectedArc.targetCode}] {selectedArc.targetCity}
-                </h4>
+              <div className="flex items-center gap-2">
+                <Server className="w-3.5 h-3.5 text-emerald-400" />
+                <h4 className="text-sm font-bold text-emerald-300 font-sans">{selectedArc.targetCity}</h4>
               </div>
-              <p className="text-[11px] text-slate-400 font-mono">
-                {selectedArc.targetRegion} • <span className="text-slate-200">{selectedArc.targetVpc}</span>
+              <p className="text-xs text-slate-400 font-mono">
+                {selectedArc.targetRegion} (<span className="text-slate-200">{selectedArc.targetVpc}</span>)
               </p>
             </div>
 
-            {/* MITRE ATT&CK & Defense Action */}
+            {/* MITRE Technique & SOAR Status */}
             <div className="space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase font-mono font-bold tracking-wider">
-                MITRE TTP & DEFENSE ACTION
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">
+                MITRE TTP & Defense Action
               </span>
-              <p className="text-[11px] text-slate-300 font-mono truncate">{selectedArc.technique}</p>
-              <div className="flex items-center gap-2 pt-0.5 font-mono">
-                <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold">
+              <p className="text-xs font-semibold text-slate-200">{selectedArc.technique}</p>
+              <div className="flex items-center gap-2 pt-0.5">
+                <span className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold font-mono">
                   {selectedArc.status.replace(/_/g, " ")}
                 </span>
-                <span className="text-[10px] text-slate-500">{selectedArc.timestamp}</span>
+                <span className="text-[10px] text-slate-500 font-mono">{selectedArc.timestamp}</span>
               </div>
             </div>
           </div>
@@ -982,10 +1008,10 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleQuarantineC2}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition shadow-sm ${
                 quarantinedIps.includes(selectedArc.sourceIp)
-                  ? "bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed"
-                  : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm"
+                  ? "bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed"
+                  : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/40"
               }`}
             >
               <Lock className="w-3.5 h-3.5" />
@@ -994,10 +1020,10 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
 
             <button
               onClick={() => setShowTelemetryModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#070d19] hover:bg-slate-800 text-slate-300 hover:text-white border border-[#1e293b] text-xs font-mono transition"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-bold transition"
             >
               <FileCode className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Telemetry</span>
+              <span>C2 Telemetry</span>
             </button>
           </div>
         </div>
@@ -1006,11 +1032,11 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
       {/* Raw C2 Telemetry Modal */}
       {showTelemetryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-[#050811] border border-cyan-500/30 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4">
+          <div className="bg-[#070c18] border border-cyan-500/30 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <FileCode className="w-4 h-4 text-cyan-400" />
-                <h3 className="text-xs font-bold text-white font-mono">C2 Telemetry Package — {selectedArc.id}</h3>
+                <h3 className="text-sm font-bold text-white font-mono">C2 Telemetry Package — {selectedArc.id}</h3>
               </div>
               <button
                 onClick={() => setShowTelemetryModal(false)}
@@ -1020,7 +1046,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
               </button>
             </div>
 
-            <pre className="p-3 rounded-xl bg-[#020408] border border-slate-800 text-emerald-400 text-xs font-mono overflow-x-auto max-h-64">
+            <pre className="p-3 rounded-xl bg-[#030610] border border-slate-800 text-emerald-400 text-xs font-mono overflow-x-auto max-h-64">
               {JSON.stringify(selectedArc, null, 2)}
             </pre>
 
@@ -1030,12 +1056,12 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-300 hover:text-white text-xs font-mono transition"
               >
                 {copiedIoc ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedIoc ? "Copied IP!" : "Copy IP"}</span>
+                <span>{copiedIoc ? "Copied IP!" : "Copy IOC (IP)"}</span>
               </button>
 
               <button
                 onClick={() => setShowTelemetryModal(false)}
-                className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold font-mono transition"
+                className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold font-sans transition"
               >
                 Close
               </button>
