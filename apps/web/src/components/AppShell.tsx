@@ -178,7 +178,7 @@ export default function AppShell({ children }: AppShellProps) {
           {navSections.map((sec, secIdx) => (
             <div key={secIdx} className="space-y-1">
               {!isCollapsed && (
-                <span className="px-3 text-[9px] font-mono uppercase tracking-wider text-[#64748B] font-bold">
+                <span className="px-3 text-[10px] uppercase tracking-wider text-slate-400 font-semibold">
                   {sec.title}
                 </span>
               )}
@@ -193,11 +193,11 @@ export default function AppShell({ children }: AppShellProps) {
                       title={isCollapsed ? item.label : undefined}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition font-medium ${
                         isActive
-                          ? "bg-[#172033] text-[#38BDF8] border border-[#263248] font-semibold shadow-sm"
-                          : "text-[#94A3B8] hover:bg-[#111827] hover:text-[#F8FAFC]"
+                          ? "bg-slate-800 text-sky-400 border border-slate-700 font-semibold shadow-sm"
+                          : "text-slate-400 hover:bg-slate-900/80 hover:text-slate-100"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-[#38BDF8]" : "text-[#64748B]"}`} />
+                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-sky-400" : "text-slate-500"}`} />
                       {!isCollapsed && <span className="truncate">{item.label}</span>}
                     </Link>
                   );
@@ -208,20 +208,20 @@ export default function AppShell({ children }: AppShellProps) {
         </nav>
 
         {/* Workspace & Collapse Toggle Footer */}
-        <div className="p-2 border-t border-[#1E293B] bg-[#070C18] flex items-center justify-between text-xs">
+        <div className="p-2 border-t border-slate-800 bg-[#070C18] flex items-center justify-between text-xs">
           {!isCollapsed && (
             <div className="flex flex-col truncate pr-1">
               <div className="flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <Shield className="w-3.5 h-3.5 text-sky-400" />
                 <span className="font-semibold text-white text-[11px] truncate">SOCForge Enterprise</span>
               </div>
-              <span className="text-[10px] text-[#64748B] font-mono">OpenCTI + Falcon Engine</span>
+              <span className="text-[10px] text-slate-500">OpenCTI + Falcon Engine</span>
             </div>
           )}
           
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1.5 rounded-lg border border-[#1E293B] hover:bg-[#172033] text-[#94A3B8] hover:text-white transition flex items-center gap-1 text-[10px] font-mono"
+            className="p-1.5 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white transition flex items-center gap-1 text-[11px]"
             title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
           >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : (
@@ -237,53 +237,53 @@ export default function AppShell({ children }: AppShellProps) {
       {/* Main Content Area with OpenCTI-style Top Bar */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Global Top Control Bar */}
-        <header className="h-16 border-b border-[#1E293B] bg-[#0A0F1D] px-6 flex items-center justify-between flex-shrink-0 z-20">
+        <header className="h-16 border-b border-slate-800 bg-[#0A0F1D] px-6 flex items-center justify-between flex-shrink-0 z-20">
           {/* Left: Search the Platform (Omnisearch matching OpenCTI) */}
           <div className="flex items-center gap-3 flex-1 max-w-xl">
             <button
               onClick={() => setSearchOpen(true)}
-              className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-[#1E293B] bg-[#070C18] text-[#94A3B8] hover:text-[#F8FAFC] hover:border-[#38BDF8]/40 transition text-xs font-mono shadow-inner"
+              className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-slate-800 bg-[#070C18] text-slate-400 hover:text-slate-100 hover:border-sky-500/40 transition text-xs shadow-inner"
             >
               <div className="flex items-center gap-2.5">
-                <Search className="w-4 h-4 text-[#38BDF8]" />
+                <Search className="w-4 h-4 text-sky-400" />
                 <span>Search the platform (IOCs, CVEs, TTPs, Threat Actors)...</span>
               </div>
-              <kbd className="px-1.5 py-0.5 rounded bg-[#0A0F1D] text-[10px] text-[#64748B] border border-[#1E293B]">
+              <kbd className="px-1.5 py-0.5 rounded bg-slate-900 text-[10px] text-slate-400 border border-slate-800 font-mono">
                 ⌘K
               </kbd>
             </button>
           </div>
 
           {/* Right Controls: Cloud Feeds, Copilot, Time Range, Health, Notifications, Profile */}
-          <div className="flex items-center gap-2.5 text-xs font-mono">
+          <div className="flex items-center gap-2.5 text-xs">
             {/* Live Threat Feed Sync Status */}
             <div 
               title="TAXII / MISP / VirusTotal Threat Feeds Connected"
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#1E293B] bg-[#070C18] text-[#94A3B8]"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-[#070C18] text-slate-400"
             >
               <Cloud className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-              <span className="text-[11px] text-emerald-400 font-bold">FEEDS SYNCED</span>
+              <span className="text-[11px] text-emerald-400 font-semibold tracking-wide">FEEDS SYNCED</span>
             </div>
 
             {/* SOC AI Copilot Button (⌘J) */}
             <button
               onClick={() => setCopilotOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-indigo-500/30 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-300 hover:text-indigo-200 transition text-xs font-mono shadow-sm"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-indigo-500/30 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-300 hover:text-indigo-200 transition text-xs shadow-sm"
             >
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
               <span className="hidden sm:inline font-semibold">SOC Copilot</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[#070C18] text-[10px] text-indigo-400 border border-indigo-500/30">
+              <kbd className="px-1.5 py-0.5 rounded bg-[#070C18] text-[10px] text-indigo-400 border border-indigo-500/30 font-mono">
                 ⌘J
               </kbd>
             </button>
 
             {/* Time Window Selector */}
-            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#070C18] border border-[#1E293B] text-[#94A3B8]">
+            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#070C18] border border-slate-800 text-slate-400">
               <span>Window:</span>
               <select
                 value={selectedTimeRange}
                 onChange={(e) => setSelectedTimeRange(e.target.value)}
-                className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer text-xs"
+                className="bg-transparent text-white font-medium focus:outline-none cursor-pointer text-xs"
               >
                 <option value="1h" className="bg-[#0A0F1D] text-white">Last 1 hour</option>
                 <option value="24h" className="bg-[#0A0F1D] text-white">Last 24 hours</option>
@@ -338,13 +338,13 @@ export default function AppShell({ children }: AppShellProps) {
             </div>
 
             {/* Analyst Profile */}
-            <div className="flex items-center gap-2 pl-2 border-l border-[#1E293B]">
-              <div className="w-7 h-7 rounded-full bg-[#172033] border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8] font-bold text-xs">
+            <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
+              <div className="w-7 h-7 rounded-full bg-slate-800 border border-sky-500/40 flex items-center justify-center text-sky-400 font-bold text-xs">
                 SM
               </div>
               <div className="hidden xl:flex flex-col">
                 <span className="text-xs font-semibold text-white leading-none">Sandeep Mothukuri</span>
-                <span className="text-[10px] text-[#64748B] font-mono leading-tight">Lead SecOps Architect</span>
+                <span className="text-[11px] text-slate-400 leading-tight">Lead SecOps Architect</span>
               </div>
             </div>
           </div>

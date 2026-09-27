@@ -20,14 +20,14 @@ interface HorizontalBarChartProps {
 export function HorizontalBarChart({
   items,
   maxValue,
-  barColor = "#F97316", // Amber/Orange default matching OpenCTI
+  barColor = "#F97316",
   highlightColor = "#38BDF8"
 }: HorizontalBarChartProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const max = maxValue || Math.max(...items.map((i) => i.value), 100);
 
   return (
-    <div className="space-y-2 font-mono text-xs w-full">
+    <div className="space-y-1.5 w-full font-sans">
       {items.map((item) => {
         const percentage = Math.min((item.value / max) * 100, 100);
         const isHovered = hoveredId === item.id;
@@ -38,30 +38,30 @@ export function HorizontalBarChart({
             key={item.id}
             onMouseEnter={() => setHoveredId(item.id)}
             onMouseLeave={() => setHoveredId(null)}
-            className={`group flex items-center justify-between gap-3 p-1.5 rounded-lg transition cursor-pointer ${
-              isHovered ? "bg-[#172033]" : "hover:bg-[#111827]"
+            className={`group flex items-center justify-between gap-3 px-2.5 py-1.5 rounded-lg transition-all duration-150 cursor-pointer ${
+              isHovered ? "bg-slate-800/60 shadow-sm" : "hover:bg-slate-900/40"
             }`}
           >
-            {/* Label */}
-            <div className="w-32 sm:w-36 truncate text-[11px] font-semibold text-[#94A3B8] group-hover:text-white flex-shrink-0">
+            {/* Clean Sans-Serif Label */}
+            <div className="w-36 sm:w-40 truncate text-xs font-medium text-slate-300 group-hover:text-white transition-colors flex-shrink-0">
               {item.label}
             </div>
 
-            {/* Bar Container */}
-            <div className="flex-1 h-3.5 bg-[#070C18] rounded-full overflow-hidden relative border border-[#1E293B]">
+            {/* Proportional Rounded Bar Container */}
+            <div className="flex-1 h-2.5 bg-[#070C18] rounded-full overflow-hidden relative border border-slate-800/80">
               <div
                 className="h-full rounded-full transition-all duration-500 ease-out"
                 style={{
                   width: `${percentage}%`,
                   backgroundColor: fill,
-                  boxShadow: isHovered ? `0 0 10px ${fill}80` : "none"
+                  boxShadow: isHovered ? `0 0 12px ${fill}90` : "none"
                 }}
               />
             </div>
 
-            {/* Numerical Value */}
-            <div className="w-10 text-right text-[11px] font-bold text-white flex-shrink-0">
-              {item.value}
+            {/* Numerical Value in Monospace Badge */}
+            <div className="w-12 text-right font-mono text-[11px] font-semibold text-slate-200 group-hover:text-sky-400 transition-colors flex-shrink-0">
+              {item.value.toLocaleString()}
             </div>
           </div>
         );

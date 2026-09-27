@@ -43,8 +43,8 @@ export function RelationshipTimelineChart({ data = DEFAULT_TIMELINE }: { data?: 
   const areaD = `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
   return (
-    <div className="flex flex-col h-full font-mono text-xs">
-      <div className="relative flex-1 bg-[#070C18] rounded-xl border border-[#1E293B] p-2 flex items-center justify-center">
+    <div className="flex flex-col h-full font-sans text-xs">
+      <div className="relative flex-1 bg-[#070C18] rounded-xl border border-slate-800/80 p-2 flex items-center justify-center">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full select-none">
           <defs>
             <linearGradient id="lineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -84,16 +84,16 @@ export function RelationshipTimelineChart({ data = DEFAULT_TIMELINE }: { data?: 
           })}
 
           {/* Axis Labels */}
-          <text x={padding} y={height - 10} fill="#64748B" fontSize="9">May 2024</text>
-          <text x={width / 2} y={height - 10} fill="#64748B" fontSize="9" textAnchor="middle">Nov 2024</text>
-          <text x={width - padding} y={height - 10} fill="#64748B" fontSize="9" textAnchor="end">Apr 2025</text>
+          <text x={padding} y={height - 10} fill="#64748B" fontSize="10" fontFamily="sans-serif">May 2024</text>
+          <text x={width / 2} y={height - 10} fill="#64748B" fontSize="10" fontFamily="sans-serif" textAnchor="middle">Nov 2024</text>
+          <text x={width - padding} y={height - 10} fill="#64748B" fontSize="10" fontFamily="sans-serif" textAnchor="end">Apr 2025</text>
         </svg>
 
         {/* Dynamic Hover Tooltip */}
         {hoveredPoint && (
-          <div className="absolute top-2 right-2 px-2.5 py-1 rounded bg-[#0B1020]/95 border border-[#38BDF8] shadow-lg text-[10px] pointer-events-none">
-            <span className="font-bold text-white block">{hoveredPoint.month}</span>
-            <span className="text-[#38BDF8]">{hoveredPoint.count.toLocaleString()} Relationships Linkages</span>
+          <div className="absolute top-2 right-2 px-3 py-1.5 rounded-lg bg-[#0B1020]/95 border border-sky-500/50 shadow-xl text-xs pointer-events-none">
+            <span className="font-semibold text-white block">{hoveredPoint.month}</span>
+            <span className="text-sky-400 font-mono text-[11px]">{hoveredPoint.count.toLocaleString()} Linkages</span>
           </div>
         )}
       </div>

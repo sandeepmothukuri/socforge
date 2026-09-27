@@ -131,41 +131,41 @@ export default function DashboardPage() {
 
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[#070C18] text-[#F8FAFC]">
+      <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[#070C18] text-slate-100 font-sans">
         {/* Top Control Header */}
-        <header className="h-16 border-b border-[#1E293B] bg-[#0A0F1D] px-6 flex items-center justify-between flex-shrink-0 sticky top-0 z-20">
+        <header className="h-16 border-b border-slate-800/80 bg-[#0A0F1D]/90 backdrop-blur-md px-6 flex items-center justify-between flex-shrink-0 sticky top-0 z-20">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-[#38BDF8]/10 text-[#38BDF8] border border-[#38BDF8]/30">
+            <div className="p-2 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
               <Globe className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-white flex items-center gap-2">
+              <h1 className="text-base font-semibold text-white flex items-center gap-2 tracking-tight">
                 SOCForge Threat Intelligence & Security Operations
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                   OpenCTI Architecture
                 </span>
               </h1>
-              <p className="text-[11px] text-[#64748B] font-mono">
+              <p className="text-xs text-slate-400">
                 Real-time CTI telemetry, adversary intrusion tracking & evidence-driven response
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-mono">
+          <div className="flex items-center gap-2.5 text-xs">
             {/* View Switcher */}
-            <div className="flex items-center gap-1 bg-[#0F172A] p-1 rounded-lg border border-[#1E293B]">
+            <div className="flex items-center gap-1 bg-[#0F172A] p-1 rounded-lg border border-slate-800">
               <button
                 onClick={() => setActiveDashboardTab("overview")}
-                className={`px-3 py-1 rounded-md font-bold transition ${
-                  activeDashboardTab === "overview" ? "bg-[#38BDF8] text-[#070C18]" : "text-[#94A3B8] hover:text-white"
+                className={`px-3 py-1 rounded-md font-medium text-xs transition ${
+                  activeDashboardTab === "overview" ? "bg-sky-500 text-slate-950 font-semibold shadow-sm" : "text-slate-400 hover:text-white"
                 }`}
               >
                 CTI Overview
               </button>
               <button
                 onClick={() => setActiveDashboardTab("investigations")}
-                className={`px-3 py-1 rounded-md font-bold transition ${
-                  activeDashboardTab === "investigations" ? "bg-[#38BDF8] text-[#070C18]" : "text-[#94A3B8] hover:text-white"
+                className={`px-3 py-1 rounded-md font-medium text-xs transition ${
+                  activeDashboardTab === "investigations" ? "bg-sky-500 text-slate-950 font-semibold shadow-sm" : "text-slate-400 hover:text-white"
                 }`}
               >
                 Investigation Workbench
@@ -174,10 +174,10 @@ export default function DashboardPage() {
 
             <button
               onClick={loadData}
-              className="p-2 rounded-lg border border-[#1E293B] bg-[#0F172A] hover:bg-[#1E293B] text-[#94A3B8] hover:text-white transition"
+              className="p-2 rounded-lg border border-slate-800 bg-[#0F172A] hover:bg-slate-800 text-slate-400 hover:text-white transition"
               title="Refresh Dashboard"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-[#38BDF8] ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-4 h-4 text-sky-400 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
         </header>
@@ -187,67 +187,67 @@ export default function DashboardPage() {
           {activeDashboardTab === "overview" && (
             <div className="space-y-6">
               {/* Top OpenCTI KPI Stat Cards (4 Cards with 24h Vel) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 font-mono">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 1. Intrusion Sets */}
-                <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E293B] hover:border-[#38BDF8]/40 transition space-y-2">
-                  <div className="flex items-center justify-between text-[#64748B] text-xs">
-                    <span className="uppercase font-bold tracking-wider">INTRUSION SETS</span>
+                <div className="p-4 rounded-xl bg-[#0B1020] border border-slate-800/80 hover:border-sky-500/40 transition-all space-y-2">
+                  <div className="flex items-center justify-between text-slate-400 text-xs">
+                    <span className="uppercase font-semibold tracking-wider text-[11px]">INTRUSION SETS</span>
                     <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
                       <Crosshair className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-white tracking-tight">312</span>
-                    <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-0.5">
-                      +12 <span className="text-[10px] text-[#64748B]">(24 hours)</span>
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="text-3xl font-bold text-white tracking-tight font-mono">312</span>
+                    <span className="text-xs text-emerald-400 font-medium flex items-center gap-0.5">
+                      +12 <span className="text-[11px] text-slate-500">(24h)</span>
                     </span>
                   </div>
                 </div>
 
                 {/* 2. Malware */}
-                <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E293B] hover:border-red-500/40 transition space-y-2">
-                  <div className="flex items-center justify-between text-[#64748B] text-xs">
-                    <span className="uppercase font-bold tracking-wider">MALWARE</span>
+                <div className="p-4 rounded-xl bg-[#0B1020] border border-slate-800/80 hover:border-red-500/40 transition-all space-y-2">
+                  <div className="flex items-center justify-between text-slate-400 text-xs">
+                    <span className="uppercase font-semibold tracking-wider text-[11px]">MALWARE</span>
                     <div className="p-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20">
                       <ShieldAlert className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-white tracking-tight">1.18K</span>
-                    <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-0.5">
-                      +117 <span className="text-[10px] text-[#64748B]">(24 hours)</span>
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="text-3xl font-bold text-white tracking-tight font-mono">1.18K</span>
+                    <span className="text-xs text-emerald-400 font-medium flex items-center gap-0.5">
+                      +117 <span className="text-[11px] text-slate-500">(24h)</span>
                     </span>
                   </div>
                 </div>
 
                 {/* 3. Reports */}
-                <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E293B] hover:border-purple-500/40 transition space-y-2">
-                  <div className="flex items-center justify-between text-[#64748B] text-xs">
-                    <span className="uppercase font-bold tracking-wider">REPORTS</span>
+                <div className="p-4 rounded-xl bg-[#0B1020] border border-slate-800/80 hover:border-purple-500/40 transition-all space-y-2">
+                  <div className="flex items-center justify-between text-slate-400 text-xs">
+                    <span className="uppercase font-semibold tracking-wider text-[11px]">REPORTS</span>
                     <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
                       <FileText className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-white tracking-tight">1.91K</span>
-                    <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-0.5">
-                      +900 <span className="text-[10px] text-[#64748B]">(24 hours)</span>
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="text-3xl font-bold text-white tracking-tight font-mono">1.91K</span>
+                    <span className="text-xs text-emerald-400 font-medium flex items-center gap-0.5">
+                      +900 <span className="text-[11px] text-slate-500">(24h)</span>
                     </span>
                   </div>
                 </div>
 
                 {/* 4. Indicators */}
-                <div className="p-4 rounded-xl bg-[#0B1020] border border-[#1E293B] hover:border-emerald-500/40 transition space-y-2">
-                  <div className="flex items-center justify-between text-[#64748B] text-xs">
-                    <span className="uppercase font-bold tracking-wider">INDICATORS</span>
+                <div className="p-4 rounded-xl bg-[#0B1020] border border-slate-800/80 hover:border-emerald-500/40 transition-all space-y-2">
+                  <div className="flex items-center justify-between text-slate-400 text-xs">
+                    <span className="uppercase font-semibold tracking-wider text-[11px]">INDICATORS</span>
                     <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       <ShieldCheck className="w-4 h-4" />
                     </div>
                   </div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-white tracking-tight">260.05K</span>
-                    <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-0.5">
-                      +26002 <span className="text-[10px] text-[#64748B]">(24 hours)</span>
+                  <div className="flex items-baseline gap-2.5">
+                    <span className="text-3xl font-bold text-white tracking-tight font-mono">260.05K</span>
+                    <span className="text-xs text-emerald-400 font-medium flex items-center gap-0.5">
+                      +26,002 <span className="text-[11px] text-slate-500">(24h)</span>
                     </span>
                   </div>
                 </div>
@@ -256,12 +256,12 @@ export default function DashboardPage() {
               {/* Row 1: Threat Actors Bar Chart + Targeted Sectors Bar Chart + Relationships Created Timeline */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Most Active Threats */}
-                <div className="p-5 rounded-2xl bg-[#0B1020] border border-[#1E293B] space-y-3 flex flex-col font-mono">
-                  <div className="flex items-center justify-between border-b border-[#1E293B] pb-2">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
-                      MOST ACTIVE THREATS (LAST 3 MONTHS)
+                <div className="p-5 rounded-2xl bg-[#0B1020] border border-slate-800/80 space-y-3 flex flex-col">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
+                      Most Active Threats (Last 3 Months)
                     </span>
-                    <span className="text-[10px] text-[#64748B]">MAX 500</span>
+                    <span className="text-[11px] text-slate-400 font-mono">Max 500</span>
                   </div>
                   <div className="flex-1 overflow-y-auto">
                     <HorizontalBarChart items={MOST_ACTIVE_THREATS} maxValue={500} barColor="#F97316" />
@@ -269,12 +269,12 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Most Targeted Victims */}
-                <div className="p-5 rounded-2xl bg-[#0B1020] border border-[#1E293B] space-y-3 flex flex-col font-mono">
-                  <div className="flex items-center justify-between border-b border-[#1E293B] pb-2">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
-                      MOST TARGETED VICTIMS (LAST 3 MONTHS)
+                <div className="p-5 rounded-2xl bg-[#0B1020] border border-slate-800/80 space-y-3 flex flex-col">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
+                      Most Targeted Victims (Last 3 Months)
                     </span>
-                    <span className="text-[10px] text-[#64748B]">MAX 700</span>
+                    <span className="text-[11px] text-slate-400 font-mono">Max 700</span>
                   </div>
                   <div className="flex-1 overflow-y-auto">
                     <HorizontalBarChart items={MOST_TARGETED_SECTORS} maxValue={700} barColor="#38BDF8" />
@@ -282,12 +282,12 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Relationships Created */}
-                <div className="p-5 rounded-2xl bg-[#0B1020] border border-[#1E293B] space-y-3 flex flex-col font-mono">
-                  <div className="flex items-center justify-between border-b border-[#1E293B] pb-2">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
-                      RELATIONSHIPS CREATED (GRAPH ACTIVITY)
+                <div className="p-5 rounded-2xl bg-[#0B1020] border border-slate-800/80 space-y-3 flex flex-col">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
+                      Relationships Created (Graph Activity)
                     </span>
-                    <span className="text-[10px] text-[#38BDF8]">MONTHLY LINKAGES</span>
+                    <span className="text-[11px] text-sky-400 font-medium">Monthly Linkages</span>
                   </div>
                   <div className="flex-1 min-h-[220px]">
                     <RelationshipTimelineChart />
@@ -298,12 +298,12 @@ export default function DashboardPage() {
               {/* Row 2: Most Active Malware (Polar Rose) + Most Active Vulnerabilities (CVE Ranker) + Targeted Countries (Geointel Map) */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Most Active Malware (Polar Rose Chart) */}
-                <div className="p-5 rounded-2xl bg-[#0B1020] border border-[#1E293B] space-y-3 flex flex-col font-mono">
-                  <div className="flex items-center justify-between border-b border-[#1E293B] pb-2">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
-                      MOST ACTIVE MALWARE (LAST 3 MONTHS)
+                <div className="p-5 rounded-2xl bg-[#0B1020] border border-slate-800/80 space-y-3 flex flex-col">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
+                      Most Active Malware (Last 3 Months)
                     </span>
-                    <span className="text-[10px] text-[#64748B]">POLAR AREA</span>
+                    <span className="text-[11px] text-slate-400 font-medium">Polar Distribution</span>
                   </div>
                   <div className="flex-1 flex items-center justify-center">
                     <PolarRoseChart />
@@ -311,12 +311,12 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Most Active Vulnerabilities (CVE Leaderboard) */}
-                <div className="p-5 rounded-2xl bg-[#0B1020] border border-[#1E293B] space-y-3 flex flex-col font-mono">
-                  <div className="flex items-center justify-between border-b border-[#1E293B] pb-2">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
-                      MOST ACTIVE VULNERABILITIES (LAST 3 MONTHS)
+                <div className="p-5 rounded-2xl bg-[#0B1020] border border-slate-800/80 space-y-3 flex flex-col">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
+                      Most Active Vulnerabilities (Last 3 Months)
                     </span>
-                    <span className="text-[10px] text-amber-400 font-bold">CVE EXPLOITATION</span>
+                    <span className="text-[11px] text-amber-400 font-medium">CVE Exploitation</span>
                   </div>
                   <div className="flex-1">
                     <TopVulnerabilitiesCard />
@@ -324,12 +324,12 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Targeted Countries (Interactive World Map) */}
-                <div className="p-5 rounded-2xl bg-[#0B1020] border border-[#1E293B] space-y-3 flex flex-col font-mono">
-                  <div className="flex items-center justify-between border-b border-[#1E293B] pb-2">
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
-                      TARGETED COUNTRIES (LAST 3 MONTHS)
+                <div className="p-5 rounded-2xl bg-[#0B1020] border border-slate-800/80 space-y-3 flex flex-col">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
+                      Targeted Countries (Last 3 Months)
                     </span>
-                    <span className="text-[10px] text-[#38BDF8]">GEOINTEL SENSORS</span>
+                    <span className="text-[11px] text-sky-400 font-medium">Geointel Sensors</span>
                   </div>
                   <div className="flex-1 min-h-[220px]">
                     <WorldThreatMap />
@@ -338,15 +338,15 @@ export default function DashboardPage() {
               </div>
 
               {/* Row 3: Latest Reports & Ingested Threat Intel Dossiers */}
-              <div className="p-5 rounded-2xl bg-[#0B1020] border border-[#1E293B] space-y-3 font-mono">
-                <div className="flex items-center justify-between border-b border-[#1E293B] pb-2">
+              <div className="p-5 rounded-2xl bg-[#0B1020] border border-slate-800/80 space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-[#38BDF8]" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
-                      LATEST THREAT INTEL REPORTS & INGESTED STIX FEEDS
+                    <FileText className="w-4 h-4 text-sky-400" />
+                    <span className="text-xs font-semibold text-slate-200 uppercase tracking-wider">
+                      Latest Threat Intel Reports & Ingested STIX Feeds
                     </span>
                   </div>
-                  <Link href="/intel" className="text-[11px] text-[#38BDF8] hover:underline font-bold">
+                  <Link href="/intel" className="text-xs text-sky-400 hover:text-sky-300 hover:underline font-medium">
                     View All Intel Dossiers →
                   </Link>
                 </div>
@@ -358,15 +358,15 @@ export default function DashboardPage() {
           {/* Investigation Workbench Tab */}
           {activeDashboardTab === "investigations" && (
             <div className="space-y-6">
-              <div className="p-5 rounded-2xl bg-[#0B1020] border border-[#1E293B] space-y-4 font-mono">
-                <div className="flex items-center justify-between border-b border-[#1E293B] pb-3">
+              <div className="p-5 rounded-2xl bg-[#0B1020] border border-slate-800/80 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <div>
-                    <h2 className="text-sm font-bold text-white">Active Investigation Evidence Graph</h2>
-                    <p className="text-xs text-[#94A3B8]">Multi-hop entity correlation and graph relationships</p>
+                    <h2 className="text-sm font-semibold text-white tracking-tight">Active Investigation Evidence Graph</h2>
+                    <p className="text-xs text-slate-400">Multi-hop entity correlation and graph relationships</p>
                   </div>
                   <Link
                     href="/graph"
-                    className="px-3 py-1.5 rounded-lg bg-[#38BDF8] text-[#070C18] text-xs font-bold hover:bg-[#0284C7] transition flex items-center gap-1"
+                    className="px-3.5 py-1.5 rounded-lg bg-sky-500 text-slate-950 text-xs font-semibold hover:bg-sky-400 transition flex items-center gap-1.5"
                   >
                     Open Attack Path Visualizer <ChevronRight className="w-3.5 h-3.5" />
                   </Link>
@@ -375,7 +375,7 @@ export default function DashboardPage() {
                 {graphData ? (
                   <EvidenceGraphVisualizer data={graphData} loading={loading} error={null} investigationTitle="Active Incident Investigation" />
                 ) : (
-                  <div className="p-12 border border-dashed border-[#1E293B] rounded-xl text-center text-[#64748B] text-xs">
+                  <div className="p-12 border border-dashed border-slate-800 rounded-xl text-center text-slate-500 text-xs">
                     Loading evidence graph data...
                   </div>
                 )}

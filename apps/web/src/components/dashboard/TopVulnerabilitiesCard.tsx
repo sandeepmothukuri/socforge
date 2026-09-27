@@ -26,21 +26,21 @@ const DEFAULT_CVES: VulnerabilityItem[] = [
 
 export function TopVulnerabilitiesCard({ items = DEFAULT_CVES }: { items?: VulnerabilityItem[] }) {
   return (
-    <div className="space-y-1.5 font-mono text-xs overflow-y-auto max-h-[300px] pr-1">
+    <div className="space-y-2 text-xs font-sans overflow-y-auto max-h-[300px] pr-1">
       {items.map((cve) => (
         <div
           key={cve.cveId}
-          className="p-2 rounded-lg bg-[#070C18] border border-[#1E293B] hover:border-[#38BDF8]/40 transition flex items-center justify-between gap-2"
+          className="p-2.5 rounded-xl bg-[#080D1A] border border-slate-800/80 hover:border-sky-500/40 hover:bg-slate-900/60 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm"
         >
-          <div className="flex items-center gap-2 truncate">
-            <div className="p-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 flex-shrink-0">
-              <ShieldAlert className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2.5 truncate">
+            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex-shrink-0">
+              <ShieldAlert className="w-4 h-4" />
             </div>
             <div className="truncate">
-              <div className="flex items-center gap-1.5">
-                <span className="font-bold text-white text-[11px]">{cve.cveId}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-bold text-white text-xs tracking-tight">{cve.cveId}</span>
                 <span
-                  className={`px-1 py-0.2 rounded text-[9px] font-bold ${
+                  className={`px-1.5 py-0.2 rounded font-mono text-[10px] font-bold ${
                     cve.severity === "CRITICAL"
                       ? "bg-red-500/20 text-red-400 border border-red-500/30"
                       : "bg-amber-500/20 text-amber-400 border border-amber-500/30"
@@ -49,18 +49,20 @@ export function TopVulnerabilitiesCard({ items = DEFAULT_CVES }: { items?: Vulne
                   CVSS {cve.cvss}
                 </span>
               </div>
-              <div className="text-[10px] text-[#64748B] truncate">{cve.affectedProduct}</div>
+              <div className="text-[11px] text-slate-400 truncate mt-0.5">{cve.affectedProduct}</div>
             </div>
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-[11px] font-bold text-[#38BDF8]">{cve.count}</span>
+            <span className="font-mono text-xs font-bold text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded border border-sky-800/50">
+              {cve.count}
+            </span>
             <Link
               href="/detections"
               title="View Detection Rule"
-              className="p-1 rounded bg-[#111827] text-[#64748B] hover:text-white"
+              className="p-1.5 rounded-lg bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700 transition"
             >
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
