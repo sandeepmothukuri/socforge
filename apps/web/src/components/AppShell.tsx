@@ -43,6 +43,9 @@ import {
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
 import { SOCCopilotDrawer } from "@/components/SOCCopilotDrawer";
+import { ThreatTicker } from "@/components/ui/ThreatTicker";
+import { TacticalAudioProvider, TacticalAudioToggle } from "@/components/ui/TacticalAudioPlayer";
+import { QuickActionDock } from "@/components/ui/QuickActionDock";
 import { getHealthStatus } from "@/lib/api";
 
 interface AppShellProps {
@@ -54,6 +57,7 @@ export default function AppShell({ children }: AppShellProps) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [densityMode, setDensityMode] = useState<"compact" | "standard" | "executive">("standard");
   const [selectedEnv, setSelectedEnv] = useState<"Production" | "Staging" | "Sandbox">("Production");
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>("24h");
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<string>("60s");
@@ -155,9 +159,10 @@ export default function AppShell({ children }: AppShellProps) {
   ];
 
   return (
-    <div className="flex h-screen bg-[#000000] text-[#FFFFFF] overflow-hidden font-sans select-none">
-      <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
-      <SOCCopilotDrawer isOpen={copilotOpen} onClose={() => setCopilotOpen(false)} />
+    <TacticalAudioProvider>
+      <div className="flex h-screen bg-[#000000] text-[#FFFFFF] overflow-hidden font-sans select-none">
+        <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
+        <SOCCopilotDrawer isOpen={copilotOpen} onClose={() => setCopilotOpen(false)} />
 
       {/* Collapsible OpenCTI-style Sidebar */}
       <aside className={`${isCollapsed ? "w-16" : "w-64"} border-r border-neutral-800/80 bg-[#050505] flex flex-col flex-shrink-0 z-30 transition-all duration-300 ease-in-out`}>
@@ -277,6 +282,40 @@ export default function AppShell({ children }: AppShellProps) {
               </kbd>
             </button>
 
+            {/* Tactical Audio Toggle */}
+            <TacticalAudioToggle />
+
+            {/* Viewport Density Switcher */}
+            <div className="hidden xl:flex items-center gap-1 bg-[#000000] p-1 rounded-lg border border-neutral-800 text-[11px] font-mono">
+              <button
+                onClick={() => setDensityMode("compact")}
+                className={`px-2 py-0.5 rounded transition ${
+                  densityMode === "compact" ? "bg-white text-black font-bold" : "text-neutral-400 hover:text-white"
+                }`}
+                title="Compact Density Mode"
+              >
+                NOC
+              </button>
+              <button
+                onClick={() => setDensityMode("standard")}
+                className={`px-2 py-0.5 rounded transition ${
+                  densityMode === "standard" ? "bg-white text-black font-bold" : "text-neutral-400 hover:text-white"
+                }`}
+                title="Standard Operations Mode"
+              >
+                STD
+              </button>
+              <button
+                onClick={() => setDensityMode("executive")}
+                className={`px-2 py-0.5 rounded transition ${
+                  densityMode === "executive" ? "bg-white text-black font-bold" : "text-neutral-400 hover:text-white"
+                }`}
+                title="Executive Mode"
+              >
+                EXEC
+              </button>
+            </div>
+
             {/* Time Window Selector */}
             <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#000000] border border-neutral-800 text-neutral-400">
               <span>Window:</span>
@@ -350,11 +389,20 @@ export default function AppShell({ children }: AppShellProps) {
           </div>
         </header>
 
+        {/* CTI Live Threat Marquee Ticker */}
+        <ThreatTicker />
+
         {/* View Content */}
-        <div className="flex-1 overflow-hidden flex flex-col bg-[#000000]">
+        <div className={`flex-1 overflow-hidden flex flex-col bg-[#000000] ${
+          densityMode === "compact" ? "text-[11px]" : densityMode === "executive" ? "text-sm" : ""
+        }`}>
           {children}
         </div>
       </main>
+
+      {/* Floating Tactical Quick Actions Dock */}
+      <QuickActionDock />
     </div>
+    </TacticalAudioProvider>
   );
 }
