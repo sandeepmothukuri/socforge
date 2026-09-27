@@ -46,6 +46,9 @@ import {
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 import { runDemoWorkflow } from "@/lib/api";
+import { TelemetryPipelineVisualizer } from "@/components/home/TelemetryPipelineVisualizer";
+import { AutonomousAIAgentPlayground } from "@/components/home/AutonomousAIAgentPlayground";
+import EnterpriseConnectorsMatrix from "@/components/home/EnterpriseConnectorsMatrix";
 
 export default function HomePage() {
   const [demoRunning, setDemoRunning] = useState(false);
@@ -490,6 +493,12 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+ 
+      {/* ── ANIMATED TELEMETRY FLOW PIPELINE & LIVE EPS DASHBOARD ─────────────── */}
+      <TelemetryPipelineVisualizer />
+
+      {/* ── AUTONOMOUS AI AGENT TRIAGE PLAYGROUND ────────────────────────────── */}
+      <AutonomousAIAgentPlayground />
 
       {/* ── WORKSPACE EXPLORER CATEGORIZED TABS ─────────────────────────────────── */}
       <section className="py-16 px-6 border-b border-[#262626] bg-[#050505]">
@@ -816,6 +825,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── INTERACTIVE 32-CONNECTOR HEALTH & TEST MATRIX ───────────────────── */}
+      <EnterpriseConnectorsMatrix />
 
       {/* ── COMPLETE 16-STUDIO ARSENAL GRID ─────────────────────────────────── */}
       <section className="py-20 px-6 border-b border-[#262626] bg-[#000000]">
