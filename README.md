@@ -16,6 +16,7 @@
   <img src="https://img.shields.io/badge/FastAPI-0.115-009688.svg" alt="FastAPI 0.115">
   <img src="https://img.shields.io/badge/Next.js-14-black.svg" alt="Next.js 14">
   <img src="https://img.shields.io/badge/PostgreSQL-16-336791.svg" alt="PostgreSQL 16">
+  <img src="https://img.shields.io/badge/Theme-True_OLED_Pitch--Black-10B981.svg" alt="Theme: True OLED Pitch-Black">
   <img src="https://img.shields.io/badge/Deploy-Docker_Compose-blue.svg" alt="Docker Compose">
 </p>
 
@@ -59,10 +60,10 @@ flowchart TD
         RESP --> AUD["Immutable Audit Ledger\n(audit_events)"]
     end
 
-    style Ingestion fill:#0f172a,stroke:#3b82f6,stroke-width:1px,color:#f8fafc
-    style CoreEngine fill:#0f172a,stroke:#10b981,stroke-width:1px,color:#f8fafc
-    style DetectionLifecycle fill:#0f172a,stroke:#f59e0b,stroke-width:1px,color:#f8fafc
-    style Execution fill:#0f172a,stroke:#8b5cf6,stroke-width:1px,color:#f8fafc
+    style Ingestion fill:#000000,stroke:#262626,stroke-width:1px,color:#f8fafc
+    style CoreEngine fill:#000000,stroke:#10b981,stroke-width:1px,color:#f8fafc
+    style DetectionLifecycle fill:#000000,stroke:#f59e0b,stroke-width:1px,color:#f8fafc
+    style Execution fill:#000000,stroke:#ef4444,stroke-width:1px,color:#f8fafc
 ```
 
 ---
@@ -84,12 +85,12 @@ flowchart LR
     Worker["Celery Worker"] --> Redis
     Worker --> PG
 
-    style Browser fill:#0f172a,stroke:#3b82f6,color:#fff
-    style Web fill:#0f172a,stroke:#3b82f6,color:#fff
-    style API fill:#0f172a,stroke:#10b981,color:#fff
-    style Worker fill:#0f172a,stroke:#f59e0b,color:#fff
-    style Redis fill:#0f172a,stroke:#ef4444,color:#fff
-    style PG fill:#0f172a,stroke:#6366f1,color:#fff
+    style Browser fill:#050505,stroke:#262626,color:#fff
+    style Web fill:#050505,stroke:#262626,color:#fff
+    style API fill:#050505,stroke:#10b981,color:#fff
+    style Worker fill:#050505,stroke:#f59e0b,color:#fff
+    style Redis fill:#050505,stroke:#ef4444,color:#fff
+    style PG fill:#050505,stroke:#a855f7,color:#fff
 ```
 
 ![SOCForge Component Interaction Flow](docs/assets/socforge-architecture-flow.png)
@@ -120,9 +121,9 @@ socforge/
 │   │   ├── tests/               # Unit and integration test suites
 │   │   └── pyproject.toml
 │   │
-│   ├── web/                     # Next.js 14 Web Console
+│   ├── web/                     # Next.js 14 True OLED Web Console
 │   │   ├── src/
-│   │   │   ├── app/             # App Router pages (Dashboard, Alerts, Invs, etc.)
+│   │   │   ├── app/             # App Router pages (Dashboard, Alerts, Invs, Detections, etc.)
 │   │   │   ├── components/      # UI component library, AppShell, Graph visualizers
 │   │   │   ├── lib/             # API client & data fetchers
 │   │   │   ├── hooks/           # Custom React hooks
@@ -142,79 +143,121 @@ socforge/
 
 ## 3. Operational Evidence & Platform Screenshot Gallery
 
-All visual assets below represent empirical operational evidence captured directly from the live, production-configured SOCForge stack (PostgreSQL 16, Redis 7, Celery Worker, FastAPI REST backend, Next.js 14 console) running with active security telemetry and database state.
+All visual assets below represent empirical operational evidence captured directly from the live, production-configured SOCForge stack (PostgreSQL 16, Redis 7, Celery Worker, FastAPI REST backend, Next.js 14 console) running with active security telemetry and **True OLED Pitch-Black (`#000000`)** design system.
 
 ### Operational Evidence Matrix
 
-| Area | Feature / Capability | Concrete Evidence Demonstrated | Screenshot Reference |
+| Studio / Area | Capability & Workflow | Concrete Evidence Demonstrated | Screenshot Reference |
 |---|---|---|---|
-| **01. Security Command Center** | Multi-Source Operations Console | Real-time triage metrics, MTTD/MTTR indicators, 25 active alerts, 25 investigations, 16 rules, and MITRE ATT&CK coverage | [Section 3.1 &mdash; Dashboard Overview](#31-security-operations-command-center) |
-| **02. Investigation Studio** | Evidence Graph & Case Management | Directed entity relationships (`User` → `Host` → `Process` → `Technique`), dynamic finding justification, risk score 94/100, response advisor | [Section 3.2 &mdash; Investigation Studio](#32-interactive-evidence-graph--investigation-studio) |
-| **03. Attack Path Graph** | Process Lineage & Credential Dumping | Visual evidence of `mimikatz.exe` targeting `lsass.exe`, MITRE `T1003.001`, host `SRV-DC01`, directed causal edges | [Section 3.3 &mdash; Entity Graph Detail](#33-authoritative-entity-graph-detail) |
-| **04. Alert Ledger** | Multi-Tenant Normalized Ingestion | Normalized alerts across Wazuh, Sysmon, and Zeek, severity classification, status workflows, and one-click case escalation | [Section 3.4 &mdash; Alerts Ledger](#34-operational-alerts-ledger--triage) |
-| **05. Detection Studio** | Multi-Format Rule Lifecycle | Sigma YAML, Splunk SPL, and Sentinel KQL rule authoring, AST grammar validation, separation-of-duties review gating, confusion-matrix replay | [Section 3.5 &mdash; Detection Studio](#35-detection-engineering-studio) |
-| **06. Containment Ledger** | Four-Eyes Incident Mitigation | Human-in-the-loop response approval gating, DC protection policies, simulated dry-run execution adapters, immutable audit trail | [Section 3.6 &mdash; Response Ledger](#36-dual-gated-response--containment-ledger) |
-| **07. Integrations Hub** | Connector Ecosystem & Secret Vault | AES-256-GCM vault encryption, live connectivity diagnostics, and capability probing across Wazuh, Sentinel, and Splunk | [Section 3.7 &mdash; Integrations Hub](#37-security-connectors--integrations-hub) |
-| **08. Command Palette** | Rapid Keyboard-Driven Triage | Fast keyboard navigation (`Ctrl+K` / `⌘K`) across entities, alerts, investigations, containment actions, and test suites | [Section 3.8 &mdash; Command Palette](#38-keyboard-first-soc-command-palette) |
-| **09. Desktop Suite** | Standalone Windows Binaries | Native client guide for `SOCForge-Operations.exe` and `SOCForge-Window.exe` with local health probes and background sync | [Section 3.9 &mdash; Desktop Guide](#39-standalone-windows-desktop-operations-suite) |
+| **01. Main Portal** | Executive Launch Portal | Multi-studio quick navigation, system health probes, and Windows native executable guides | [Section 3.1 &mdash; Landing Portal](#31-enterprise-launch-portal) |
+| **02. CTI Dashboard** | Cyber Threat Intelligence | D3 Geo-threat map, Polar Rose attack vectors, CVE feeds, telemetry velocity, and evidence graphs | [Section 3.2 &mdash; CTI Dashboard](#32-cyber-threat-intelligence--telemetry-dashboard) |
+| **03. Alerts Triage** | Normalized Telemetry Queue | Real-time alert ingestion across Wazuh, Sysmon, Zeek; multi-facet severity and status filtering | [Section 3.3 &mdash; Alerts Queue](#33-security-alert-triage-queue) |
+| **04. Investigation Studio** | Evidence Graph & Findings | Relational PostgreSQL graph (`User` → `Host` → `Process`), dynamic findings, risk scoring (94/100) | [Section 3.4 &mdash; Investigation Studio](#34-evidence-graph--investigation-studio) |
+| **05. Attack Path Graph** | Kill Chain Visualizer | Directed causal graphs, process lineage (`mimikatz.exe` → `lsass.exe`), MITRE `T1003.001` mapping | [Section 3.5 &mdash; Attack Path Graph](#35-authoritative-attack-path-graph) |
+| **06. Detection Studio** | Multi-SIEM Transpiler | Transpiles Sigma into Splunk SPL, Microsoft KQL, Elastic EQL, and Athena SQL with confusion matrix | [Section 3.6 &mdash; Detection Studio](#36-detection-as-code--multi-siem-transpiler) |
+| **07. Threat Hunting** | Hypothesis & Log Stream | Live event stream tailing, regex search query formulations, and 1-click Sigma rule promotion | [Section 3.7 &mdash; Threat Hunting](#37-hypothesis-threat-hunting--live-log-stream) |
+| **08. Incident Command** | Live War Room & Gate | 8-stage lifecycle tracker, Four-Eyes response approval gate, and downloadable forensic dossiers | [Section 3.8 &mdash; Incident Command](#38-incident-command-center--live-war-room) |
+| **09. Forensics Studio** | Malware & YARA Engine | PE hex memory dump, high-signal string dissector, entropy scoring (7.82/8.00), and in-browser YARA | [Section 3.9 &mdash; Malware Forensics](#39-malware-forensics--in-browser-yara-engine) |
+| **10. Threat Intel** | Diamond Model & STIX | Adversary profiling (APT29, Volt Typhoon, LockBit 3.0), Diamond Model correlation, STIX 2.1 exporter | [Section 3.10 &mdash; Threat Intel](#310-threat-actor-intelligence--diamond-model-hub) |
+| **11. Containment Ledger** | Controlled Response Actions | Dual-gated host isolation, user token revocation, and immutable audit logging | [Section 3.11 &mdash; Response Ledger](#311-dual-gated-response--containment-ledger) |
+| **12. Integrations Hub** | Connectors & Vault | AES-256-GCM vault encryption, live latency probes for Wazuh, Splunk, Sentinel, and Redis | [Section 3.12 &mdash; Integrations Hub](#312-security-connectors--integrations-hub) |
+| **13. Analytics & ATT&CK** | Matrix Coverage Heatmap | Quantitative MITRE matrix coverage, MTTD/MTTR SLAs, and detection replay benchmark statistics | [Section 3.13 &mdash; ATT&CK Matrix](#313-analytics--enterprise-mitre-attck-matrix) |
+| **14. Desktop Suite** | Native Windows Binaries | Local control center for `SOCForge-Operations.exe` and `SOCForge-Window.exe` with Edge WebView2 | [Section 3.14 &mdash; Desktop Suite](#314-standalone-windows-desktop-operations-suite) |
+| **15. SOC Wallboard** | High-Density Operations Display | Live wallboard tracking critical alerts, incident timelines, and automated response actions | [Section 3.15 &mdash; SOC Wallboard](#315-real-time-soc-operations-wallboard) |
 
 ---
 
-### 3.1 Security Operations Command Center
-High-density tactical operations dashboard tracking real-time triage metrics, MTTD/MTTR indicators, high-risk entity pivots, active investigations, and MITRE ATT&CK coverage matrix with quick-action telemetry feeds.
+### 3.1 Enterprise Launch Portal
+Executive launchpad providing direct single-click access to all 9 SOC studios, real-time container health diagnostics, and native client setup.
+![SOCForge Launch Portal](docs/assets/socforge_landing.png)
+
+---
+
+### 3.2 Cyber Threat Intelligence & Telemetry Dashboard
+Real-time CTI dashboard featuring interactive D3 world threat visualization, polar rose tactic breakdown, high-velocity telemetry logs, and CVE tracking.
 ![SOCForge Dashboard Overview](docs/assets/socforge_dashboard.png)
 
 ---
 
-### 3.2 Interactive Evidence Graph & Investigation Studio
-Authoritative typed graph visualizer mapping directed entity relationships (`User` → `Host` → `Process` → `Domain` → `MITRE ATT&CK`) with supporting event backing, dynamic findings ledger, and controlled response advisor.
-![SOCForge Investigation Studio](docs/assets/socforge_investigations.png)
-
----
-
-### 3.3 Authoritative Entity Graph Detail
-Detailed interactive attack path graph displaying lateral pivots, compromised process lineages (`mimikatz.exe` targeting `lsass.exe`), credential dumping techniques (`T1003.001`), and risk scoring (94/100).
-![SOCForge Evidence Graph](docs/assets/socforge_graph.png)
-
----
-
-### 3.4 Operational Alerts Ledger & Triage
-Real-time telemetry ingestion ledger with multi-level severity classification, MITRE ATT&CK technique mapping, workspace filtering, and one-click escalation to active investigation cases.
+### 3.3 Security Alert Triage Queue
+Multi-tenant telemetry ingestion ledger with multi-level severity classification, MITRE ATT&CK technique mapping, and rapid case escalation.
 ![SOCForge Alerts Ledger](docs/assets/socforge_alerts.png)
 
 ---
 
-### 3.5 Detection Engineering Studio
-End-to-end lifecycle management for Sigma YAML, Splunk SPL, and Microsoft Sentinel KQL detection rules with AST grammar validation, separation-of-duties approval gating, and confusion-matrix replay testing against real telemetry datasets.
+### 3.4 Evidence Graph & Investigation Studio
+Authoritative typed graph visualizer mapping directed entity relationships (`User` → `Host` → `Process` → `Domain`) with supporting event backing and dynamic findings ledger.
+![SOCForge Investigation Studio](docs/assets/socforge_investigations.png)
+
+---
+
+### 3.5 Authoritative Attack Path Graph
+Detailed interactive attack path graph displaying lateral pivots, compromised process lineages (`mimikatz.exe` targeting `lsass.exe`), and risk scoring.
+![SOCForge Evidence Graph](docs/assets/socforge_graph.png)
+
+---
+
+### 3.6 Detection-as-Code & Multi-SIEM Transpiler
+End-to-end lifecycle management for Sigma rules with automated transpilation to Splunk SPL, Microsoft Sentinel KQL, Elastic EQL, and confusion matrix testing against real datasets.
 ![SOCForge Detection Studio](docs/assets/socforge_detections.png)
 
 ---
 
-### 3.6 Dual-Gated Response & Containment Ledger
-Controlled incident mitigation console enforcing strict separation-of-duties approvals before executing host isolation or account disablement actions, backed by simulated execution adapters and an immutable audit trail.
+### 3.7 Hypothesis Threat Hunting & Live Log Stream
+Adversarial hypothesis formulation studio with real-time log tailing, multi-query formulation (SPL/KQL/SQL), and one-click Sigma detection rule promotion.
+![SOCForge Threat Hunting Studio](docs/assets/socforge_hunts.png)
+
+---
+
+### 3.8 Incident Command Center & Live War Room
+8-stage incident response console with Four-Eyes containment gate, live responder bridge, and downloadable forensic dossier generation.
+![SOCForge Incident Command Center](docs/assets/socforge_incidents.png)
+
+---
+
+### 3.9 Malware Forensics & In-Browser YARA Engine
+Static binary dissector with PE header examination, entropy calculation (7.82/8.00), high-signal credential string extraction, and in-browser YARA rule compiler.
+![SOCForge Malware Forensics Studio](docs/assets/socforge_forensics.png)
+
+---
+
+### 3.10 Threat Actor Intelligence & Diamond Model Hub
+Adversary tradecraft profiling (APT29, Volt Typhoon, LockBit 3.0), Diamond Model correlation, and automated STIX 2.1 JSON bundle generation.
+![SOCForge Threat Intel Hub](docs/assets/socforge_intel.png)
+
+---
+
+### 3.11 Dual-Gated Response & Containment Ledger
+Controlled incident mitigation console enforcing strict separation-of-duties approvals before executing host isolation or account disablement actions.
 ![SOCForge Response Ledger](docs/assets/socforge_responses.png)
 
 ---
 
-### 3.7 Security Connectors & Integrations Hub
-Vendor-neutral telemetry adapters connecting external SIEM and EDR platforms (Wazuh, Splunk, Microsoft Sentinel) with live connectivity diagnostics, capability probing, and AES-256-GCM vault-encrypted credentials.
+### 3.12 Security Connectors & Integrations Hub
+Vendor-neutral telemetry adapters connecting external SIEM and EDR platforms (Wazuh, Splunk, Microsoft Sentinel) with live connectivity diagnostics and AES-256 vault encryption.
 ![SOCForge Integrations Hub](docs/assets/socforge_integrations.png)
 
 ---
 
-### 3.8 Keyboard-First SOC Command Palette
-Interactive quick pivot command palette enabling rapid keyboard-driven navigation (`Ctrl+K` / `⌘K`) across alerts, entities, investigations, containment workflows, and detection replay suites.
-![SOCForge Command Palette](docs/assets/socforge_command_palette.png)
+### 3.13 Analytics & Enterprise MITRE ATT&CK Matrix
+Adversary tactic heatmaps, operational SLA telemetry (MTTD 4.2m / MTTR 18.5m), and automated detection efficacy metrics.
+![SOCForge Analytics & ATT&CK Matrix](docs/assets/socforge_analytics.png)
 
 ---
 
-### 3.9 Standalone Windows Desktop Operations Suite
-Native executable support (`SOCForge-Operations.exe` and `SOCForge-Window.exe`) providing an offline-capable, dedicated desktop security analyst experience with automated local health probes and background sync.
+### 3.14 Standalone Windows Desktop Operations Suite
+Native executable support (`SOCForge-Operations.exe` and `SOCForge-Window.exe`) providing a dedicated desktop analyst experience with local health probes.
 ![SOCForge Desktop Guide](docs/assets/socforge_desktop.png)
 
 ---
 
-### 3.10 Automated Test Suite Verification Evidence
+### 3.15 Real-Time SOC Operations Wallboard
+High-density tactical wallboard designed for continuous SOC operations center monitoring with real-time incident counters and active mitigation telemetry.
+![SOCForge Wallboard](docs/assets/socforge_wallboard.png)
+
+---
+
+### 3.16 Automated Test Suite Verification Evidence
 All core domain models, policies, and pipelines are verified continuously with automated unit, integration, and security test suites (**66 tests, 0 failures, 100% pass rate**):
 
 ```text
