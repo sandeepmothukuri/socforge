@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import AppShell from "@/components/AppShell";
 import { InteractiveAttackGraph, GraphNode, GraphEdge } from "@/components/graph/InteractiveAttackGraph";
+import { AttackTimelineScrubber } from "@/components/ui/AttackTimelineScrubber";
 import { 
   Network, 
   Share2, 
@@ -12,7 +13,8 @@ import {
   FileText, 
   Sparkles,
   RefreshCw,
-  FolderOpen
+  FolderOpen,
+  Clock
 } from "lucide-react";
 
 const SCENARIOS: Record<string, { name: string; description: string; nodes: GraphNode[]; edges: GraphEdge[] }> = {
@@ -62,11 +64,12 @@ const SCENARIOS: Record<string, { name: string; description: string; nodes: Grap
 
 export default function GraphPage() {
   const [selectedScenarioKey, setSelectedScenarioKey] = useState<string>("mimikatz");
+  const [showTimeline, setShowTimeline] = useState(true);
   const currentScenario = SCENARIOS[selectedScenarioKey] || SCENARIOS.mimikatz;
 
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col min-w-0 bg-[#000000] overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#000000] overflow-y-auto">
         {/* Header Toolbar */}
         <div className="h-14 border-b border-neutral-800 bg-[#050505] px-6 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
@@ -102,6 +105,16 @@ export default function GraphPage() {
             </div>
 
             <button
+              onClick={() => setShowTimeline(!showTimeline)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition ${
+                showTimeline ? "bg-white text-black font-semibold" : "bg-neutral-900 text-neutral-300 border-neutral-800"
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>{showTimeline ? "Hide Timeline" : "Show Timeline"}</span>
+            </button>
+
+            <button
               onClick={() => {
                 if (typeof window !== "undefined") {
                   window.dispatchEvent(new CustomEvent("socforge-open-copilot", { detail: { prompt: `Analyze attack graph for ${currentScenario.name}` } }));
@@ -116,7 +129,7 @@ export default function GraphPage() {
         </div>
 
         {/* Scenario description notice */}
-        <div className="px-6 py-2 bg-[#050505] border-b border-neutral-800 flex items-center justify-between text-xs">
+        <div className="px-6 py-2 bg-[#050505] border-b border-neutral-800 flex items-center justify-between text-xs flex-shrink-0">
           <div className="flex items-center gap-2 text-neutral-400">
             <span className="font-semibold text-white">{currentScenario.name}:</span>
             <span>{currentScenario.description}</span>
@@ -127,13 +140,20 @@ export default function GraphPage() {
         </div>
 
         {/* Interactive SVG Graph Area */}
-        <div className="flex-1 min-h-0 relative">
+        <div className="h-[520px] min-h-[500px] relative border-b border-neutral-800">
           <InteractiveAttackGraph 
             key={selectedScenarioKey}
             initialNodes={currentScenario.nodes}
             initialEdges={currentScenario.edges}
           />
         </div>
+
+        {/* Temporal Attack Timeline Scrubber */}
+        {showTimeline && (
+          <div className="p-6 bg-[#000000]">
+            <AttackTimelineScrubber />
+          </div>
+        )}
       </div>
     </AppShell>
   );

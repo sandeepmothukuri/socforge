@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { SeverityBadge } from "@/components/ui/SeverityBadge";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { IocHoverCard } from "@/components/ui/IocHoverCard";
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
@@ -358,13 +359,13 @@ export default function AlertsPage() {
                         <div className="flex items-center gap-4 text-[11px] text-neutral-400 font-mono">
                           <span>Source: <strong className="text-neutral-200">{alert.source}</strong></span>
                           {alert.source_host && (
-                            <span>Host: <strong className="text-neutral-200">{alert.source_host}</strong></span>
+                            <span>Host: <IocHoverCard value={alert.source_host} type="ip" className="text-neutral-200 font-bold" /></span>
                           )}
                           {alert.username && (
-                            <span>User: <strong className="text-neutral-200">{alert.username}</strong></span>
+                            <span>User: <IocHoverCard value={alert.username} type="user" className="text-neutral-200 font-bold" /></span>
                           )}
                           {alert.process_name && (
-                            <span className="hidden md:inline">Process: <strong className="text-neutral-200">{alert.process_name}</strong></span>
+                            <span className="hidden md:inline">Process: <IocHoverCard value={alert.process_name} type="process" className="text-neutral-200 font-bold" /></span>
                           )}
                         </div>
                       </div>
@@ -466,21 +467,37 @@ export default function AlertsPage() {
                     <span className="text-neutral-500">Alert ID:</span>
                     <span className="text-neutral-300 truncate max-w-[180px]">{selectedAlert.id}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-neutral-500">Host:</span>
-                    <span className="text-emerald-400 font-bold">{selectedAlert.source_host || "N/A"}</span>
+                    {selectedAlert.source_host ? (
+                      <IocHoverCard value={selectedAlert.source_host} type="ip" className="text-emerald-400 font-bold" />
+                    ) : (
+                      <span className="text-neutral-500">N/A</span>
+                    )}
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-neutral-500">User:</span>
-                    <span className="text-white">{selectedAlert.username || "N/A"}</span>
+                    {selectedAlert.username ? (
+                      <IocHoverCard value={selectedAlert.username} type="user" className="text-white font-bold" />
+                    ) : (
+                      <span className="text-neutral-500">N/A</span>
+                    )}
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-neutral-500">Source IP:</span>
-                    <span className="text-neutral-300">{selectedAlert.source_ip || "N/A"}</span>
+                    {selectedAlert.source_ip ? (
+                      <IocHoverCard value={selectedAlert.source_ip} type="ip" className="text-neutral-200 font-mono" />
+                    ) : (
+                      <span className="text-neutral-500">N/A</span>
+                    )}
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-neutral-500">Dest IP:</span>
-                    <span className="text-neutral-300">{selectedAlert.destination_ip || "N/A"}</span>
+                    {selectedAlert.destination_ip ? (
+                      <IocHoverCard value={selectedAlert.destination_ip} type="ip" className="text-neutral-200 font-mono" />
+                    ) : (
+                      <span className="text-neutral-500">N/A</span>
+                    )}
                   </div>
                 </div>
               </div>

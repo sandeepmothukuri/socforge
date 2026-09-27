@@ -19,6 +19,7 @@ import {
   Award
 } from "lucide-react";
 import Link from "next/link";
+import { MitreD3fendMatrix } from "@/components/ui/MitreD3fendMatrix";
 
 const MITRE_TACTICS = [
   { id: "initial-access", name: "Initial Access", icon: "🚪", techniques: ["T1190", "T1566.001", "T1078"] },
@@ -38,6 +39,7 @@ export default function AnalyticsPage() {
   const [detections, setDetections] = useState<DetectionItem[]>([]);
   const [incidents, setIncidents] = useState<IncidentItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"att&ck" | "d3fend">("att&ck");
 
   const fetchData = async () => {
     setLoading(true);
@@ -145,21 +147,50 @@ export default function AnalyticsPage() {
               <span className="text-[11px] text-neutral-500 mt-0.5 font-mono">Zero false positives</span>
             </div>
           </div>
+          {/* Tab Navigation: ATT&CK Matrix vs D3FEND Countermeasures */}
+          <div className="flex items-center gap-2 mt-6 pt-4 border-t border-[#1f1f1f]">
+            <button
+              onClick={() => setActiveTab("att&ck")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-medium transition ${
+                activeTab === "att&ck"
+                  ? "bg-white text-black font-bold shadow-md"
+                  : "bg-[#0A0A0A] hover:bg-[#171717] text-neutral-400 hover:text-white border border-[#262626]"
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>MITRE ATT&CK® Matrix</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("d3fend")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-mono font-medium transition ${
+                activeTab === "d3fend"
+                  ? "bg-white text-black font-bold shadow-md"
+                  : "bg-[#0A0A0A] hover:bg-[#171717] text-neutral-400 hover:text-white border border-[#262626]"
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>MITRE D3FEND™ Countermeasures</span>
+            </button>
+          </div>
         </div>
 
-        {/* ATT&CK Matrix Visualizer */}
+        {/* Matrix Visualizer View */}
         <div className="p-6 space-y-6">
-          <div className="bg-[#050505] border border-[#262626] rounded-2xl p-5">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4 pb-3 border-b border-[#262626]">
-              <div>
-                <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-emerald-400" />
-                  Enterprise MITRE ATT&CK Matrix Coverage Heatmap
-                </h2>
-                <p className="text-xs text-neutral-400 mt-0.5">
-                  Green indicates active detection coverage in rule catalog. Red badge indicates observed alert in current queue.
-                </p>
-              </div>
+          {activeTab === "d3fend" ? (
+            <MitreD3fendMatrix />
+          ) : (
+            <>
+              <div className="bg-[#050505] border border-[#262626] rounded-2xl p-5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4 pb-3 border-b border-[#262626]">
+                  <div>
+                    <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-emerald-400" />
+                      Enterprise MITRE ATT&CK Matrix Coverage Heatmap
+                    </h2>
+                    <p className="text-xs text-neutral-400 mt-0.5">
+                      Green indicates active detection coverage in rule catalog. Red badge indicates observed alert in current queue.
+                    </p>
+                  </div>
 
               <div className="flex items-center gap-3 text-xs font-mono">
                 <span className="inline-flex items-center gap-1.5 text-neutral-400">
@@ -284,6 +315,8 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </div>
+        </>
+      )}
         </div>
       </div>
     </AppShell>
