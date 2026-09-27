@@ -87,7 +87,7 @@ export function ThreatTicker() {
   };
 
   return (
-    <div className="relative w-full h-8 bg-[#030303] border-b border-[#1f1f1f] flex items-center overflow-hidden z-20 text-[11px] font-mono select-none">
+    <div className="relative w-full h-8 bg-[#030303] border-b border-[#1f1f1f] flex items-center overflow-hidden z-10 text-[11px] font-mono select-none">
       {/* Static Left Header Badge */}
       <div className="flex items-center gap-1.5 px-3 h-full bg-[#080808] border-r border-[#1f1f1f] text-neutral-300 font-bold z-10 flex-shrink-0 shadow-lg">
         <span className="relative flex h-2 w-2">

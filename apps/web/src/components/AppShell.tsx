@@ -206,6 +206,134 @@ export default function AppShell({ children }: AppShellProps) {
         <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
         <SOCCopilotDrawer isOpen={copilotOpen} onClose={() => setCopilotOpen(false)} />
 
+        {/* Security Notifications Flyout Modal (Rendered at root for unconstrained stacking context) */}
+        {notificationsOpen && (
+          <>
+            {/* Dark Backdrop */}
+            <div
+              className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm transition-opacity"
+              onClick={() => setNotificationsOpen(false)}
+            />
+
+            {/* Notification Drawer Panel */}
+            <div className="fixed top-16 right-4 sm:right-6 w-[380px] sm:w-[460px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-5rem)] flex flex-col bg-[#070707] border border-[#2a2a2a] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.95)] z-[9999] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              {/* Header */}
+              <div className="p-3.5 bg-[#0d0d0d] border-b border-[#222] flex items-center justify-between flex-shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                    <Bell className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-white text-xs">Security Notifications</span>
+                      {unreadCount > 0 && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold font-mono bg-red-500/20 text-red-400 border border-red-500/30">
+                          {unreadCount} New
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] text-neutral-400 font-mono">Live Telemetry & Response Dispatch</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={() => setUnreadCount(0)}
+                      className="text-[10px] text-neutral-400 hover:text-white font-mono underline transition"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setNotificationsOpen(false)}
+                    className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
+                    title="Close"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable List of Notifications */}
+              <div className="flex-1 overflow-y-auto p-3 space-y-2.5 overscroll-contain">
+                {notifications.length === 0 ? (
+                  <div className="py-10 text-center space-y-2">
+                    <ShieldCheck className="w-8 h-8 text-neutral-600 mx-auto" />
+                    <div className="text-neutral-400 text-xs font-semibold">All Notifications Cleared</div>
+                    <p className="text-neutral-600 text-[11px]">All connected telemetry feeds and automated playbooks are operating normally.</p>
+                  </div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      className="p-3 bg-[#0d0d0d] hover:bg-[#141414] border border-[#222] hover:border-neutral-700 rounded-xl transition duration-150 space-y-2"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+                          n.severity === "CRITICAL" ? "bg-red-500/20 text-red-400 border border-red-500/30" :
+                          n.severity === "HIGH" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
+                          n.severity === "SUCCESS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
+                          "bg-blue-500/20 text-blue-400 border border-blue-500/30"
+                        }`}>
+                          {n.severity}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-neutral-500">{n.time}</span>
+                          <button
+                            onClick={() => {
+                              setNotifications(prev => prev.filter(item => item.id !== n.id));
+                              setUnreadCount(prev => Math.max(0, prev - 1));
+                            }}
+                            className="text-neutral-500 hover:text-neutral-300 p-0.5 rounded hover:bg-neutral-800 transition"
+                            title="Dismiss notification"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="text-white font-semibold text-xs leading-snug break-words">{n.title}</div>
+                      <div className="text-neutral-300 text-[11px] leading-relaxed break-words font-sans">{n.desc}</div>
+                      <div className="flex items-center justify-between pt-1 border-t border-[#1a1a1a]">
+                        <Link
+                          href={n.href}
+                          onClick={() => setNotificationsOpen(false)}
+                          className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 transition"
+                        >
+                          <span>{n.actionText}</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </Link>
+                        <span className="text-[10px] text-neutral-600 font-mono">SOCForge SOAR</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="p-3 bg-[#0a0a0a] border-t border-[#222] flex items-center justify-between flex-shrink-0 text-xs">
+                <Link
+                  href="/audit"
+                  onClick={() => setNotificationsOpen(false)}
+                  className="text-neutral-400 hover:text-white flex items-center gap-1.5 font-mono text-[11px] transition"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Security Audit Log</span>
+                </Link>
+                <button
+                  onClick={() => {
+                    setNotifications([]);
+                    setUnreadCount(0);
+                  }}
+                  className="text-neutral-500 hover:text-neutral-300 text-[11px] font-mono transition"
+                >
+                  Clear All
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
       {/* Collapsible OpenCTI-style Sidebar */}
       <aside className={`${isCollapsed ? "w-16" : "w-64"} border-r border-neutral-800/80 bg-[#050505] flex flex-col flex-shrink-0 z-30 transition-all duration-300 ease-in-out`}>
         {/* Brand Header */}
@@ -384,150 +512,21 @@ export default function AppShell({ children }: AppShellProps) {
             </button>
 
             {/* Notifications Bell */}
-            <div className="relative">
-              <button
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className={`p-2 rounded-lg border transition relative ${
-                  notificationsOpen
-                    ? "border-amber-500/50 bg-neutral-900 text-amber-400"
-                    : "border-neutral-800 bg-[#000000] text-neutral-400 hover:text-white"
-                }`}
-                aria-label="Notifications"
-                title="View Security Notifications"
-              >
-                <Bell className="w-3.5 h-3.5" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                )}
-              </button>
-
-              {notificationsOpen && (
-                <>
-                  {/* Backdrop for clicking outside */}
-                  <div
-                    className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-[1px]"
-                    onClick={() => setNotificationsOpen(false)}
-                  />
-
-                  {/* Notification Dropdown Panel - Fixed to top-right below header */}
-                  <div className="fixed top-16 right-4 sm:right-6 w-[380px] sm:w-[440px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-5.5rem)] flex flex-col bg-[#070707] border border-[#2a2a2a] rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)] z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                    {/* Header */}
-                    <div className="p-3.5 bg-[#0d0d0d] border-b border-[#222] flex items-center justify-between flex-shrink-0">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                          <Bell className="w-3.5 h-3.5" />
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-white text-xs">Security Notifications</span>
-                            {unreadCount > 0 && (
-                              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold font-mono bg-red-500/20 text-red-400 border border-red-500/30">
-                                {unreadCount} New
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[10px] text-neutral-400 font-mono">Live Telemetry & Response Dispatch</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {unreadCount > 0 && (
-                          <button
-                            onClick={() => setUnreadCount(0)}
-                            className="text-[10px] text-neutral-400 hover:text-white font-mono underline transition"
-                          >
-                            Mark all read
-                          </button>
-                        )}
-                        <button
-                          onClick={() => setNotificationsOpen(false)}
-                          className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
-                          title="Close"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Scrollable List of Notifications */}
-                    <div className="flex-1 overflow-y-auto p-3 space-y-2.5 overscroll-contain">
-                      {notifications.length === 0 ? (
-                        <div className="py-10 text-center space-y-2">
-                          <ShieldCheck className="w-8 h-8 text-neutral-600 mx-auto" />
-                          <div className="text-neutral-400 text-xs font-semibold">All Notifications Cleared</div>
-                          <p className="text-neutral-600 text-[11px]">All connected telemetry feeds and automated playbooks are operating normally.</p>
-                        </div>
-                      ) : (
-                        notifications.map((n) => (
-                          <div
-                            key={n.id}
-                            className="p-3 bg-[#0d0d0d] hover:bg-[#141414] border border-[#222] hover:border-neutral-700 rounded-xl transition duration-150 space-y-2"
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
-                                n.severity === "CRITICAL" ? "bg-red-500/20 text-red-400 border border-red-500/30" :
-                                n.severity === "HIGH" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
-                                n.severity === "SUCCESS" ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" :
-                                "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                              }`}>
-                                {n.severity}
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-mono text-neutral-500">{n.time}</span>
-                                <button
-                                  onClick={() => {
-                                    setNotifications(prev => prev.filter(item => item.id !== n.id));
-                                    setUnreadCount(prev => Math.max(0, prev - 1));
-                                  }}
-                                  className="text-neutral-500 hover:text-neutral-300 p-0.5 rounded hover:bg-neutral-800 transition"
-                                  title="Dismiss notification"
-                                >
-                                  <X className="w-3 h-3" />
-                                </button>
-                              </div>
-                            </div>
-                            <div className="text-white font-semibold text-xs leading-snug break-words">{n.title}</div>
-                            <div className="text-neutral-300 text-[11px] leading-relaxed break-words font-sans">{n.desc}</div>
-                            <div className="flex items-center justify-between pt-1 border-t border-[#1a1a1a]">
-                              <Link
-                                href={n.href}
-                                onClick={() => setNotificationsOpen(false)}
-                                className="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1 transition"
-                              >
-                                <span>{n.actionText}</span>
-                                <ChevronRight className="w-3 h-3" />
-                              </Link>
-                              <span className="text-[10px] text-neutral-600 font-mono">SOCForge SOAR</span>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    {/* Footer */}
-                    <div className="p-3 bg-[#0a0a0a] border-t border-[#222] flex items-center justify-between flex-shrink-0 text-xs">
-                      <Link
-                        href="/audit"
-                        onClick={() => setNotificationsOpen(false)}
-                        className="text-neutral-400 hover:text-white flex items-center gap-1.5 font-mono text-[11px] transition"
-                      >
-                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Security Audit Log</span>
-                      </Link>
-                      <button
-                        onClick={() => {
-                          setNotifications([]);
-                          setUnreadCount(0);
-                        }}
-                        className="text-neutral-500 hover:text-neutral-300 text-[11px] font-mono transition"
-                      >
-                        Clear All
-                      </button>
-                    </div>
-                  </div>
-                </>
+            <button
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              className={`p-2 rounded-lg border transition relative ${
+                notificationsOpen
+                  ? "border-amber-500/50 bg-neutral-900 text-amber-400"
+                  : "border-neutral-800 bg-[#000000] text-neutral-400 hover:text-white"
+              }`}
+              aria-label="Notifications"
+              title="View Security Notifications"
+            >
+              <Bell className="w-3.5 h-3.5" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500 animate-pulse" />
               )}
-            </div>
+            </button>
 
             {/* Analyst Profile */}
             <div className="flex items-center gap-2 pl-2 border-l border-neutral-800">
