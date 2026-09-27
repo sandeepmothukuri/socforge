@@ -83,11 +83,12 @@ export function QuickActionDock() {
       <div className="flex items-center gap-1.5 p-1 rounded-full bg-[#050505]/90 border border-[#262626] shadow-2xl backdrop-blur-md">
         <button
           onClick={triggerCopilot}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white hover:bg-neutral-200 text-black text-xs font-semibold font-mono transition-all shadow-sm"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white hover:bg-neutral-200 text-black text-xs font-bold font-mono transition-all shadow-md group"
         >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>AI Copilot</span>
-          <span className="text-[10px] opacity-60 font-normal">^J</span>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <Sparkles className="w-3.5 h-3.5 text-black" />
+          <span>AI SOC AGENT</span>
+          <span className="text-[10px] bg-neutral-200 px-1 py-0.2 rounded font-normal">Ctrl+J</span>
         </button>
 
         <button

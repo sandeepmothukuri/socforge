@@ -492,11 +492,365 @@ const DEFAULT_CONNECTORS: EnterpriseConnector[] = [
       lastSync: "Just now",
       quotaUsedPercent: 12
     }
+  },
+  {
+    id: "ibm_qradar",
+    name: "qradar_siem",
+    displayName: "IBM QRadar SIEM",
+    category: "siem",
+    vendor: "IBM Security",
+    description: "Ariel Query Language (AQL) search integration, WinCollect log forwarder coordination, and bidirectional offense management.",
+    protocol: "HTTPS / QRadar REST",
+    isActive: true,
+    capabilities: ["AQL Search API", "Offense Auto-Close", "Ariel DB Connector", "Log Source Stream"],
+    endpointUrl: "https://qradar-console.corp.internal/api",
+    authMethod: "Bearer Token",
+    vaultKeyName: "VAULT_QRADAR_SEC_TOKEN",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 22,
+      eventsPerSec: 11200,
+      tlsVersion: "TLS 1.3 / AES-256-GCM",
+      lastSync: "Just now",
+      quotaUsedPercent: 48
+    }
+  },
+  {
+    id: "sumo_logic",
+    name: "sumo_logic_cse",
+    displayName: "Sumo Logic Cloud SIEM",
+    category: "siem",
+    vendor: "Sumo Logic",
+    description: "Cloud SIEM Enterprise (CSE) signal correlation, Insights triage automation, and multi-tenant CloudFlex search.",
+    protocol: "HTTPS / REST API",
+    isActive: true,
+    capabilities: ["CSE Signals Ingest", "Insight Remediation", "CloudFlex Log Search", "Search Job API"],
+    endpointUrl: "https://api.us2.sumologic.com/api/v1",
+    authMethod: "Bearer Token",
+    vaultKeyName: "VAULT_SUMO_ACCESS_KEY",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 24,
+      eventsPerSec: 7400,
+      tlsVersion: "TLS 1.3 / AES-256-GCM",
+      lastSync: "1 min ago",
+      quotaUsedPercent: 39
+    }
+  },
+  {
+    id: "rapid7",
+    name: "rapid7_insightidr",
+    displayName: "Rapid7 InsightIDR",
+    category: "siem",
+    vendor: "Rapid7",
+    description: "User and entity behavior analytics (UEBA), honeypot trigger telemetry, and Insight Agent endpoint process streaming.",
+    protocol: "HTTPS / Insight API",
+    isActive: true,
+    capabilities: ["UEBA Ingest", "Honey Credential Tripwires", "Log Search API", "Investigation Sync"],
+    endpointUrl: "https://us.api.insight.rapid7.com/idr/v1",
+    authMethod: "Bearer Token",
+    vaultKeyName: "VAULT_RAPID7_API_KEY",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 19,
+      eventsPerSec: 6200,
+      tlsVersion: "TLS 1.3 / AES-256-GCM",
+      lastSync: "2 mins ago",
+      quotaUsedPercent: 55
+    }
+  },
+  {
+    id: "chronicle",
+    name: "google_chronicle",
+    displayName: "Google Chronicle Security Operations",
+    category: "siem",
+    vendor: "Google Cloud",
+    description: "Petabyte-scale Unified Data Model (UDM) ingestion, YARA-L rule evaluation engine, and BigQuery analytics export pipeline.",
+    protocol: "HTTPS / Google Cloud gRPC",
+    isActive: true,
+    capabilities: ["UDM Data Model", "YARA-L Rule Engine", "BigQuery Telemetry Export", "Ingestion API"],
+    endpointUrl: "https://chronicle.googleapis.com/v1alpha",
+    authMethod: "OAuth 2.0",
+    vaultKeyName: "VAULT_CHRONICLE_SA_KEY",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 16,
+      eventsPerSec: 32000,
+      tlsVersion: "TLS 1.3 / ChaCha20-Poly1305",
+      lastSync: "Just now",
+      quotaUsedPercent: 62
+    }
+  },
+  {
+    id: "tanium",
+    name: "tanium_endpoint",
+    displayName: "Tanium Endpoint Platform",
+    category: "edr",
+    vendor: "Tanium",
+    description: "Linear-chain architecture for instantaneous sub-second query and remediation across enterprise endpoints, file forensic quarantine.",
+    protocol: "HTTPS / Tanium Gateway API",
+    isActive: true,
+    capabilities: ["Sub-Second Sensor Query", "Forensic File Quarantine", "Process Termination", "Patch Enforcement"],
+    endpointUrl: "https://tanium-server.corp.internal/api/v2",
+    authMethod: "Bearer Token",
+    vaultKeyName: "VAULT_TANIUM_API_TOKEN",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 9,
+      eventsPerSec: 15400,
+      tlsVersion: "TLS 1.3 / AES-256-GCM",
+      lastSync: "Just now",
+      quotaUsedPercent: 44
+    }
+  },
+  {
+    id: "carbon_black",
+    name: "vmware_carbon_black",
+    displayName: "VMware Carbon Black Cloud",
+    category: "edr",
+    vendor: "Broadcom / VMware",
+    description: "Kernel-level sensor process tree tracking, Live Response remote forensic shell, and automated host isolation policies.",
+    protocol: "HTTPS / CBC REST API",
+    isActive: true,
+    capabilities: ["Live Response CLI", "Process Tree Telemetry", "Host Quarantine API", "Reputation Override"],
+    endpointUrl: "https://defense-prod05.conferdeploy.net/appservices/v6",
+    authMethod: "OAuth 2.0",
+    vaultKeyName: "VAULT_CBC_ORG_KEY",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 21,
+      eventsPerSec: 12100,
+      tlsVersion: "TLS 1.3 / AES-256-GCM",
+      lastSync: "1 min ago",
+      quotaUsedPercent: 57
+    }
+  },
+  {
+    id: "sophos",
+    name: "sophos_intercept_x",
+    displayName: "Sophos Intercept X & XDR",
+    category: "edr",
+    vendor: "Sophos",
+    description: "Deep learning exploit prevention, CryptoGuard anti-ransomware rollback telemetry, and synchronized security heartbeat connector.",
+    protocol: "HTTPS / Sophos Central API",
+    isActive: true,
+    capabilities: ["CryptoGuard Rollback", "Synchronized Heartbeat", "Live Terminal Isolation", "Threat Case Ingest"],
+    endpointUrl: "https://api.central.sophos.com/endpoint/v1",
+    authMethod: "Bearer Token",
+    vaultKeyName: "VAULT_SOPHOS_CENTRAL_KEY",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 27,
+      eventsPerSec: 8100,
+      tlsVersion: "TLS 1.3 / AES-256-GCM",
+      lastSync: "3 mins ago",
+      quotaUsedPercent: 33
+    }
+  },
+  {
+    id: "hashicorp_vault",
+    name: "hashicorp_vault",
+    displayName: "HashiCorp Vault Secrets Broker",
+    category: "iam",
+    vendor: "HashiCorp",
+    description: "Enterprise dynamic credential leasing, high-entropy API key rotation, Transit Secret Engine encryption, and PKI certificate auto-issue.",
+    protocol: "HTTPS / Vault REST v1",
+    isActive: true,
+    capabilities: ["Dynamic Token Lease", "Transit Encryption API", "PKI Certificate Issuer", "Audit Log Forwarding"],
+    endpointUrl: "https://vault.corp.internal:8200/v1",
+    authMethod: "mTLS Certificate",
+    vaultKeyName: "VAULT_HASHICORP_MTLS_CERT",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 4,
+      eventsPerSec: 5200,
+      tlsVersion: "TLS 1.3 / mTLS Client Auth",
+      lastSync: "Just now",
+      quotaUsedPercent: 28
+    }
+  },
+  {
+    id: "cisco_duo",
+    name: "cisco_duo_mfa",
+    displayName: "Cisco Duo Security (Zero Trust)",
+    category: "iam",
+    vendor: "Cisco",
+    description: "Multi-Factor Authentication (MFA) push verification logs, device posture assessment, and compromised user session termination.",
+    protocol: "HTTPS / Duo Admin API",
+    isActive: true,
+    capabilities: ["MFA Push Logs", "Compromised Token Revocation", "Trusted Endpoint Telemetry", "User Lockout"],
+    endpointUrl: "https://api-188b.duosecurity.com/admin/v1",
+    authMethod: "HMAC Secret",
+    vaultKeyName: "VAULT_DUO_SKEY_SECRET",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 17,
+      eventsPerSec: 3600,
+      tlsVersion: "TLS 1.3 / AES-256-GCM",
+      lastSync: "1 min ago",
+      quotaUsedPercent: 41
+    }
+  },
+  {
+    id: "cloudflare_zt",
+    name: "cloudflare_zero_trust",
+    displayName: "Cloudflare Zero Trust & Magic Transit",
+    category: "network",
+    vendor: "Cloudflare",
+    description: "Secure Web Gateway (SWG) audit logs, Magic Transit BGP routing DDoS defense, and automated IP/CIDR edge blocking.",
+    protocol: "HTTPS / Cloudflare v4",
+    isActive: true,
+    capabilities: ["Edge Firewall Drop", "Gateway DNS Telemetry", "DDoS Mitigation Stats", "Access Token Check"],
+    endpointUrl: "https://api.cloudflare.com/client/v4/accounts",
+    authMethod: "Bearer Token",
+    vaultKeyName: "VAULT_CLOUDFLARE_API_TOKEN",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 12,
+      eventsPerSec: 38000,
+      tlsVersion: "TLS 1.3 / ChaCha20-Poly1305",
+      lastSync: "Just now",
+      quotaUsedPercent: 71
+    }
+  },
+  {
+    id: "misp_threat_sharing",
+    name: "misp_core",
+    displayName: "MISP Open Source Threat Sharing",
+    category: "threat_intel",
+    vendor: "MISP Project",
+    description: "Automated event synchronization across national & sector CSIRTs, galaxy cluster mapping, and TAXII 2.1 STIX 2.1 export broker.",
+    protocol: "HTTPS / MISP REST API",
+    isActive: true,
+    capabilities: ["Event Push/Pull", "Galaxy Cluster Mapping", "TAXII 2.1 Sync", "Attribute Correlation"],
+    endpointUrl: "https://misp.corp.internal/events/restSearch",
+    authMethod: "Bearer Token",
+    vaultKeyName: "VAULT_MISP_AUTH_KEY",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 29,
+      eventsPerSec: 380,
+      tlsVersion: "TLS 1.3 / AES-256-GCM",
+      lastSync: "2 mins ago",
+      quotaUsedPercent: 22
+    }
+  },
+  {
+    id: "pagerduty_bridge",
+    name: "pagerduty_commander",
+    displayName: "PagerDuty Incident Commander",
+    category: "itsm",
+    vendor: "PagerDuty",
+    description: "High-urgency escalation routing, live on-call paging via SMS/Voice, incident bridge conference initialization, and SLA countdowns.",
+    protocol: "HTTPS / Events API v2",
+    isActive: true,
+    capabilities: ["On-Call Escalation", "Voice/SMS Paging", "Bridge Conference Hook", "Two-Way Ack"],
+    endpointUrl: "https://events.pagerduty.com/v2/enqueue",
+    authMethod: "Bearer Token",
+    vaultKeyName: "VAULT_PAGERDUTY_INTEGRATION_KEY",
+    health: {
+      status: "HEALTHY",
+      latencyMs: 25,
+      eventsPerSec: 15,
+      tlsVersion: "TLS 1.3 / AES-256-GCM",
+      lastSync: "Just now",
+      quotaUsedPercent: 8
+    }
+  }
+];
+
+export interface SecurityExtension {
+  id: string;
+  name: string;
+  version: string;
+  category: "Detection Pack" | "Protocol Decoder" | "SOAR Extension" | "Telemetry Adapter";
+  author: string;
+  description: string;
+  isInstalled: boolean;
+  capabilities: string[];
+  lastUpdated: string;
+  rating: number;
+}
+
+export const DEFAULT_EXTENSIONS: SecurityExtension[] = [
+  {
+    id: "ext_volt_typhoon",
+    name: "Volt Typhoon Critical Infrastructure Detection Pack",
+    version: "v2.4.0",
+    category: "Detection Pack",
+    author: "SOCForge Threat Research Team",
+    description: "Behavioral Sigma and KQL rules targeting living-off-the-land techniques (LOTL) including ntdsutil, netsh portproxy, and vssadmin shadow copies.",
+    isInstalled: true,
+    capabilities: ["8 Sigma Rules", "4 KQL Sentinel Queries", "Volt Typhoon Diamond Model", "Zero False Positive Guard"],
+    lastUpdated: "Today",
+    rating: 4.9
+  },
+  {
+    id: "ext_apt29_nobelium",
+    name: "APT29 Nobelium Cloud Token & Kerberos Rule Pack",
+    version: "v3.1.2",
+    category: "Detection Pack",
+    author: "SOCForge Threat Research Team",
+    description: "Detects golden ticket attacks, Kerberoasting attempts on service principals, and suspicious token minting in Entra ID / Okta.",
+    isInstalled: true,
+    capabilities: ["12 Sigma Rules", "Kerberos Honeytoken Trigger", "Sysmon Event ID 10 Parser", "AWS Token Anomaly"],
+    lastUpdated: "2 days ago",
+    rating: 4.95
+  },
+  {
+    id: "ext_zeek_wasm",
+    name: "Zeek WebAssembly Protocol Decoder",
+    version: "v1.8.0",
+    category: "Protocol Decoder",
+    author: "Core Security Architecture",
+    description: "Compiled WASM parser for ultra-fast line-rate packet inspection, extracting TLS SNI, HTTP Host headers, and DNS tunnel payloads with sub-millisecond overhead.",
+    isInstalled: true,
+    capabilities: ["TLS 1.3 ClientHello Parser", "DNS Entropy Analyzer", "HTTP User-Agent Profiler", "Sub-ms Execution"],
+    lastUpdated: "1 week ago",
+    rating: 4.88
+  },
+  {
+    id: "ext_sysmon_v15",
+    name: "Sysmon v15 Enterprise Schema Mapping Engine",
+    version: "v1.2.4",
+    category: "Telemetry Adapter",
+    author: "Community Contributor",
+    description: "Maps Windows Sysmon XML events directly into PostgreSQL relational graph entities with verified foreign-key hashes.",
+    isInstalled: true,
+    capabilities: ["Event IDs 1-26 Parsers", "Process Tree Normalizer", "SHA256 Integrity Verification", "Parent-Child PID Graph"],
+    lastUpdated: "3 days ago",
+    rating: 4.75
+  },
+  {
+    id: "ext_ad_containment",
+    name: "Active Directory Multi-Forest SOAR Containment Worker",
+    version: "v2.0.1",
+    category: "SOAR Extension",
+    author: "Lead SecOps Architect",
+    description: "Celery-driven distributed worker for rapid host quarantine, disabling krbtgt tickets, and isolating compromise radius across trusted domains.",
+    isInstalled: true,
+    capabilities: ["Host VLAN Isolation", "User Account Lockout", "Kerberos Ticket Invalidation", "4-Eyes Command Gate"],
+    lastUpdated: "Yesterday",
+    rating: 5.0
+  },
+  {
+    id: "ext_jira_snow_sync",
+    name: "Jira & ServiceNow Bi-Directional State Bridge",
+    version: "v1.5.0",
+    category: "SOAR Extension",
+    author: "Platform Engineering",
+    description: "Syncs incident statuses, commander approvals, containment evidence attachments, and SLA timelines bi-directionally with enterprise ticketing systems.",
+    isInstalled: false,
+    capabilities: ["Live Webhook Listener", "Evidence Attachment Sync", "SLA Clock Coordination", "Dual-Signoff Auditing"],
+    lastUpdated: "4 days ago",
+    rating: 4.8
   }
 ];
 
 export default function IntegrationsPage() {
   const [connectors, setConnectors] = useState<EnterpriseConnector[]>(DEFAULT_CONNECTORS);
+  const [extensions, setExtensions] = useState<SecurityExtension[]>(DEFAULT_EXTENSIONS);
+  const [mainView, setMainView] = useState<"connectors" | "extensions">("connectors");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [testingId, setTestingId] = useState<string | null>(null);
@@ -738,8 +1092,105 @@ export default function IntegrationsPage() {
             </div>
           </div>
 
-          {/* Filter & Search Toolbar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Main Tab Switcher: Connectors vs Extensions */}
+          <div className="flex items-center gap-2 border-b border-[#262626] pb-3 font-mono">
+            <button
+              onClick={() => setMainView("connectors")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                mainView === "connectors"
+                  ? "bg-white text-black shadow-md"
+                  : "bg-[#0A0A0A] border border-[#262626] text-neutral-400 hover:text-white"
+              }`}
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>Enterprise Connectors ({connectors.length})</span>
+            </button>
+
+            <button
+              onClick={() => setMainView("extensions")}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                mainView === "extensions"
+                  ? "bg-white text-black shadow-md"
+                  : "bg-[#0A0A0A] border border-[#262626] text-neutral-400 hover:text-white"
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Security Extensions & Marketplace ({extensions.length})</span>
+            </button>
+          </div>
+
+          {mainView === "extensions" ? (
+            <div className="space-y-5 font-mono">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-neutral-400">
+                <span>Curated Community Detection Packs, WASM Protocol Decoders, and Distributed SOAR Workers</span>
+                <span className="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
+                  {extensions.filter(e => e.isInstalled).length} / {extensions.length} Extensions Active
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {extensions.map((ext) => (
+                  <div
+                    key={ext.id}
+                    className="p-5 rounded-2xl bg-[#080808] border border-[#262626] hover:border-neutral-600 transition flex flex-col justify-between space-y-4"
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-900 text-emerald-400 border border-emerald-500/30 font-bold">
+                          {ext.category}
+                        </span>
+                        <span className="text-[10px] text-neutral-400">{ext.version}</span>
+                      </div>
+                      <h3 className="text-sm font-bold text-white tracking-tight font-sans">{ext.name}</h3>
+                      <p className="text-xs text-neutral-400 leading-relaxed font-sans">{ext.description}</p>
+
+                      <div className="flex flex-wrap gap-1.5 pt-2">
+                        {ext.capabilities.map((c, i) => (
+                          <span key={i} className="text-[10px] px-2 py-0.5 rounded bg-[#0A0A0A] border border-[#262626] text-neutral-300">
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-[#1f1f1f] flex items-center justify-between text-xs">
+                      <div className="text-[10px] text-neutral-500">
+                        {ext.author} • ★ {ext.rating}
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setExtensions(prev => prev.map(e => e.id === ext.id ? { ...e, isInstalled: !e.isInstalled } : e));
+                          setSyncToast(`${ext.name} ${ext.isInstalled ? "uninstalled" : "installed and active"}!`);
+                          setTimeout(() => setSyncToast(null), 3000);
+                        }}
+                        className={`px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 ${
+                          ext.isInstalled
+                            ? "bg-neutral-900 text-emerald-400 border border-emerald-500/30 hover:bg-neutral-800"
+                            : "bg-white text-black hover:bg-neutral-200"
+                        }`}
+                      >
+                        {ext.isInstalled ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Installed</span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Install</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Filter & Search Toolbar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             {/* Category Filter Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-mono">
               {[
@@ -904,7 +1355,9 @@ export default function IntegrationsPage() {
               );
             })}
           </div>
-        </div>
+        </>
+      )}
+    </div>
 
         {/* Configure Connector Modal */}
         {configModalConnector && (

@@ -41,7 +41,8 @@ import {
   Eye,
   KeyRound,
   FileCheck2,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Bot
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 import { runDemoWorkflow } from "@/lib/api";
@@ -53,7 +54,7 @@ export default function HomePage() {
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
   // Studio Explorer Tab State
-  const [activeTab, setActiveTab] = useState<"intel_graph" | "detect_emulate" | "forensics_deception" | "soar_warroom" | "ops_connectors">("intel_graph");
+  const [activeTab, setActiveTab] = useState<"ai_agent" | "intel_graph" | "detect_emulate" | "forensics_deception" | "soar_warroom" | "ops_connectors">("ai_agent");
 
   // Interactive Live Terminal State
   const [terminalCommand, setTerminalCommand] = useState("socforge hunt --tactic T1059.001 --threshold high");
@@ -114,6 +115,15 @@ export default function HomePage() {
           "[ADAPTER] Dispatching network isolation command to CrowdStrike Falcon / Defender API...",
           "[OK] HOST: WIN-FIN-04 placed in restricted containment VLAN (VLAN-99).",
           "[HMAC] Containment action logged to immutable audit ledger (HMAC-SHA256: 0x8a9f...)"
+        ]);
+      } else if (cmd.includes("agent")) {
+        setTerminalLogs([
+          `> ${cmd}`,
+          "[AGENT] Autonomous CyberSecOps Reasoner v3 initialized.",
+          "[PHASE 1] Ingested 3 alert telemetry streams from Splunk HEC & Wazuh EDR.",
+          "[PHASE 2] Identified LSASS credential dumping (T1003.001) & active C2 beaconing.",
+          "[PHASE 3] Formulated 4-Eyes Containment: Quarantine WIN-FIN-04 + Revoke svc_backup token.",
+          "[STATUS] Containment plan ready for commander approval in Incident War Room."
         ]);
       } else {
         setTerminalLogs([
@@ -264,9 +274,9 @@ export default function HomePage() {
     },
     {
       title: "Enterprise Connectors & Telemetry",
-      desc: "20+ pre-integrated SIEM, EDR, Cloud, Identity, and Threat Intel connectors with live ping probes, batch health testing, and AES-256 Vault.",
+      desc: "32+ pre-integrated SIEM, EDR, Cloud, Identity, and Threat Intel connectors with live ping probes, batch health testing, and AES-256 Vault.",
       href: "/integrations",
-      badge: "20+ Connectors",
+      badge: "32+ Connectors • 6 Extensions",
       badgeColor: "bg-emerald-950/30 text-emerald-400 border-emerald-500/30",
       icon: Sliders,
       color: "text-emerald-400"
@@ -419,6 +429,12 @@ export default function HomePage() {
                   Contain
                 </button>
                 <button
+                  onClick={() => runSimulatedCommand("socforge agent --triage INC-2026-8812 --autonomous")}
+                  className="px-2 py-0.5 rounded bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40 transition font-bold"
+                >
+                  AI Agent
+                </button>
+                <button
                   onClick={() => runSimulatedCommand("socforge dissect --sample loader_sample_x64.bin")}
                   className="px-2 py-0.5 rounded bg-neutral-900 hover:bg-neutral-800 text-purple-400 border border-[#262626] transition"
                 >
@@ -446,7 +462,7 @@ export default function HomePage() {
           </div>
 
           {/* Real-time KPI Metric Badges */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 pt-2 max-w-5xl mx-auto">
             <div className="p-3.5 rounded-xl bg-[#080808] border border-[#262626] text-left space-y-1">
               <span className="text-[10px] text-neutral-500 uppercase font-semibold">Threat Actors</span>
               <div className="text-xl font-bold text-white font-mono">312 <span className="text-xs text-emerald-400 font-sans font-medium">+12 24h</span></div>
@@ -463,9 +479,13 @@ export default function HomePage() {
               <span className="text-[10px] text-neutral-500 uppercase font-semibold">Containment Gate</span>
               <div className="text-xl font-bold text-white font-mono">4-Eyes <span className="text-xs text-amber-400 font-sans font-medium">Enforced</span></div>
             </div>
-            <div className="p-3.5 rounded-xl bg-[#080808] border border-[#262626] text-left space-y-1 col-span-2 sm:col-span-1">
+            <div className="p-3.5 rounded-xl bg-[#080808] border border-[#262626] text-left space-y-1">
               <span className="text-[10px] text-neutral-500 uppercase font-semibold">Connectors</span>
-              <div className="text-xl font-bold text-white font-mono">20 <span className="text-xs text-emerald-400 font-sans font-medium">Online</span></div>
+              <div className="text-xl font-bold text-white font-mono">32+ <span className="text-xs text-emerald-400 font-sans font-medium">Online</span></div>
+            </div>
+            <div className="p-3.5 rounded-xl bg-[#080808] border border-[#262626] text-left space-y-1">
+              <span className="text-[10px] text-neutral-500 uppercase font-semibold">Extensions</span>
+              <div className="text-xl font-bold text-emerald-400 font-mono">6 <span className="text-xs text-neutral-400 font-sans font-medium">Marketplace</span></div>
             </div>
           </div>
         </div>
@@ -491,11 +511,12 @@ export default function HomePage() {
           {/* Tab Selector Buttons */}
           <div className="flex flex-wrap gap-2 border-b border-[#262626] pb-3">
             {[
+              { id: "ai_agent", label: "Autonomous AI Agent", icon: Bot },
               { id: "intel_graph", label: "Threat Intel & Graph", icon: Globe },
               { id: "detect_emulate", label: "Detection & Emulation", icon: FileCode },
               { id: "forensics_deception", label: "Forensics & Deception", icon: Cpu },
               { id: "soar_warroom", label: "SOAR & War Room", icon: ShieldAlert },
-              { id: "ops_connectors", label: "Operations & Connectors", icon: Sliders }
+              { id: "ops_connectors", label: "Operations & 32 Connectors", icon: Sliders }
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -518,6 +539,66 @@ export default function HomePage() {
 
           {/* Tab Content Display */}
           <div className="bg-[#000000] border border-[#262626] rounded-2xl p-6 shadow-2xl">
+            {activeTab === "ai_agent" && (
+              <div className="space-y-5 font-mono">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#050505] border border-emerald-500/30">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-neutral-900 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                      <Bot className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white font-sans flex items-center gap-2">
+                        Autonomous CyberSecOps Agent v3.4
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          4-EYES GUARDED
+                        </span>
+                      </h3>
+                      <p className="text-xs text-neutral-400 font-sans">
+                        Continuous threat investigation, MITRE technique mapping, Diamond Model correlation, and sub-second containment proposal.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(new CustomEvent("socforge-open-copilot"));
+                      }
+                    }}
+                    className="px-4 py-2 rounded-xl bg-white hover:bg-neutral-200 text-black font-bold text-xs transition flex items-center gap-1.5 shadow-md self-start sm:self-auto"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-black" />
+                    <span>Launch AI Copilot (Ctrl+J)</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] space-y-2">
+                    <span className="text-[10px] text-emerald-400 font-bold">1. TELEMETRY & BLAST RADIUS</span>
+                    <h4 className="text-xs font-bold text-white font-sans">Multi-Source Correlation</h4>
+                    <p className="text-xs text-neutral-400 leading-relaxed font-sans">
+                      Correlates Splunk HEC, Wazuh EDR, and Sentinel events across parent-child process chains and network hops.
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] space-y-2">
+                    <span className="text-[10px] text-amber-400 font-bold">2. ADVERSARY ATTRIBUTION</span>
+                    <h4 className="text-xs font-bold text-white font-sans">Diamond Model TTP Matching</h4>
+                    <p className="text-xs text-neutral-400 leading-relaxed font-sans">
+                      Links observed TTPs (T1059.001, T1003.001) to 312+ threat actors (e.g. APT29, Volt Typhoon, Lazarus).
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] space-y-2">
+                    <span className="text-[10px] text-red-400 font-bold">3. DUAL-GATED SOAR DISPATCH</span>
+                    <h4 className="text-xs font-bold text-white font-sans">Human-in-the-Loop Isolation</h4>
+                    <p className="text-xs text-neutral-400 leading-relaxed font-sans">
+                      Synthesizes containment commands requiring two authorized signatures before executing host quarantine.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             {activeTab === "intel_graph" && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="p-5 rounded-xl bg-[#050505] border border-[#262626] space-y-3">
@@ -694,14 +775,14 @@ export default function HomePage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="p-5 rounded-xl bg-[#050505] border border-[#262626] space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white">Connectors (/integrations)</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-950/30 text-emerald-400 border border-emerald-500/30 font-mono">20 CONNECTORS</span>
+                    <span className="text-xs font-bold text-white">Connectors & Marketplace (/integrations)</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-950/30 text-emerald-400 border border-emerald-500/30 font-mono">32 CONNECTORS • 6 EXTENSIONS</span>
                   </div>
                   <p className="text-xs text-neutral-400">
-                    Splunk, Sentinel, Wazuh, CrowdStrike, Okta, AWS GuardDuty with live ping probes and AES-256 Vault.
+                    Splunk, Sentinel, Wazuh, CrowdStrike, Okta, AWS GuardDuty, Vault, Cloudflare plus curated Detection & SOAR Extensions.
                   </p>
                   <Link href="/integrations" className="inline-flex items-center text-xs font-bold text-emerald-400 hover:text-emerald-300 gap-1 pt-2">
-                    Open Connectors <ArrowRight className="w-3.5 h-3.5" />
+                    Open Connectors & Extensions <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
 
