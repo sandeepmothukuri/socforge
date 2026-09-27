@@ -21,7 +21,7 @@ export function HorizontalBarChart({
   items,
   maxValue,
   barColor = "#F97316",
-  highlightColor = "#38BDF8"
+  highlightColor = "#FFFFFF"
 }: HorizontalBarChartProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const max = maxValue || Math.max(...items.map((i) => i.value), 100);
@@ -60,7 +60,7 @@ export function HorizontalBarChart({
             </div>
 
             {/* Numerical Value in Monospace Badge */}
-            <div className="w-12 text-right font-mono text-[11px] font-semibold text-neutral-200 group-hover:text-sky-400 transition-colors flex-shrink-0">
+            <div className="w-12 text-right font-mono text-[11px] font-semibold text-neutral-200 group-hover:text-white transition-colors flex-shrink-0">
               {item.value.toLocaleString()}
             </div>
           </div>

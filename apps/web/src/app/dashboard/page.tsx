@@ -73,16 +73,16 @@ const MOST_ACTIVE_THREATS: HorizontalBarItem[] = [
 ];
 
 const MOST_TARGETED_SECTORS: HorizontalBarItem[] = [
-  { id: "tech", label: "Technology", value: 680, color: "#38BDF8" },
-  { id: "gov", label: "Government", value: 620, color: "#60A5FA" },
-  { id: "usa", label: "United States of America", value: 510, color: "#818CF8" },
-  { id: "fin", label: "Finance", value: 490, color: "#38BDF8" },
-  { id: "mfg", label: "Manufacturing", value: 380, color: "#60A5FA" },
-  { id: "def", label: "Defense", value: 340, color: "#818CF8" },
-  { id: "ind", label: "India", value: 310, color: "#38BDF8" },
-  { id: "ukr", label: "Ukraine", value: 295, color: "#60A5FA" },
-  { id: "health", label: "Healthcare", value: 280, color: "#818CF8" },
-  { id: "media", label: "Media", value: 210, color: "#38BDF8" }
+  { id: "tech", label: "Technology", value: 680, color: "#10B981" },
+  { id: "gov", label: "Government", value: 620, color: "#34D399" },
+  { id: "usa", label: "United States of America", value: 510, color: "#6EE7B7" },
+  { id: "fin", label: "Finance", value: 490, color: "#10B981" },
+  { id: "mfg", label: "Manufacturing", value: 380, color: "#34D399" },
+  { id: "def", label: "Defense", value: 340, color: "#6EE7B7" },
+  { id: "ind", label: "India", value: 310, color: "#10B981" },
+  { id: "ukr", label: "Ukraine", value: 295, color: "#34D399" },
+  { id: "health", label: "Healthcare", value: 280, color: "#6EE7B7" },
+  { id: "media", label: "Media", value: 210, color: "#10B981" }
 ];
 
 export default function DashboardPage() {
@@ -135,7 +135,7 @@ export default function DashboardPage() {
         {/* Top Control Header */}
         <header className="h-16 border-b border-neutral-800/80 bg-[#050505] backdrop-blur-md px-6 flex items-center justify-between flex-shrink-0 sticky top-0 z-20">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+            <div className="p-2 rounded-lg bg-neutral-900 text-white border border-neutral-800">
               <Globe className="w-5 h-5" />
             </div>
             <div>
@@ -157,7 +157,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setActiveDashboardTab("overview")}
                 className={`px-3 py-1 rounded-md font-medium text-xs transition ${
-                  activeDashboardTab === "overview" ? "bg-sky-500 text-neutral-950 font-semibold shadow-sm" : "text-neutral-400 hover:text-white"
+                  activeDashboardTab === "overview" ? "bg-white text-black font-semibold shadow-sm" : "text-neutral-400 hover:text-white"
                 }`}
               >
                 CTI Overview
@@ -165,7 +165,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => setActiveDashboardTab("investigations")}
                 className={`px-3 py-1 rounded-md font-medium text-xs transition ${
-                  activeDashboardTab === "investigations" ? "bg-sky-500 text-neutral-950 font-semibold shadow-sm" : "text-neutral-400 hover:text-white"
+                  activeDashboardTab === "investigations" ? "bg-white text-black font-semibold shadow-sm" : "text-neutral-400 hover:text-white"
                 }`}
               >
                 Investigation Workbench
@@ -177,7 +177,7 @@ export default function DashboardPage() {
               className="p-2 rounded-lg border border-neutral-800 bg-[#0A0A0A] hover:bg-neutral-800 text-neutral-400 hover:text-white transition"
               title="Refresh Dashboard"
             >
-              <RefreshCw className={`w-4 h-4 text-sky-400 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-4 h-4 text-neutral-300 ${loading ? "animate-spin" : ""}`} />
             </button>
           </div>
         </header>
@@ -189,10 +189,10 @@ export default function DashboardPage() {
               {/* Top OpenCTI KPI Stat Cards (4 Cards with 24h Vel) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 1. Intrusion Sets */}
-                <div className="p-4 rounded-xl bg-[#0A0A0A] border border-neutral-800/80 hover:border-sky-500/40 transition-all space-y-2">
+                <div className="p-4 rounded-xl bg-[#0A0A0A] border border-neutral-800/80 hover:border-neutral-700 transition-all space-y-2">
                   <div className="flex items-center justify-between text-neutral-400 text-xs">
                     <span className="uppercase font-semibold tracking-wider text-[11px]">INTRUSION SETS</span>
-                    <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <div className="p-1.5 rounded-lg bg-neutral-900 text-white border border-neutral-800">
                       <Crosshair className="w-4 h-4" />
                     </div>
                   </div>
@@ -205,7 +205,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* 2. Malware */}
-                <div className="p-4 rounded-xl bg-[#0A0A0A] border border-neutral-800/80 hover:border-red-500/40 transition-all space-y-2">
+                <div className="p-4 rounded-xl bg-[#0A0A0A] border border-neutral-800/80 hover:border-neutral-700 transition-all space-y-2">
                   <div className="flex items-center justify-between text-neutral-400 text-xs">
                     <span className="uppercase font-semibold tracking-wider text-[11px]">MALWARE</span>
                     <div className="p-1.5 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20">
@@ -221,7 +221,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* 3. Reports */}
-                <div className="p-4 rounded-xl bg-[#0A0A0A] border border-neutral-800/80 hover:border-purple-500/40 transition-all space-y-2">
+                <div className="p-4 rounded-xl bg-[#0A0A0A] border border-neutral-800/80 hover:border-neutral-700 transition-all space-y-2">
                   <div className="flex items-center justify-between text-neutral-400 text-xs">
                     <span className="uppercase font-semibold tracking-wider text-[11px]">REPORTS</span>
                     <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-400 border border-purple-500/20">
@@ -237,7 +237,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* 4. Indicators */}
-                <div className="p-4 rounded-xl bg-[#0A0A0A] border border-neutral-800/80 hover:border-emerald-500/40 transition-all space-y-2">
+                <div className="p-4 rounded-xl bg-[#0A0A0A] border border-neutral-800/80 hover:border-neutral-700 transition-all space-y-2">
                   <div className="flex items-center justify-between text-neutral-400 text-xs">
                     <span className="uppercase font-semibold tracking-wider text-[11px]">INDICATORS</span>
                     <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -264,7 +264,7 @@ export default function DashboardPage() {
                     <span className="text-[11px] text-neutral-400 font-mono">Max 500</span>
                   </div>
                   <div className="flex-1 overflow-y-auto">
-                    <HorizontalBarChart items={MOST_ACTIVE_THREATS} maxValue={500} barColor="#F97316" />
+                    <HorizontalBarChart items={MOST_ACTIVE_THREATS} maxValue={500} barColor="#F97316" highlightColor="#FFFFFF" />
                   </div>
                 </div>
 
@@ -277,7 +277,7 @@ export default function DashboardPage() {
                     <span className="text-[11px] text-neutral-400 font-mono">Max 700</span>
                   </div>
                   <div className="flex-1 overflow-y-auto">
-                    <HorizontalBarChart items={MOST_TARGETED_SECTORS} maxValue={700} barColor="#38BDF8" />
+                    <HorizontalBarChart items={MOST_TARGETED_SECTORS} maxValue={700} barColor="#10B981" highlightColor="#FFFFFF" />
                   </div>
                 </div>
 
@@ -287,7 +287,7 @@ export default function DashboardPage() {
                     <span className="text-xs font-semibold text-neutral-200 uppercase tracking-wider">
                       Relationships Created (Graph Activity)
                     </span>
-                    <span className="text-[11px] text-sky-400 font-medium">Monthly Linkages</span>
+                    <span className="text-[11px] text-emerald-400 font-medium">Monthly Linkages</span>
                   </div>
                   <div className="flex-1 min-h-[220px]">
                     <RelationshipTimelineChart />
@@ -329,7 +329,7 @@ export default function DashboardPage() {
                     <span className="text-xs font-semibold text-neutral-200 uppercase tracking-wider">
                       Targeted Countries (Last 3 Months)
                     </span>
-                    <span className="text-[11px] text-sky-400 font-medium">Geointel Sensors</span>
+                    <span className="text-[11px] text-emerald-400 font-medium">Geointel Sensors</span>
                   </div>
                   <div className="flex-1 min-h-[220px]">
                     <WorldThreatMap />
@@ -341,12 +341,12 @@ export default function DashboardPage() {
               <div className="p-5 rounded-2xl bg-[#0A0A0A] border border-neutral-800/80 space-y-3">
                 <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-sky-400" />
+                    <FileText className="w-4 h-4 text-white" />
                     <span className="text-xs font-semibold text-neutral-200 uppercase tracking-wider">
                       Latest Threat Intel Reports & Ingested STIX Feeds
                     </span>
                   </div>
-                  <Link href="/intel" className="text-xs text-sky-400 hover:text-sky-300 hover:underline font-medium">
+                  <Link href="/intel" className="text-xs text-neutral-300 hover:text-white hover:underline font-medium">
                     View All Intel Dossiers →
                   </Link>
                 </div>
@@ -366,7 +366,7 @@ export default function DashboardPage() {
                   </div>
                   <Link
                     href="/graph"
-                    className="px-3.5 py-1.5 rounded-lg bg-sky-500 text-neutral-950 text-xs font-semibold hover:bg-sky-400 transition flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 rounded-lg bg-white text-black text-xs font-semibold hover:bg-neutral-200 transition flex items-center gap-1.5"
                   >
                     Open Attack Path Visualizer <ChevronRight className="w-3.5 h-3.5" />
                   </Link>

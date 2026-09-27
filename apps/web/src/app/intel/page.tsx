@@ -179,21 +179,21 @@ export default function ThreatIntelPage() {
 
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0B1020] text-[#F8FAFC]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#000000] text-neutral-100">
         {/* Header */}
-        <header className="h-16 border-b border-[#263248] bg-[#0E1626] px-6 flex items-center justify-between flex-shrink-0">
+        <header className="h-16 border-b border-[#262626] bg-[#050505]/95 px-6 flex items-center justify-between flex-shrink-0 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400">
               <Globe className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-white flex items-center gap-2">
+              <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
                 Threat Actor & Campaign Intelligence Hub
-                <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-mono font-normal">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 border border-red-500/30 font-mono font-normal">
                   STIX 2.1 / TAXII Ready
                 </span>
               </h1>
-              <p className="text-[11px] text-[#64748B] font-mono">
+              <p className="text-[11px] text-neutral-400 font-mono">
                 Adversary tradecraft profiling, Diamond Model correlation & automated indicator extraction
               </p>
             </div>
@@ -202,9 +202,9 @@ export default function ThreatIntelPage() {
           <div className="flex items-center gap-2 text-xs font-mono">
             <button
               onClick={handleDownloadStix}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white border border-[#262626] transition font-bold"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
               Export STIX 2.1 Bundle
             </button>
           </div>
@@ -213,16 +213,16 @@ export default function ThreatIntelPage() {
         {/* Content Body */}
         <div className="flex-1 flex overflow-hidden">
           {/* Threat Actor Catalog */}
-          <div className="w-80 border-r border-[#263248] bg-[#0E1626]/50 flex flex-col overflow-y-auto p-3 space-y-2 flex-shrink-0">
+          <div className="w-80 border-r border-[#262626] bg-[#050505] flex flex-col overflow-y-auto p-3 space-y-2 flex-shrink-0">
             <div className="relative mb-1">
               <input
                 type="text"
                 value={searchFilter}
                 onChange={(e) => setSearchFilter(e.target.value)}
                 placeholder="Search threat actors or aliases..."
-                className="w-full pl-8 pr-3 py-1.5 bg-[#070C18] border border-[#263248] rounded-lg text-xs font-mono text-white placeholder-[#64748B] focus:outline-none"
+                className="w-full pl-8 pr-3 py-1.5 bg-[#0A0A0A] border border-[#262626] rounded-xl text-xs font-mono text-white placeholder-neutral-500 focus:outline-none focus:border-white"
               />
-              <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-2.5 top-2" />
+              <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-2.5 top-2" />
             </div>
 
             {filteredActors.map((actor) => {
@@ -233,20 +233,20 @@ export default function ThreatIntelPage() {
                   onClick={() => setSelectedActor(actor)}
                   className={`p-3 rounded-xl border transition cursor-pointer space-y-2 ${
                     isSelected
-                      ? "border-red-500 bg-[#172033] shadow-md shadow-red-500/10"
-                      : "border-[#263248] bg-[#0E1626] hover:border-red-500/40"
+                      ? "border-red-500 bg-[#121212] shadow-md shadow-red-500/10"
+                      : "border-[#262626] bg-[#0A0A0A] hover:border-neutral-500"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/30">
                       {actor.threatLevel}
                     </span>
-                    <span className="text-[10px] font-mono text-[#64748B]">
+                    <span className="text-[10px] font-mono text-neutral-500">
                       Active: {actor.activeSince}
                     </span>
                   </div>
                   <h3 className="text-xs font-bold text-white line-clamp-1">{actor.name}</h3>
-                  <div className="text-[10px] font-mono text-[#94A3B8] truncate">
+                  <div className="text-[10px] font-mono text-neutral-400 truncate">
                     Aliases: {actor.aliases.join(", ")}
                   </div>
                 </div>
@@ -255,24 +255,24 @@ export default function ThreatIntelPage() {
           </div>
 
           {/* Adversary Profile & Diamond Model */}
-          <div className="flex-1 flex flex-col bg-[#0B1020] overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 flex flex-col bg-[#000000] overflow-y-auto p-6 space-y-6">
             {/* Header Banner */}
-            <div className="p-6 rounded-2xl bg-[#0E1626] border border-[#263248] space-y-3">
+            <div className="p-6 rounded-2xl bg-[#050505] border border-[#262626] space-y-3">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/30">
                       {selectedActor.threatLevel} THREAT
                     </span>
-                    <span className="text-xs font-mono text-[#94A3B8]">Origin: {selectedActor.origin}</span>
+                    <span className="text-xs font-mono text-neutral-400">Origin: {selectedActor.origin}</span>
                   </div>
                   <h2 className="text-xl font-bold text-white">{selectedActor.name}</h2>
-                  <p className="text-xs text-[#94A3B8] mt-1 max-w-3xl leading-relaxed">
+                  <p className="text-xs text-neutral-400 mt-1 max-w-3xl leading-relaxed">
                     {selectedActor.description}
                   </p>
                 </div>
 
-                <div className="text-right font-mono text-xs text-[#64748B]">
+                <div className="text-right font-mono text-xs text-neutral-500">
                   <div>Target Industries</div>
                   <div className="font-bold text-white">{selectedActor.targetSectors.join(", ")}</div>
                 </div>
@@ -281,23 +281,23 @@ export default function ThreatIntelPage() {
 
             {/* Adversary Diamond Model Grid */}
             <div className="space-y-3">
-              <h3 className="text-xs font-mono uppercase tracking-wider text-[#64748B] font-bold">
+              <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-400 font-bold">
                 Adversary Diamond Model Correlation
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-                <div className="p-4 rounded-xl bg-[#0E1626] border border-amber-500/30 space-y-1">
+                <div className="p-4 rounded-xl bg-[#050505] border border-amber-500/30 space-y-1">
                   <span className="text-amber-400 font-bold uppercase block">1. ADVERSARY (MOTIVATION & IDENTITY)</span>
                   <p className="text-white text-[11px]">{selectedActor.diamondModel.adversary}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-[#0E1626] border border-blue-500/30 space-y-1">
-                  <span className="text-blue-400 font-bold uppercase block">2. CAPABILITY (WEAPONRY & TTPS)</span>
-                  <p className="text-white text-[11px]">{selectedActor.diamondModel.capability}</p>
+                <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] space-y-1">
+                  <span className="text-white font-bold uppercase block">2. CAPABILITY (WEAPONRY & TTPS)</span>
+                  <p className="text-neutral-300 text-[11px]">{selectedActor.diamondModel.capability}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-[#0E1626] border border-purple-500/30 space-y-1">
+                <div className="p-4 rounded-xl bg-[#050505] border border-purple-500/30 space-y-1">
                   <span className="text-purple-400 font-bold uppercase block">3. INFRASTRUCTURE (C2 & NETWORKS)</span>
                   <p className="text-white text-[11px]">{selectedActor.diamondModel.infrastructure}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-[#0E1626] border border-emerald-500/30 space-y-1">
+                <div className="p-4 rounded-xl bg-[#050505] border border-emerald-500/30 space-y-1">
                   <span className="text-emerald-400 font-bold uppercase block">4. VICTIM (IMPACTED TARGETS)</span>
                   <p className="text-white text-[11px]">{selectedActor.diamondModel.victim}</p>
                 </div>
@@ -307,31 +307,31 @@ export default function ThreatIntelPage() {
             {/* Observed MITRE TTPs & IOC Observables */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* MITRE TTPs */}
-              <div className="p-4 rounded-xl bg-[#0E1626] border border-[#263248] space-y-3 font-mono text-xs">
+              <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] space-y-3 font-mono text-xs">
                 <h3 className="font-bold text-white uppercase tracking-wider">
                   Observed MITRE ATT&CK Techniques
                 </h3>
                 <div className="space-y-2">
                   {selectedActor.ttpList.map((ttp) => (
-                    <div key={ttp.technique} className="p-2.5 rounded-lg bg-[#0B1020] border border-[#263248] flex items-center justify-between">
+                    <div key={ttp.technique} className="p-2.5 rounded-xl bg-[#0A0A0A] border border-[#262626] flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-[#38BDF8] font-bold">{ttp.technique}</span>
+                        <span className="text-emerald-400 font-bold">{ttp.technique}</span>
                         <span className="text-white">{ttp.name}</span>
                       </div>
-                      <span className="text-[10px] text-[#64748B] uppercase">{ttp.tactic}</span>
+                      <span className="text-[10px] text-neutral-500 uppercase">{ttp.tactic}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Verified IOC Indicators */}
-              <div className="p-4 rounded-xl bg-[#0E1626] border border-[#263248] space-y-3 font-mono text-xs">
+              <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] space-y-3 font-mono text-xs">
                 <h3 className="font-bold text-white uppercase tracking-wider">
                   Attributed IOC Feed ({selectedActor.iocs.length} Active Indicators)
                 </h3>
                 <div className="space-y-2">
                   {selectedActor.iocs.map((ioc, idx) => (
-                    <div key={idx} className="p-2.5 rounded-lg bg-[#0B1020] border border-[#263248] flex items-center justify-between">
+                    <div key={idx} className="p-2.5 rounded-xl bg-[#0A0A0A] border border-[#262626] flex items-center justify-between">
                       <div className="space-y-0.5 truncate max-w-[240px]">
                         <span className="text-[10px] text-amber-400 uppercase font-bold block">{ioc.type}</span>
                         <span className="text-white font-mono truncate block text-[11px]">{ioc.value}</span>

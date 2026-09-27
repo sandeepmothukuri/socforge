@@ -152,7 +152,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                   category: "investigations" as const,
                   href: `/investigations/${inv.id}`,
                   badge: inv.status.toUpperCase(),
-                  badgeColor: "text-blue-400 border-blue-500/30 bg-blue-500/10",
+                  badgeColor: "text-white border-neutral-800 bg-neutral-900",
                 }));
             })
           );
@@ -193,7 +193,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                   category: "entities" as const,
                   href: `/entities?search=${encodeURIComponent(ent.value)}`,
                   badge: ent.is_malicious ? "MALICIOUS" : "OBSERVED",
-                  badgeColor: ent.is_malicious ? "text-red-400 border-red-500/30 bg-red-500/10" : "text-slate-400 border-slate-500/30 bg-slate-500/10",
+                  badgeColor: ent.is_malicious ? "text-red-400 border-red-500/30 bg-red-500/10" : "text-neutral-400 border-neutral-800 bg-neutral-900",
                 }));
             })
           );
@@ -242,14 +242,14 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/85 backdrop-blur-sm animate-in fade-in duration-150">
       <div 
-        className="w-full max-w-2xl bg-[#0F172A] border border-[#263248] rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
+        className="w-full max-w-2xl bg-[#000000] border border-neutral-800 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Header */}
-        <div className="p-4 border-b border-[#263248] flex items-center gap-3 bg-[#0B1020]">
-          <Search className="w-5 h-5 text-[#38BDF8] flex-shrink-0" />
+        <div className="p-4 border-b border-neutral-800 flex items-center gap-3 bg-[#050505]">
+          <Search className="w-5 h-5 text-white flex-shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -257,23 +257,23 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Search alerts, incidents, hosts, IPs, rules, or MITRE techniques..."
-            className="flex-1 bg-transparent text-sm text-[#F8FAFC] placeholder-[#64748B] focus:outline-none font-sans"
+            className="flex-1 bg-transparent text-sm text-white placeholder-neutral-500 focus:outline-none font-sans"
           />
           {query && (
             <button 
               onClick={() => setQuery("")}
-              className="text-[#64748B] hover:text-[#F8FAFC] p-1 rounded"
+              className="text-neutral-400 hover:text-white p-1 rounded"
             >
               <X className="w-4 h-4" />
             </button>
           )}
-          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono text-[#94A3B8] bg-[#1E293B] border border-[#334155] rounded">
+          <kbd className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-mono text-neutral-400 bg-neutral-900 border border-neutral-800 rounded">
             ESC
           </kbd>
         </div>
 
         {/* Category Filters */}
-        <div className="px-4 py-2 border-b border-[#263248] bg-[#111827] flex items-center gap-2 overflow-x-auto text-xs font-mono">
+        <div className="px-4 py-2 border-b border-neutral-800 bg-[#050505] flex items-center gap-2 overflow-x-auto text-xs font-mono">
           {[
             { id: "all", label: "All Telemetry" },
             { id: "alerts", label: "Alerts" },
@@ -287,8 +287,8 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
               onClick={() => setCategory(cat.id as SearchCategory)}
               className={`px-2.5 py-1 rounded-md transition font-medium whitespace-nowrap ${
                 category === cat.id
-                  ? "bg-[#38BDF8] text-[#0B1020] font-bold"
-                  : "bg-[#1E293B] text-[#94A3B8] hover:text-[#F8FAFC]"
+                  ? "bg-white text-black font-bold"
+                  : "bg-neutral-900 text-neutral-400 hover:text-white hover:bg-neutral-800"
               }`}
             >
               {cat.label}
@@ -297,15 +297,15 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
         </div>
 
         {/* Results / Suggestions Area */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1">
+        <div className="flex-1 overflow-y-auto p-3 space-y-1 bg-[#000000]">
           {loading ? (
-            <div className="p-8 text-center text-xs text-[#64748B] font-mono">
+            <div className="p-8 text-center text-xs text-neutral-500 font-mono">
               Querying SOCForge knowledge graph and PostgreSQL records...
             </div>
           ) : query.trim() === "" ? (
             <div className="p-4 space-y-4">
               <div className="space-y-2">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-[#64748B] flex items-center gap-1.5">
+                <span className="text-[11px] font-mono uppercase tracking-wider text-neutral-500 flex items-center gap-1.5">
                   <Clock className="w-3 h-3" /> Recent Queries & Pivots
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -313,7 +313,7 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                     <button
                       key={rq}
                       onClick={() => setQuery(rq)}
-                      className="px-2.5 py-1 rounded bg-[#1E293B] text-xs font-mono text-[#38BDF8] hover:bg-[#263248] transition border border-[#334155]"
+                      className="px-2.5 py-1 rounded-lg bg-neutral-900 text-xs font-mono text-neutral-200 hover:bg-neutral-800 hover:text-white transition border border-neutral-800"
                     >
                       {rq}
                     </button>
@@ -321,16 +321,16 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-[#1E293B] text-xs text-[#64748B] space-y-1">
-                <p className="font-medium text-[#94A3B8]">ProTip: Deep Pivot Syntaxes</p>
-                <p className="font-mono text-[11px]">· Type <span className="text-[#38BDF8]">T1003.001</span> to jump to LSASS credential access</p>
-                <p className="font-mono text-[11px]">· Type <span className="text-[#38BDF8]">SRV-DC01</span> to search Domain Controller telemetry</p>
+              <div className="pt-2 border-t border-neutral-800 text-xs text-neutral-400 space-y-1">
+                <p className="font-medium text-white">ProTip: Deep Pivot Syntaxes</p>
+                <p className="font-mono text-[11px]">· Type <span className="text-emerald-400">T1003.001</span> to jump to LSASS credential access</p>
+                <p className="font-mono text-[11px]">· Type <span className="text-emerald-400">SRV-DC01</span> to search Domain Controller telemetry</p>
               </div>
             </div>
           ) : results.length === 0 ? (
             <div className="p-8 text-center space-y-2">
-              <p className="text-xs text-[#94A3B8]">No direct telemetry matches for &ldquo;{query}&rdquo;</p>
-              <p className="text-[11px] text-[#64748B] font-mono">Try searching with a broader keyword, host name, or MITRE ID.</p>
+              <p className="text-xs text-neutral-300">No direct telemetry matches for &ldquo;{query}&rdquo;</p>
+              <p className="text-[11px] text-neutral-500 font-mono">Try searching with a broader keyword, host name, or MITRE ID.</p>
             </div>
           ) : (
             results.map((item, idx) => (
@@ -340,23 +340,23 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
                 onMouseEnter={() => setSelectedIndex(idx)}
                 className={`p-3 rounded-lg flex items-center justify-between cursor-pointer transition ${
                   selectedIndex === idx
-                    ? "bg-[#1E293B] border border-[#38BDF8]/40"
-                    : "hover:bg-[#151C2E] border border-transparent"
+                    ? "bg-neutral-900 border border-neutral-700"
+                    : "hover:bg-neutral-900/60 border border-transparent"
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[#38BDF8] flex-shrink-0">
+                  <div className="p-2 rounded bg-black border border-neutral-800 text-white flex-shrink-0">
                     {item.category === "alerts" && <AlertTriangle className="w-4 h-4 text-amber-400" />}
                     {item.category === "incidents" && <ShieldAlert className="w-4 h-4 text-red-400" />}
-                    {item.category === "investigations" && <Share2 className="w-4 h-4 text-blue-400" />}
+                    {item.category === "investigations" && <Share2 className="w-4 h-4 text-white" />}
                     {item.category === "detections" && <FileCode className="w-4 h-4 text-emerald-400" />}
                     {item.category === "entities" && <Globe className="w-4 h-4 text-purple-400" />}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-[#F8FAFC] truncate font-sans">
+                    <p className="text-xs font-semibold text-white truncate font-sans">
                       {item.title}
                     </p>
-                    <p className="text-[11px] text-[#64748B] truncate font-mono">
+                    <p className="text-[11px] text-neutral-400 truncate font-mono">
                       {item.subtitle}
                     </p>
                   </div>
@@ -364,11 +364,11 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
 
                 <div className="flex items-center gap-2 flex-shrink-0 ml-3">
                   {item.badge && (
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold border ${item.badgeColor || "text-slate-400 border-slate-700 bg-slate-800"}`}>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold border ${item.badgeColor || "text-neutral-400 border-neutral-800 bg-neutral-900"}`}>
                       {item.badge}
                     </span>
                   )}
-                  <ArrowRight className="w-3.5 h-3.5 text-[#64748B]" />
+                  <ArrowRight className="w-3.5 h-3.5 text-neutral-500" />
                 </div>
               </div>
             ))
@@ -376,8 +376,8 @@ export function GlobalSearchModal({ isOpen, onClose }: GlobalSearchModalProps) {
         </div>
 
         {/* Footer info */}
-        <div className="px-4 py-2 border-t border-[#263248] bg-[#0B1020] flex items-center justify-between text-[11px] text-[#64748B] font-mono">
-          <span>Navigate with <kbd className="px-1 py-0.5 bg-[#1E293B] rounded text-[10px] text-[#94A3B8]">↑</kbd> <kbd className="px-1 py-0.5 bg-[#1E293B] rounded text-[10px] text-[#94A3B8]">↓</kbd> · Select with <kbd className="px-1 py-0.5 bg-[#1E293B] rounded text-[10px] text-[#94A3B8]">↵</kbd></span>
+        <div className="px-4 py-2 border-t border-neutral-800 bg-[#050505] flex items-center justify-between text-[11px] text-neutral-500 font-mono">
+          <span>Navigate with <kbd className="px-1 py-0.5 bg-neutral-900 rounded text-[10px] text-neutral-300">↑</kbd> <kbd className="px-1 py-0.5 bg-neutral-900 rounded text-[10px] text-neutral-300">↓</kbd> · Select with <kbd className="px-1 py-0.5 bg-neutral-900 rounded text-[10px] text-neutral-300">↵</kbd></span>
           <span>SOCForge Cross-Correlator v1.0</span>
         </div>
       </div>

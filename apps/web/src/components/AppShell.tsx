@@ -167,7 +167,7 @@ export default function AppShell({ children }: AppShellProps) {
             <SocForgeLogo size="sm" showWordmark={!isCollapsed} />
           </Link>
           {!isCollapsed && (
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#141414] border border-neutral-800 text-sky-400">
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#141414] border border-neutral-800 text-emerald-400">
               v2.0
             </span>
           )}
@@ -193,11 +193,11 @@ export default function AppShell({ children }: AppShellProps) {
                       title={isCollapsed ? item.label : undefined}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition font-medium ${
                         isActive
-                          ? "bg-neutral-900 text-sky-400 border border-neutral-700/80 font-semibold shadow-sm"
+                          ? "bg-neutral-900 text-white border border-neutral-700/80 font-semibold shadow-sm"
                           : "text-neutral-400 hover:bg-neutral-900/60 hover:text-white"
                       }`}
                     >
-                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-sky-400" : "text-neutral-500"}`} />
+                      <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-white" : "text-neutral-500"}`} />
                       {!isCollapsed && <span className="truncate">{item.label}</span>}
                     </Link>
                   );
@@ -212,7 +212,7 @@ export default function AppShell({ children }: AppShellProps) {
           {!isCollapsed && (
             <div className="flex flex-col truncate pr-1">
               <div className="flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-sky-400" />
+                <Shield className="w-3.5 h-3.5 text-emerald-400" />
                 <span className="font-semibold text-white text-[11px] truncate">SOCForge Enterprise</span>
               </div>
               <span className="text-[10px] text-neutral-400">OpenCTI + Falcon Engine</span>
@@ -242,10 +242,10 @@ export default function AppShell({ children }: AppShellProps) {
           <div className="flex items-center gap-3 flex-1 max-w-xl">
             <button
               onClick={() => setSearchOpen(true)}
-              className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-neutral-800 bg-[#000000] text-neutral-400 hover:text-white hover:border-sky-500/40 transition text-xs shadow-inner"
+              className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-neutral-800 bg-[#000000] text-neutral-400 hover:text-white hover:border-neutral-700 transition text-xs shadow-inner"
             >
               <div className="flex items-center gap-2.5">
-                <Search className="w-4 h-4 text-sky-400" />
+                <Search className="w-4 h-4 text-neutral-400" />
                 <span>Search the platform (IOCs, CVEs, TTPs, Threat Actors)...</span>
               </div>
               <kbd className="px-1.5 py-0.5 rounded bg-neutral-900 text-[10px] text-neutral-400 border border-neutral-800 font-mono">
@@ -268,11 +268,11 @@ export default function AppShell({ children }: AppShellProps) {
             {/* SOC AI Copilot Button (⌘J) */}
             <button
               onClick={() => setCopilotOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-indigo-500/30 bg-indigo-950/30 hover:bg-indigo-900/40 text-indigo-300 hover:text-indigo-200 transition text-xs shadow-sm"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-neutral-700/80 bg-neutral-900/90 hover:bg-neutral-800 text-neutral-200 hover:text-white transition text-xs shadow-sm"
             >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
               <span className="hidden sm:inline font-semibold">SOC Copilot</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[#000000] text-[10px] text-indigo-400 border border-indigo-500/30 font-mono">
+              <kbd className="px-1.5 py-0.5 rounded bg-[#000000] text-[10px] text-emerald-400 border border-neutral-700 font-mono">
                 ⌘J
               </kbd>
             </button>
@@ -299,7 +299,7 @@ export default function AppShell({ children }: AppShellProps) {
               title={`Last synced: ${lastRefreshed}`}
               className="p-2 rounded-lg border border-neutral-800 bg-[#000000] hover:bg-neutral-900 text-white transition"
             >
-              <RefreshCw className={`w-3.5 h-3.5 text-sky-400 ${isRefreshing ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 text-neutral-300 ${isRefreshing ? "animate-spin" : ""}`} />
             </button>
 
             {/* Notifications Bell */}
@@ -317,7 +317,7 @@ export default function AppShell({ children }: AppShellProps) {
                 <div className="absolute right-0 mt-2 w-80 bg-[#0A0A0A] border border-neutral-800 rounded-xl shadow-2xl p-4 z-50 space-y-3 font-sans">
                   <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
                     <span className="text-xs font-bold text-white">Live Threat Intelligence Alerts</span>
-                    <span className="text-[10px] text-sky-400 font-mono">3 New</span>
+                    <span className="text-[10px] text-emerald-400 font-mono font-semibold">3 New</span>
                   </div>
                   <div className="space-y-2 text-xs">
                     <div className="p-2 rounded bg-[#000000] border border-neutral-800 space-y-1">
@@ -339,7 +339,7 @@ export default function AppShell({ children }: AppShellProps) {
 
             {/* Analyst Profile */}
             <div className="flex items-center gap-2 pl-2 border-l border-neutral-800">
-              <div className="w-7 h-7 rounded-full bg-neutral-900 border border-sky-500/40 flex items-center justify-center text-sky-400 font-bold text-xs">
+              <div className="w-7 h-7 rounded-full bg-neutral-900 border border-neutral-700 flex items-center justify-center text-white font-bold text-xs">
                 SM
               </div>
               <div className="hidden xl:flex flex-col">

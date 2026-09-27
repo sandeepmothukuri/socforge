@@ -218,15 +218,15 @@ export default function ForensicsPage() {
 
               {/* Hashes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-mono">
-                <div className="p-2.5 rounded bg-[#0B1020] border border-[#263248] flex items-center justify-between">
-                  <span className="text-[#64748B]">MD5: <strong className="text-white">{selectedArtifact.md5}</strong></span>
-                  <button onClick={() => copyText(selectedArtifact.md5, "md5")} className="text-[#38BDF8] text-[10px]">
+                <div className="p-2.5 rounded-lg bg-black border border-neutral-800 flex items-center justify-between">
+                  <span className="text-neutral-400">MD5: <strong className="text-white">{selectedArtifact.md5}</strong></span>
+                  <button onClick={() => copyText(selectedArtifact.md5, "md5")} className="text-white hover:text-emerald-400 text-[10px] font-bold">
                     {copiedHash === "md5" ? "Copied" : "Copy"}
                   </button>
                 </div>
-                <div className="p-2.5 rounded bg-[#0B1020] border border-[#263248] flex items-center justify-between">
-                  <span className="text-[#64748B] truncate max-w-xs">SHA256: <strong className="text-white">{selectedArtifact.sha256}</strong></span>
-                  <button onClick={() => copyText(selectedArtifact.sha256, "sha256")} className="text-[#38BDF8] text-[10px]">
+                <div className="p-2.5 rounded-lg bg-black border border-neutral-800 flex items-center justify-between">
+                  <span className="text-neutral-400 truncate max-w-xs">SHA256: <strong className="text-white">{selectedArtifact.sha256}</strong></span>
+                  <button onClick={() => copyText(selectedArtifact.sha256, "sha256")} className="text-white hover:text-emerald-400 text-[10px] font-bold">
                     {copiedHash === "sha256" ? "Copied" : "Copy"}
                   </button>
                 </div>
@@ -236,12 +236,12 @@ export default function ForensicsPage() {
             {/* Hex View & Strings Dissector */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Hex Dump */}
-              <div className="p-4 rounded-xl bg-[#0E1626] border border-[#263248] space-y-3 font-mono text-xs flex flex-col">
-                <div className="flex items-center justify-between border-b border-[#263248] pb-2">
+              <div className="p-4 rounded-xl bg-[#050505] border border-neutral-800 space-y-3 font-mono text-xs flex flex-col">
+                <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
                   <span className="font-bold text-white uppercase tracking-wider">Hex Memory Dump Preview</span>
-                  <span className="text-[10px] text-[#64748B]">Offset: 0x00000000</span>
+                  <span className="text-[10px] text-neutral-500">Offset: 0x00000000</span>
                 </div>
-                <div className="p-3 bg-[#070C18] rounded-lg border border-[#263248] overflow-x-auto text-[11px] text-[#38BDF8] space-y-0.5 leading-tight">
+                <div className="p-3 bg-black rounded-lg border border-neutral-800 overflow-x-auto text-[11px] text-emerald-400 space-y-0.5 leading-tight">
                   {selectedArtifact.hexPreview.map((line, i) => (
                     <div key={i}>{line}</div>
                   ))}
@@ -289,7 +289,7 @@ export default function ForensicsPage() {
                 value={yaraRule}
                 onChange={(e) => setYaraRule(e.target.value)}
                 rows={8}
-                className="w-full p-4 bg-[#070C18] border border-[#263248] rounded-xl font-mono text-xs text-[#F8FAFC] leading-relaxed focus:outline-none focus:border-emerald-500"
+                className="w-full p-4 bg-[#000000] border border-[#262626] rounded-xl font-mono text-xs text-neutral-100 leading-relaxed focus:outline-none focus:border-emerald-500"
               />
 
               {yaraResult && (

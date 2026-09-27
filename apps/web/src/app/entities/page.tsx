@@ -10,12 +10,12 @@ import {
   ShieldAlert, 
   Search, 
   RefreshCw, 
-  ExternalLink,
-  Filter,
-  FileCode,
-  CheckCircle2,
-  AlertTriangle,
-  ArrowUpRight
+  ExternalLink, 
+  Filter, 
+  FileCode, 
+  CheckCircle2, 
+  AlertTriangle, 
+  ArrowUpRight 
 } from "lucide-react";
 import Link from "next/link";
 
@@ -63,35 +63,35 @@ export default function EntitiesPage() {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "host":
-        return <Server className="w-3.5 h-3.5 text-[#38BDF8]" />;
+        return <Server className="w-3.5 h-3.5 text-white" />;
       case "user":
-        return <User className="w-3.5 h-3.5 text-[#F59E0B]" />;
+        return <User className="w-3.5 h-3.5 text-amber-400" />;
       case "ip":
-        return <Globe className="w-3.5 h-3.5 text-[#A855F7]" />;
+        return <Globe className="w-3.5 h-3.5 text-purple-400" />;
       case "file_hash":
-        return <FileCode className="w-3.5 h-3.5 text-[#EC4899]" />;
+        return <FileCode className="w-3.5 h-3.5 text-rose-400" />;
       default:
-        return <Globe className="w-3.5 h-3.5 text-[#64748B]" />;
+        return <Globe className="w-3.5 h-3.5 text-neutral-400" />;
     }
   };
 
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col min-w-0 bg-[#0B1020] text-[#F8FAFC] overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#000000] text-white overflow-y-auto">
         {/* Header */}
-        <div className="border-b border-[#263248] bg-[#111827] px-6 py-5">
+        <div className="border-b border-neutral-800 bg-[#050505] px-6 py-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 text-xs text-[#A7B0C0] mb-1 font-mono">
+              <div className="flex items-center gap-2 text-xs text-neutral-400 mb-1 font-mono">
                 <span>SOC ENGINE</span>
                 <span>/</span>
-                <span className="text-[#38BDF8]">ASSETS & INDICATORS</span>
+                <span className="text-emerald-400">ASSETS & INDICATORS</span>
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-[#F8FAFC] flex items-center gap-2.5">
-                <Globe className="w-6 h-6 text-[#38BDF8]" />
+              <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2.5">
+                <Globe className="w-6 h-6 text-emerald-400" />
                 Asset & Threat Indicator Directory
               </h1>
-              <p className="text-xs text-[#94A3B8] mt-1">
+              <p className="text-xs text-neutral-400 mt-1">
                 Centralized telemetry graph entities, observed IOCs, affected domain assets, and risk classifications.
               </p>
             </div>
@@ -100,9 +100,9 @@ export default function EntitiesPage() {
               <button
                 onClick={() => fetchEntities()}
                 disabled={loading}
-                className="flex items-center gap-2 px-3 py-2 bg-[#1E293B] hover:bg-[#2A374A] border border-[#263248] rounded text-xs font-semibold text-[#F8FAFC] transition disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-lg text-xs font-semibold text-white transition disabled:opacity-50"
               >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#38BDF8]" : ""}`} />
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-white" : ""}`} />
                 Refresh Assets
               </button>
             </div>
@@ -110,41 +110,41 @@ export default function EntitiesPage() {
 
           {/* Metric Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-            <div className="bg-[#0F172A] border border-[#263248] rounded-xl p-4 flex flex-col">
-              <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider">Observed Entities</span>
-              <div className="text-2xl font-bold text-[#F8FAFC] mt-1 font-mono">{loading ? "..." : totalCount}</div>
-              <span className="text-[11px] text-[#64748B] mt-0.5">Active in telemetry graph</span>
+            <div className="bg-black border border-neutral-800 rounded-xl p-4 flex flex-col">
+              <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Observed Entities</span>
+              <div className="text-2xl font-bold text-white mt-1 font-mono">{loading ? "..." : totalCount}</div>
+              <span className="text-[11px] text-neutral-500 mt-0.5">Active in telemetry graph</span>
             </div>
-            <div className="bg-[#0F172A] border border-[#263248] rounded-xl p-4 flex flex-col">
-              <span className="text-[11px] font-semibold text-[#EF4444] uppercase tracking-wider flex items-center gap-1.5">
+            <div className="bg-black border border-neutral-800 rounded-xl p-4 flex flex-col">
+              <span className="text-[11px] font-semibold text-red-400 uppercase tracking-wider flex items-center gap-1.5">
                 <ShieldAlert className="w-3.5 h-3.5" />
                 Malicious IOCs
               </span>
-              <div className="text-2xl font-bold text-[#EF4444] mt-1 font-mono">{loading ? "..." : maliciousCount}</div>
-              <span className="text-[11px] text-[#64748B] mt-0.5">Flagged by threat intel</span>
+              <div className="text-2xl font-bold text-red-400 mt-1 font-mono">{loading ? "..." : maliciousCount}</div>
+              <span className="text-[11px] text-neutral-500 mt-0.5">Flagged by threat intel</span>
             </div>
-            <div className="bg-[#0F172A] border border-[#263248] rounded-xl p-4 flex flex-col">
-              <span className="text-[11px] font-semibold text-[#38BDF8] uppercase tracking-wider flex items-center gap-1.5">
+            <div className="bg-black border border-neutral-800 rounded-xl p-4 flex flex-col">
+              <span className="text-[11px] font-semibold text-white uppercase tracking-wider flex items-center gap-1.5">
                 <Server className="w-3.5 h-3.5" />
                 Protected Endpoints
               </span>
-              <div className="text-2xl font-bold text-[#38BDF8] mt-1 font-mono">{loading ? "..." : hostCount}</div>
-              <span className="text-[11px] text-[#64748B] mt-0.5">Domain hosts & servers</span>
+              <div className="text-2xl font-bold text-white mt-1 font-mono">{loading ? "..." : hostCount}</div>
+              <span className="text-[11px] text-neutral-500 mt-0.5">Domain hosts & servers</span>
             </div>
-            <div className="bg-[#0F172A] border border-[#263248] rounded-xl p-4 flex flex-col">
-              <span className="text-[11px] font-semibold text-[#F59E0B] uppercase tracking-wider flex items-center gap-1.5">
+            <div className="bg-black border border-neutral-800 rounded-xl p-4 flex flex-col">
+              <span className="text-[11px] font-semibold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5" />
                 Observed User Accounts
               </span>
-              <div className="text-2xl font-bold text-[#F59E0B] mt-1 font-mono">{loading ? "..." : userCount}</div>
-              <span className="text-[11px] text-[#64748B] mt-0.5">Correlated identities</span>
+              <div className="text-2xl font-bold text-amber-400 mt-1 font-mono">{loading ? "..." : userCount}</div>
+              <span className="text-[11px] text-neutral-500 mt-0.5">Correlated identities</span>
             </div>
           </div>
         </div>
 
         {/* Filters & Search Toolbar */}
         <div className="p-6 space-y-4">
-          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-[#111827] p-3 rounded-xl border border-[#263248]">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 bg-[#050505] p-3 rounded-xl border border-neutral-800">
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
               {[
                 { id: "all", label: "All Types" },
@@ -159,68 +159,68 @@ export default function EntitiesPage() {
                   onClick={() => setSelectedType(tab.id)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition ${
                     selectedType === tab.id
-                      ? "bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/40"
-                      : "text-[#94A3B8] hover:bg-[#1E293B] hover:text-[#F8FAFC]"
+                      ? "bg-white text-black font-bold"
+                      : "text-neutral-400 hover:bg-neutral-900 hover:text-white"
                   }`}
                 >
                   {tab.label}
                 </button>
               ))}
 
-              <div className="h-4 w-px bg-[#263248] mx-2 hidden md:block" />
+              <div className="h-4 w-px bg-neutral-800 mx-2 hidden md:block" />
 
-              <label className="flex items-center gap-2 text-xs text-[#94A3B8] cursor-pointer pl-1">
+              <label className="flex items-center gap-2 text-xs text-neutral-400 cursor-pointer pl-1">
                 <input
                   type="checkbox"
                   checked={onlyMalicious}
                   onChange={(e) => setOnlyMalicious(e.target.checked)}
-                  className="rounded border-[#263248] bg-[#0B1020] text-[#EF4444] focus:ring-0"
+                  className="rounded border-neutral-800 bg-black text-red-500 focus:ring-0"
                 />
-                <span className={onlyMalicious ? "text-[#EF4444] font-semibold" : ""}>Flagged Malicious Only</span>
+                <span className={onlyMalicious ? "text-red-400 font-semibold" : ""}>Flagged Malicious Only</span>
               </label>
             </div>
 
             <form onSubmit={handleSearchSubmit} className="relative min-w-[240px]">
-              <Search className="w-3.5 h-3.5 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search indicator, host, IP..."
-                className="w-full pl-9 pr-3 py-1.5 bg-[#0B1020] border border-[#263248] rounded-lg text-xs text-[#F8FAFC] placeholder-[#64748B] focus:outline-none focus:border-[#38BDF8]"
+                className="w-full pl-9 pr-3 py-1.5 bg-black border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white"
               />
             </form>
           </div>
 
           {/* Main Entity Table */}
-          <div className="bg-[#111827] border border-[#263248] rounded-xl overflow-hidden">
+          <div className="bg-[#050505] border border-neutral-800 rounded-xl overflow-hidden">
             {error ? (
               <div className="p-8 text-center">
-                <AlertTriangle className="w-8 h-8 text-[#EF4444] mx-auto mb-2" />
-                <div className="text-sm font-semibold text-[#F8FAFC]">Failed to load entities</div>
-                <div className="text-xs text-[#94A3B8] mt-1">{error}</div>
+                <AlertTriangle className="w-8 h-8 text-red-400 mx-auto mb-2" />
+                <div className="text-sm font-semibold text-white">Failed to load entities</div>
+                <div className="text-xs text-neutral-400 mt-1">{error}</div>
                 <button
                   onClick={() => fetchEntities()}
-                  className="mt-4 px-3 py-1.5 bg-[#1E293B] hover:bg-[#263248] text-xs font-semibold rounded text-[#38BDF8]"
+                  className="mt-4 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold rounded text-white"
                 >
                   Retry Connection
                 </button>
               </div>
             ) : loading ? (
-              <div className="p-12 text-center text-[#94A3B8] space-y-3">
-                <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#38BDF8]" />
-                <p className="text-xs">Querying asset directory and relational IOC graph...</p>
+              <div className="p-12 text-center text-neutral-400 space-y-3">
+                <RefreshCw className="w-6 h-6 animate-spin mx-auto text-white" />
+                <p className="text-xs font-mono">Querying asset directory and relational IOC graph...</p>
               </div>
             ) : entities.length === 0 ? (
-              <div className="p-12 text-center text-[#94A3B8]">
+              <div className="p-12 text-center text-neutral-500">
                 <Globe className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                <div className="text-sm font-semibold text-[#F8FAFC]">No matching entities found</div>
+                <div className="text-sm font-semibold text-white">No matching entities found</div>
                 <p className="text-xs mt-1">Try clearing filters or running a detection replay demo.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-[#0B1020] text-[#94A3B8] font-semibold border-b border-[#263248]">
+                  <thead className="bg-[#000000] text-neutral-400 font-semibold border-b border-neutral-800">
                     <tr>
                       <th className="px-4 py-3">Entity Type</th>
                       <th className="px-4 py-3">Indicator / Value</th>
@@ -231,65 +231,65 @@ export default function EntitiesPage() {
                       <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#1F293D]">
+                  <tbody className="divide-y divide-neutral-850">
                     {entities.map((item) => (
-                      <tr key={item.id} className="hover:bg-[#151C2E] transition">
+                      <tr key={item.id} className="hover:bg-neutral-900/60 transition">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             {getTypeIcon(item.entity_type)}
-                            <span className="uppercase text-[10px] font-bold tracking-wider text-[#A7B0C0]">
+                            <span className="uppercase text-[10px] font-bold tracking-wider text-neutral-400">
                               {item.entity_type}
                             </span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="font-mono text-[#F8FAFC] font-medium truncate max-w-xs" title={item.value}>
+                          <div className="font-mono text-white font-medium truncate max-w-xs" title={item.value}>
                             {item.value}
                           </div>
                           {item.display_name && (
-                            <div className="text-[10px] text-[#64748B]">{item.display_name}</div>
+                            <div className="text-[10px] text-neutral-500">{item.display_name}</div>
                           )}
                         </td>
                         <td className="px-4 py-3">
                           {item.is_malicious ? (
-                            <span className="px-2 py-0.5 rounded bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30 font-semibold text-[10px] inline-flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/30 font-semibold text-[10px] inline-flex items-center gap-1">
                               <AlertTriangle className="w-3 h-3" /> Malicious
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/30 font-semibold text-[10px] inline-flex items-center gap-1">
+                            <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold text-[10px] inline-flex items-center gap-1">
                               <CheckCircle2 className="w-3 h-3" /> Neutral / Clean
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 font-mono text-[#94A3B8]">
+                        <td className="px-4 py-3 font-mono text-neutral-300">
                           {item.event_count || 1}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="w-16 bg-[#1F293D] rounded-full h-1.5 overflow-hidden">
+                            <div className="w-16 bg-neutral-900 rounded-full h-1.5 overflow-hidden">
                               <div
                                 className={`h-full ${
                                   (item.risk_score || 0) > 75
-                                    ? "bg-[#EF4444]"
+                                    ? "bg-red-500"
                                     : (item.risk_score || 0) > 40
-                                    ? "bg-[#F59E0B]"
-                                    : "bg-[#38BDF8]"
+                                    ? "bg-amber-500"
+                                    : "bg-emerald-500"
                                 }`}
                                 style={{ width: `${Math.min(100, item.risk_score || 20)}%` }}
                               />
                             </div>
-                            <span className="font-mono text-[11px] text-[#94A3B8]">
+                            <span className="font-mono text-[11px] text-neutral-400">
                               {item.risk_score ? item.risk_score.toFixed(0) : "20"}
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 font-mono text-[11px] text-[#64748B]">
+                        <td className="px-4 py-3 font-mono text-[11px] text-neutral-500">
                           {item.last_seen_at ? new Date(item.last_seen_at).toLocaleString() : "Recently"}
                         </td>
                         <td className="px-4 py-3 text-right">
                           <Link
                             href={`/alerts?search=${encodeURIComponent(item.value)}`}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#1E293B] hover:bg-[#2A374A] border border-[#263248] rounded text-[11px] font-semibold text-[#38BDF8] transition"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded text-[11px] font-semibold text-white transition"
                           >
                             <span>Search Alerts</span>
                             <ArrowUpRight className="w-3 h-3" />

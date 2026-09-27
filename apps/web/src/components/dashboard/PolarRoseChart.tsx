@@ -12,11 +12,11 @@ const DEFAULT_MALWARE: MalwareSegment[] = [
   { name: "Cobalt Strike", count: 110, color: "#EF4444" },
   { name: "DarkGate", count: 85, color: "#EC4899" },
   { name: "QakBot", count: 72, color: "#A855F7" },
-  { name: "IcedID", count: 64, color: "#6366F1" },
-  { name: "PlugX", count: 58, color: "#38BDF8" },
+  { name: "IcedID", count: 64, color: "#F59E0B" },
+  { name: "PlugX", count: 58, color: "#10B981" },
   { name: "Stuxnet", count: 45, color: "#14B8A6" },
-  { name: "Latrodectus", count: 39, color: "#10B981" },
-  { name: "LockBit", count: 92, color: "#F59E0B" },
+  { name: "Latrodectus", count: 39, color: "#84CC16" },
+  { name: "LockBit", count: 92, color: "#EA580C" },
   { name: "Bumblebee", count: 34, color: "#FB923C" },
   { name: "Pikabot", count: 50, color: "#E11D48" },
 ];
@@ -93,14 +93,14 @@ export function PolarRoseChart({ data = DEFAULT_MALWARE }: { data?: MalwareSegme
           })}
 
           {/* Center Hub */}
-          <circle cx={cx} cy={cy} r="4" fill="#38BDF8" />
+          <circle cx={cx} cy={cy} r="4" fill="#FFFFFF" />
         </svg>
 
         {/* Dynamic Center/Hover Tooltip */}
         {hoveredIndex !== null && (
-          <div className="absolute top-2 right-2 px-3 py-1.5 rounded-lg bg-[#000000]/95 border border-sky-500/40 shadow-2xl text-xs pointer-events-none z-10 backdrop-blur-md">
+          <div className="absolute top-2 right-2 px-3 py-1.5 rounded-lg bg-[#000000]/95 border border-white/40 shadow-2xl text-xs pointer-events-none z-10 backdrop-blur-md">
             <span className="font-semibold text-white block">{data[hoveredIndex].name}</span>
-            <span className="text-sky-400 font-mono text-[11px] font-bold">{data[hoveredIndex].count} Ingested Samples</span>
+            <span className="text-emerald-400 font-mono text-[11px] font-bold">{data[hoveredIndex].count} Ingested Samples</span>
           </div>
         )}
       </div>

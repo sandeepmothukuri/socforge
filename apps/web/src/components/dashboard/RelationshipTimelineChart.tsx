@@ -48,8 +48,8 @@ export function RelationshipTimelineChart({ data = DEFAULT_TIMELINE }: { data?: 
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full select-none">
           <defs>
             <linearGradient id="lineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.0" />
             </linearGradient>
           </defs>
 
@@ -62,7 +62,7 @@ export function RelationshipTimelineChart({ data = DEFAULT_TIMELINE }: { data?: 
           <path d={areaD} fill="url(#lineGrad)" />
 
           {/* Line Path */}
-          <path d={pathD} fill="none" stroke="#38BDF8" strokeWidth="2.5" strokeLinecap="round" />
+          <path d={pathD} fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
 
           {/* Data Points */}
           {points.map((p, idx) => {
@@ -73,7 +73,7 @@ export function RelationshipTimelineChart({ data = DEFAULT_TIMELINE }: { data?: 
                 cx={p.x}
                 cy={p.y}
                 r={isHovered ? 6 : 3.5}
-                fill={isHovered ? "#FFFFFF" : "#38BDF8"}
+                fill={isHovered ? "#10B981" : "#FFFFFF"}
                 stroke="#000000"
                 strokeWidth={2}
                 className="cursor-pointer transition-all"
@@ -91,9 +91,9 @@ export function RelationshipTimelineChart({ data = DEFAULT_TIMELINE }: { data?: 
 
         {/* Dynamic Hover Tooltip */}
         {hoveredPoint && (
-          <div className="absolute top-2 right-2 px-3 py-1.5 rounded-lg bg-[#050505]/95 border border-sky-500/50 shadow-xl text-xs pointer-events-none">
+          <div className="absolute top-2 right-2 px-3 py-1.5 rounded-lg bg-[#050505]/95 border border-white/40 shadow-xl text-xs pointer-events-none">
             <span className="font-semibold text-white block">{hoveredPoint.month}</span>
-            <span className="text-sky-400 font-mono text-[11px]">{hoveredPoint.count.toLocaleString()} Linkages</span>
+            <span className="text-emerald-400 font-mono text-[11px] font-bold">{hoveredPoint.count.toLocaleString()} Linkages</span>
           </div>
         )}
       </div>

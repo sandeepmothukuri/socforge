@@ -259,44 +259,44 @@ tags:
     <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+        className="fixed inset-0 bg-black/75 backdrop-blur-sm transition-opacity" 
         onClick={onClose}
       />
 
       {/* Drawer Panel */}
-      <div className="relative w-full max-w-xl bg-[#0B1020] border-l border-[#263248] text-[#F8FAFC] flex flex-col h-full shadow-2xl z-10 animate-in slide-in-from-right duration-300">
+      <div className="relative w-full max-w-xl bg-[#000000] border-l border-neutral-800 text-white flex flex-col h-full shadow-2xl z-10 animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div className="h-16 px-5 border-b border-[#263248] flex items-center justify-between bg-[#111827]">
+        <div className="h-16 px-5 border-b border-neutral-800 flex items-center justify-between bg-[#050505]">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#0284C7] to-[#38BDF8] flex items-center justify-center shadow-lg shadow-[#0284C7]/20">
-              <Sparkles className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-emerald-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm text-[#F8FAFC]">SOCForge AI Copilot</span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#172033] border border-[#263248] text-[#38BDF8]">
+                <span className="font-semibold text-sm text-white">SOCForge AI Copilot</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-neutral-900 border border-neutral-800 text-neutral-300">
                   v2.0 Active
                 </span>
               </div>
-              <p className="text-[11px] text-[#94A3B8]">Autonomous Threat Intelligence & SecOps Assistant</p>
+              <p className="text-[11px] text-neutral-400">Autonomous Threat Intelligence & SecOps Assistant</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B] rounded-lg transition"
+            className="p-2 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-lg transition"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Mode Navigation Tabs */}
-        <div className="flex border-b border-[#263248] bg-[#0F172A] px-3 gap-1">
+        <div className="flex border-b border-neutral-800 bg-[#050505] px-3 gap-1">
           <button
             onClick={() => setActiveTab("chat")}
             className={`px-3 py-2.5 text-xs font-medium border-b-2 transition flex items-center gap-1.5 ${
               activeTab === "chat"
-                ? "border-[#38BDF8] text-[#38BDF8] bg-[#172033]/50"
-                : "border-transparent text-[#94A3B8] hover:text-[#F8FAFC]"
+                ? "border-white text-white bg-neutral-900 font-bold"
+                : "border-transparent text-neutral-400 hover:text-white"
             }`}
           >
             <Bot className="w-3.5 h-3.5" />
@@ -306,8 +306,8 @@ tags:
             onClick={() => setActiveTab("ioc_scanner")}
             className={`px-3 py-2.5 text-xs font-medium border-b-2 transition flex items-center gap-1.5 ${
               activeTab === "ioc_scanner"
-                ? "border-[#38BDF8] text-[#38BDF8] bg-[#172033]/50"
-                : "border-transparent text-[#94A3B8] hover:text-[#F8FAFC]"
+                ? "border-white text-white bg-neutral-900 font-bold"
+                : "border-transparent text-neutral-400 hover:text-white"
             }`}
           >
             <Search className="w-3.5 h-3.5" />
@@ -317,8 +317,8 @@ tags:
             onClick={() => setActiveTab("deobfuscator")}
             className={`px-3 py-2.5 text-xs font-medium border-b-2 transition flex items-center gap-1.5 ${
               activeTab === "deobfuscator"
-                ? "border-[#38BDF8] text-[#38BDF8] bg-[#172033]/50"
-                : "border-transparent text-[#94A3B8] hover:text-[#F8FAFC]"
+                ? "border-white text-white bg-neutral-900 font-bold"
+                : "border-transparent text-neutral-400 hover:text-white"
             }`}
           >
             <Terminal className="w-3.5 h-3.5" />
@@ -328,8 +328,8 @@ tags:
             onClick={() => setActiveTab("sigma_gen")}
             className={`px-3 py-2.5 text-xs font-medium border-b-2 transition flex items-center gap-1.5 ${
               activeTab === "sigma_gen"
-                ? "border-[#38BDF8] text-[#38BDF8] bg-[#172033]/50"
-                : "border-transparent text-[#94A3B8] hover:text-[#F8FAFC]"
+                ? "border-white text-white bg-neutral-900 font-bold"
+                : "border-transparent text-neutral-400 hover:text-white"
             }`}
           >
             <Code2 className="w-3.5 h-3.5" />
@@ -338,31 +338,31 @@ tags:
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#000000]">
           {/* TAB 1: Chat Assistant */}
           {activeTab === "chat" && (
             <div className="flex flex-col h-full space-y-4">
               {/* Preset Prompts Pill Bar */}
               <div className="space-y-1.5">
-                <span className="text-[10px] font-mono uppercase text-[#64748B] flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-[#F59E0B]" /> Recommended Actions
+                <span className="text-[10px] font-mono uppercase text-neutral-500 flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-amber-400" /> Recommended Actions
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   <button
                     onClick={() => handleSendMessage("Deobfuscate this Base64 encoded PowerShell command")}
-                    className="text-[11px] px-2.5 py-1 rounded-md bg-[#172033] hover:bg-[#1E293B] text-[#94A3B8] hover:text-[#38BDF8] border border-[#263248] transition"
+                    className="text-[11px] px-2.5 py-1 rounded-md bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 transition"
                   >
                     ⚡ Deobfuscate PowerShell
                   </button>
                   <button
                     onClick={() => handleSendMessage("Draft an executive incident briefing with containment steps")}
-                    className="text-[11px] px-2.5 py-1 rounded-md bg-[#172033] hover:bg-[#1E293B] text-[#94A3B8] hover:text-[#38BDF8] border border-[#263248] transition"
+                    className="text-[11px] px-2.5 py-1 rounded-md bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 transition"
                   >
                     📋 Executive Briefing
                   </button>
                   <button
                     onClick={() => handleSendMessage("Generate a Sigma rule for LSASS memory dumping")}
-                    className="text-[11px] px-2.5 py-1 rounded-md bg-[#172033] hover:bg-[#1E293B] text-[#94A3B8] hover:text-[#38BDF8] border border-[#263248] transition"
+                    className="text-[11px] px-2.5 py-1 rounded-md bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 transition"
                   >
                     🛡️ Synthesize Sigma Rule
                   </button>
@@ -381,8 +381,8 @@ tags:
                     <div
                       className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
                         msg.sender === "user"
-                          ? "bg-[#38BDF8]/20 text-[#38BDF8] border border-[#38BDF8]/30"
-                          : "bg-[#0284C7]/20 text-[#38BDF8] border border-[#263248]"
+                          ? "bg-neutral-800 text-white border border-neutral-700"
+                          : "bg-neutral-900 text-emerald-400 border border-neutral-800"
                       }`}
                     >
                       {msg.sender === "user" ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
@@ -391,33 +391,33 @@ tags:
                     <div
                       className={`max-w-[85%] rounded-xl p-3.5 space-y-2 border ${
                         msg.sender === "user"
-                          ? "bg-[#1E293B] border-[#38BDF8]/30 text-[#F8FAFC]"
-                          : "bg-[#111827] border-[#263248] text-[#E2E8F0]"
+                          ? "bg-neutral-900 border-neutral-700 text-white"
+                          : "bg-[#0A0A0A] border-neutral-800 text-neutral-200"
                       }`}
                     >
                       <div className="whitespace-pre-line">{msg.content}</div>
 
                       {msg.codeSnippet && (
-                        <div className="relative mt-2 rounded-lg bg-[#0B1020] border border-[#263248] p-3 font-mono text-[11px] overflow-x-auto text-[#38BDF8]">
+                        <div className="relative mt-2 rounded-lg bg-black border border-neutral-800 p-3 font-mono text-[11px] overflow-x-auto text-emerald-400">
                           <button
                             onClick={() => copyToClipboard(msg.codeSnippet!, msg.id)}
-                            className="absolute top-2 right-2 p-1.5 bg-[#172033] hover:bg-[#1E293B] rounded text-[#94A3B8] hover:text-white transition"
+                            className="absolute top-2 right-2 p-1.5 bg-neutral-900 hover:bg-neutral-800 rounded text-neutral-400 hover:text-white transition"
                           >
-                            {copiedId === msg.id ? <Check className="w-3.5 h-3.5 text-[#10B981]" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copiedId === msg.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
                           <pre>{msg.codeSnippet}</pre>
                         </div>
                       )}
 
-                      <div className="flex items-center justify-between pt-1 border-t border-[#1E293B] text-[10px] text-[#64748B]">
+                      <div className="flex items-center justify-between pt-1 border-t border-neutral-800 text-[10px] text-neutral-500">
                         <span>{msg.timestamp}</span>
                         {msg.mitreTag && (
-                          <span className="px-1.5 py-0.5 rounded bg-[#172033] text-[#38BDF8] font-mono border border-[#263248]">
+                          <span className="px-1.5 py-0.5 rounded bg-neutral-900 text-white font-mono border border-neutral-800">
                             {msg.mitreTag}
                           </span>
                         )}
                         {msg.confidence && (
-                          <span className="text-[#10B981] font-mono">
+                          <span className="text-emerald-400 font-mono">
                             Confidence: {Math.round(msg.confidence * 100)}%
                           </span>
                         )}
@@ -426,27 +426,27 @@ tags:
                   </div>
                 ))}
                 {isProcessing && (
-                  <div className="flex items-center gap-2 text-xs text-[#94A3B8] bg-[#111827] p-3 rounded-lg border border-[#263248] w-fit">
-                    <RotateCw className="w-3.5 h-3.5 animate-spin text-[#38BDF8]" />
+                  <div className="flex items-center gap-2 text-xs text-neutral-400 bg-neutral-900 p-3 rounded-lg border border-neutral-800 w-fit">
+                    <RotateCw className="w-3.5 h-3.5 animate-spin text-white" />
                     Analyzing telemetry & synthesizing response...
                   </div>
                 )}
               </div>
 
               {/* Input Bar */}
-              <div className="pt-2 border-t border-[#263248] flex gap-2">
+              <div className="pt-2 border-t border-neutral-800 flex gap-2">
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   placeholder="Ask Copilot (e.g. 'Explain MITRE T1059.001 mitigation' or paste command)..."
-                  className="flex-1 bg-[#111827] border border-[#263248] rounded-lg px-3 py-2 text-xs text-[#F8FAFC] placeholder-[#64748B] focus:outline-none focus:border-[#38BDF8]"
+                  className="flex-1 bg-black border border-neutral-800 rounded-lg px-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white"
                 />
                 <button
                   onClick={() => handleSendMessage()}
                   disabled={!inputValue.trim() || isProcessing}
-                  className="px-3 py-2 bg-[#0284C7] hover:bg-[#0369A1] disabled:opacity-50 text-white rounded-lg transition flex items-center justify-center"
+                  className="px-4 py-2 bg-white text-black font-semibold disabled:opacity-50 hover:bg-neutral-200 rounded-lg transition flex items-center justify-center"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -457,9 +457,9 @@ tags:
           {/* TAB 2: IOC Quick Scanner */}
           {activeTab === "ioc_scanner" && (
             <div className="space-y-4">
-              <div className="p-3 bg-[#111827] border border-[#263248] rounded-lg space-y-2">
-                <label className="text-xs font-semibold text-[#F8FAFC] flex items-center gap-1.5">
-                  <Search className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <div className="p-3 bg-[#050505] border border-neutral-800 rounded-lg space-y-2">
+                <label className="text-xs font-semibold text-white flex items-center gap-1.5">
+                  <Search className="w-3.5 h-3.5 text-emerald-400" />
                   Threat Intelligence IOC Scanner
                 </label>
                 <div className="flex gap-2">
@@ -469,12 +469,12 @@ tags:
                     onChange={(e) => setIocQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleScanIOC()}
                     placeholder="Enter IP (e.g. 185.220.101.5), Domain, Hash, or CVE..."
-                    className="flex-1 bg-[#0B1020] border border-[#263248] rounded-lg px-3 py-2 text-xs text-[#F8FAFC] focus:outline-none focus:border-[#38BDF8]"
+                    className="flex-1 bg-black border border-neutral-800 rounded-lg px-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white"
                   />
                   <button
                     onClick={handleScanIOC}
                     disabled={iocScanning}
-                    className="px-4 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5"
+                    className="px-4 py-2 bg-white text-black text-xs font-semibold rounded-lg transition hover:bg-neutral-200 flex items-center gap-1.5"
                   >
                     {iocScanning ? <RotateCw className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
                     Scan IOC
@@ -483,35 +483,35 @@ tags:
               </div>
 
               {iocResult && (
-                <div className="p-4 bg-[#111827] border border-[#263248] rounded-lg space-y-4 animate-in fade-in">
-                  <div className="flex items-center justify-between border-b border-[#263248] pb-3">
+                <div className="p-4 bg-[#050505] border border-neutral-800 rounded-lg space-y-4 animate-in fade-in">
+                  <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
                     <div>
-                      <span className="text-[10px] font-mono uppercase text-[#64748B]">{iocResult.type}</span>
-                      <h4 className="font-mono text-sm font-bold text-[#F8FAFC]">{iocResult.indicator}</h4>
+                      <span className="text-[10px] font-mono uppercase text-neutral-500">{iocResult.type}</span>
+                      <h4 className="font-mono text-sm font-bold text-white">{iocResult.indicator}</h4>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 rounded text-xs font-bold bg-[#EF4444]/20 border border-[#EF4444]/40 text-[#EF4444]">
+                      <span className="px-2 py-1 rounded text-xs font-bold bg-red-500/20 border border-red-500/40 text-red-400">
                         {iocResult.verdict} (Risk: {iocResult.riskScore}/100)
                       </span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="p-2.5 bg-[#0B1020] rounded border border-[#263248]">
-                      <span className="text-[#64748B] text-[10px] block">GEOLOCATION / ASN</span>
-                      <span className="font-semibold text-[#F8FAFC]">{iocResult.country}</span>
+                    <div className="p-2.5 bg-black rounded border border-neutral-800">
+                      <span className="text-neutral-500 text-[10px] block">GEOLOCATION / ASN</span>
+                      <span className="font-semibold text-white">{iocResult.country}</span>
                     </div>
-                    <div className="p-2.5 bg-[#0B1020] rounded border border-[#263248]">
-                      <span className="text-[#64748B] text-[10px] block">INTERNAL CORRELATION</span>
-                      <span className="font-semibold text-[#F59E0B]">{iocResult.relatedAlertsCount} Linked Alerts</span>
+                    <div className="p-2.5 bg-black rounded border border-neutral-800">
+                      <span className="text-neutral-500 text-[10px] block">INTERNAL CORRELATION</span>
+                      <span className="font-semibold text-amber-400">{iocResult.relatedAlertsCount} Linked Alerts</span>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <span className="text-[10px] font-mono text-[#64748B] uppercase">Threat Classifications</span>
+                    <span className="text-[10px] font-mono text-neutral-500 uppercase">Threat Classifications</span>
                     <div className="flex flex-wrap gap-1.5">
                       {iocResult.tags.map((t: string, idx: number) => (
-                        <span key={idx} className="px-2 py-0.5 rounded bg-[#172033] border border-[#263248] text-[#38BDF8] text-[11px] font-mono">
+                        <span key={idx} className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-white text-[11px] font-mono">
                           {t}
                         </span>
                       ))}
@@ -519,12 +519,12 @@ tags:
                   </div>
 
                   <div className="space-y-1.5">
-                    <span className="text-[10px] font-mono text-[#64748B] uppercase">Mapped MITRE Techniques</span>
+                    <span className="text-[10px] font-mono text-neutral-500 uppercase">Mapped MITRE Techniques</span>
                     <div className="space-y-1">
                       {iocResult.mitreTechniques.map((m: string, idx: number) => (
-                        <div key={idx} className="p-2 rounded bg-[#0B1020] text-xs font-mono text-[#E2E8F0] border border-[#263248] flex items-center justify-between">
+                        <div key={idx} className="p-2 rounded bg-black text-xs font-mono text-neutral-200 border border-neutral-800 flex items-center justify-between">
                           <span>{m}</span>
-                          <span className="text-[10px] text-[#38BDF8]">Observed</span>
+                          <span className="text-[10px] text-emerald-400">Observed</span>
                         </div>
                       ))}
                     </div>
@@ -538,11 +538,11 @@ tags:
           {activeTab === "deobfuscator" && (
             <div className="space-y-4 text-xs">
               <div className="space-y-2">
-                <label className="font-semibold text-[#F8FAFC] flex items-center justify-between">
+                <label className="font-semibold text-white flex items-center justify-between">
                   <span>Obfuscated Command or Base64 String</span>
                   <button
                     onClick={() => setObfuscatedText("powershell -enc JABjAGwAaQBlAG4AdAAgAD0AIABOAGUAdwAtAE8AYgBqAGUAYwB0AA==")}
-                    className="text-[#38BDF8] text-[11px] hover:underline"
+                    className="text-emerald-400 text-[11px] hover:underline"
                   >
                     Load Sample Payload
                   </button>
@@ -552,11 +552,11 @@ tags:
                   onChange={(e) => setObfuscatedText(e.target.value)}
                   rows={4}
                   placeholder="Paste encoded Base64 / PowerShell / Hex payload..."
-                  className="w-full bg-[#111827] border border-[#263248] rounded-lg p-3 font-mono text-xs text-[#F8FAFC] focus:outline-none focus:border-[#38BDF8]"
+                  className="w-full bg-black border border-neutral-800 rounded-lg p-3 font-mono text-xs text-white focus:outline-none focus:border-white"
                 />
                 <button
                   onClick={handleDeobfuscate}
-                  className="w-full py-2 bg-[#0284C7] hover:bg-[#0369A1] font-semibold text-white rounded-lg transition"
+                  className="w-full py-2 bg-white text-black font-semibold rounded-lg hover:bg-neutral-200 transition"
                 >
                   ⚡ Decode & Deobfuscate
                 </button>
@@ -565,16 +565,16 @@ tags:
               {deobfuscatedResult && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[#10B981]">Clean Deobfuscated Output</span>
+                    <span className="font-semibold text-emerald-400">Clean Deobfuscated Output</span>
                     <button
                       onClick={() => copyToClipboard(deobfuscatedResult, "deob-res")}
-                      className="flex items-center gap-1 text-[11px] text-[#38BDF8] hover:underline"
+                      className="flex items-center gap-1 text-[11px] text-neutral-300 hover:text-white"
                     >
-                      {copiedId === "deob-res" ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+                      {copiedId === "deob-res" ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                       Copy Code
                     </button>
                   </div>
-                  <pre className="p-3 bg-[#0B1020] border border-[#263248] rounded-lg font-mono text-[11px] text-[#38BDF8] overflow-x-auto whitespace-pre-wrap">
+                  <pre className="p-3 bg-black border border-neutral-800 rounded-lg font-mono text-[11px] text-emerald-400 overflow-x-auto whitespace-pre-wrap">
                     {deobfuscatedResult}
                   </pre>
                 </div>
@@ -585,49 +585,49 @@ tags:
           {/* TAB 4: Sigma Rule Generator */}
           {activeTab === "sigma_gen" && (
             <div className="space-y-4 text-xs">
-              <div className="p-3 bg-[#111827] border border-[#263248] rounded-lg space-y-3">
-                <span className="font-semibold text-[#F8FAFC] block">Alert Telemetry Parameters</span>
+              <div className="p-3 bg-[#050505] border border-neutral-800 rounded-lg space-y-3">
+                <span className="font-semibold text-white block">Alert Telemetry Parameters</span>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <span className="text-[10px] text-[#64748B] block mb-1">Rule Title</span>
+                    <span className="text-[10px] text-neutral-500 block mb-1">Rule Title</span>
                     <input
                       type="text"
                       value={sigmaInput.title}
                       onChange={(e) => setSigmaInput({ ...sigmaInput, title: e.target.value })}
-                      className="w-full bg-[#0B1020] border border-[#263248] rounded px-2.5 py-1.5 text-xs text-[#F8FAFC]"
+                      className="w-full bg-black border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#64748B] block mb-1">Target Process</span>
+                    <span className="text-[10px] text-neutral-500 block mb-1">Target Process</span>
                     <input
                       type="text"
                       value={sigmaInput.process}
                       onChange={(e) => setSigmaInput({ ...sigmaInput, process: e.target.value })}
-                      className="w-full bg-[#0B1020] border border-[#263248] rounded px-2.5 py-1.5 text-xs text-[#F8FAFC]"
+                      className="w-full bg-black border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#64748B] block mb-1">Command Line Match</span>
+                    <span className="text-[10px] text-neutral-500 block mb-1">Command Line Match</span>
                     <input
                       type="text"
                       value={sigmaInput.commandline}
                       onChange={(e) => setSigmaInput({ ...sigmaInput, commandline: e.target.value })}
-                      className="w-full bg-[#0B1020] border border-[#263248] rounded px-2.5 py-1.5 text-xs text-[#F8FAFC]"
+                      className="w-full bg-black border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white"
                     />
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#64748B] block mb-1">MITRE Technique</span>
+                    <span className="text-[10px] text-neutral-500 block mb-1">MITRE Technique</span>
                     <input
                       type="text"
                       value={sigmaInput.technique}
                       onChange={(e) => setSigmaInput({ ...sigmaInput, technique: e.target.value })}
-                      className="w-full bg-[#0B1020] border border-[#263248] rounded px-2.5 py-1.5 text-xs text-[#F8FAFC]"
+                      className="w-full bg-black border border-neutral-800 rounded px-2.5 py-1.5 text-xs text-white"
                     />
                   </div>
                 </div>
                 <button
                   onClick={handleGenerateSigma}
-                  className="w-full py-2 bg-[#0284C7] hover:bg-[#0369A1] font-semibold text-white rounded-lg transition flex items-center justify-center gap-1.5"
+                  className="w-full py-2 bg-white text-black font-semibold rounded-lg hover:bg-neutral-200 transition flex items-center justify-center gap-1.5"
                 >
                   <FileCode className="w-3.5 h-3.5" />
                   Synthesize Sigma YAML
@@ -637,16 +637,16 @@ tags:
               {generatedSigma && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[#38BDF8]">Generated Sigma Specification</span>
+                    <span className="font-semibold text-white">Generated Sigma Specification</span>
                     <button
                       onClick={() => copyToClipboard(generatedSigma, "sigma-res")}
-                      className="flex items-center gap-1 text-[11px] text-[#38BDF8] hover:underline"
+                      className="flex items-center gap-1 text-[11px] text-neutral-400 hover:text-white"
                     >
-                      {copiedId === "sigma-res" ? <Check className="w-3 h-3 text-[#10B981]" /> : <Copy className="w-3 h-3" />}
+                      {copiedId === "sigma-res" ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                       Copy YAML
                     </button>
                   </div>
-                  <pre className="p-3 bg-[#0B1020] border border-[#263248] rounded-lg font-mono text-[11px] text-[#A7F3D0] overflow-x-auto whitespace-pre">
+                  <pre className="p-3 bg-black border border-neutral-800 rounded-lg font-mono text-[11px] text-neutral-200 overflow-x-auto whitespace-pre">
                     {generatedSigma}
                   </pre>
                 </div>

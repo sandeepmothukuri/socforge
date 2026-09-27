@@ -91,12 +91,12 @@ export function ThreatReportsTable({ reports = DEFAULT_REPORTS }: { reports?: Th
           {reports.map((rep) => (
             <tr key={rep.id} className="hover:bg-neutral-900/50 transition-colors">
               <td className="p-3 whitespace-nowrap">
-                <span className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[11px] font-medium text-sky-400">
+                <span className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[11px] font-medium text-white">
                   {rep.type}
                 </span>
               </td>
               <td className="p-3 font-medium text-white max-w-sm truncate">
-                <Link href="/intel" className="hover:text-sky-400 transition-colors font-semibold">
+                <Link href="/intel" className="hover:text-emerald-400 transition-colors font-semibold">
                   {rep.name}
                 </Link>
               </td>

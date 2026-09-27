@@ -30,7 +30,7 @@ export function TopVulnerabilitiesCard({ items = DEFAULT_CVES }: { items?: Vulne
       {items.map((cve) => (
         <div
           key={cve.cveId}
-          className="p-2.5 rounded-xl bg-[#050505] border border-neutral-800/80 hover:border-sky-500/40 hover:bg-neutral-900/60 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm"
+          className="p-2.5 rounded-xl bg-[#050505] border border-neutral-800/80 hover:border-white/40 hover:bg-neutral-900/60 transition-all duration-150 flex items-center justify-between gap-3 shadow-sm"
         >
           <div className="flex items-center gap-2.5 truncate">
             <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex-shrink-0">
@@ -54,7 +54,7 @@ export function TopVulnerabilitiesCard({ items = DEFAULT_CVES }: { items?: Vulne
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="font-mono text-xs font-bold text-sky-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
+            <span className="font-mono text-xs font-bold text-emerald-400 bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
               {cve.count}
             </span>
             <Link

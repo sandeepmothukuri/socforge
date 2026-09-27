@@ -120,9 +120,9 @@ export default function SimulationPage() {
 
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0B1020] text-[#F8FAFC]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#000000] text-white">
         {/* Header */}
-        <header className="h-16 border-b border-[#263248] bg-[#0E1626] px-6 flex items-center justify-between flex-shrink-0">
+        <header className="h-16 border-b border-neutral-800 bg-[#050505] px-6 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400">
               <Crosshair className="w-5 h-5" />
@@ -134,7 +134,7 @@ export default function SimulationPage() {
                   Atomic Red Team
                 </span>
               </h1>
-              <p className="text-[11px] text-[#64748B] font-mono">
+              <p className="text-[11px] text-neutral-400 font-mono">
                 Automated TTP execution against test endpoints & real-time detection validation verification
               </p>
             </div>
@@ -144,7 +144,7 @@ export default function SimulationPage() {
             <button
               onClick={handleRunAtomic}
               disabled={isRunning}
-              className="flex items-center gap-1.5 px-4 py-1.5 text-xs rounded-lg bg-red-600 hover:bg-red-500 text-white font-mono font-bold transition shadow-lg shadow-red-600/20 disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-2 text-xs rounded-lg bg-red-600 hover:bg-red-500 text-white font-mono font-bold transition shadow-lg disabled:opacity-50"
             >
               <Play className={`w-3.5 h-3.5 ${isRunning ? "animate-spin" : ""}`} />
               {isRunning ? "Simulating Attack..." : "Run Adversary Test"}
@@ -155,8 +155,8 @@ export default function SimulationPage() {
         {/* Content Body */}
         <div className="flex-1 flex overflow-hidden">
           {/* Atomic Catalog */}
-          <div className="w-80 border-r border-[#263248] bg-[#0E1626]/50 flex flex-col overflow-y-auto p-3 space-y-2 flex-shrink-0">
-            <div className="px-2 py-1 text-[11px] font-mono uppercase text-[#64748B] font-bold">
+          <div className="w-80 border-r border-neutral-800 bg-[#050505] flex flex-col overflow-y-auto p-3 space-y-2 flex-shrink-0">
+            <div className="px-2 py-1 text-[11px] font-mono uppercase text-neutral-500 font-bold">
               Atomic Emulation Catalog
             </div>
 
@@ -172,40 +172,40 @@ export default function SimulationPage() {
                   }}
                   className={`p-3 rounded-xl border transition cursor-pointer space-y-1.5 ${
                     isSelected
-                      ? "border-red-500 bg-[#172033] shadow-md shadow-red-500/10"
-                      : "border-[#263248] bg-[#0E1626] hover:border-red-500/40"
+                      ? "border-red-500 bg-neutral-900 shadow-md"
+                      : "border-neutral-800 bg-black hover:border-neutral-700"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono font-bold text-[#38BDF8]">
+                    <span className="text-[10px] font-mono font-bold text-white">
                       {test.technique}
                     </span>
-                    <span className="text-[10px] font-mono text-[#64748B] uppercase">
+                    <span className="text-[10px] font-mono text-neutral-400 uppercase">
                       {test.tactic}
                     </span>
                   </div>
                   <h3 className="text-xs font-bold text-white line-clamp-1">{test.name}</h3>
-                  <div className="text-[10px] font-mono text-[#94A3B8]">Target: {test.targetHost}</div>
+                  <div className="text-[10px] font-mono text-neutral-400">Target: {test.targetHost}</div>
                 </div>
               );
             })}
           </div>
 
           {/* Simulation Console & Execution Trace */}
-          <div className="flex-1 flex flex-col bg-[#0B1020] overflow-hidden">
+          <div className="flex-1 flex flex-col bg-[#000000] overflow-hidden">
             {/* Test Details Header */}
-            <div className="p-5 border-b border-[#263248] bg-[#0E1626] space-y-3">
+            <div className="p-5 border-b border-neutral-800 bg-[#050505] space-y-3">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1 font-mono text-xs">
                     <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 font-bold">
                       {selectedTest.technique}
                     </span>
-                    <span className="text-[#94A3B8]">Tactic: {selectedTest.tactic}</span>
-                    <span className="text-[#94A3B8]">• Target: <strong className="text-white">{selectedTest.targetHost}</strong></span>
+                    <span className="text-neutral-400">Tactic: {selectedTest.tactic}</span>
+                    <span className="text-neutral-400">• Target: <strong className="text-white">{selectedTest.targetHost}</strong></span>
                   </div>
                   <h2 className="text-base font-bold text-white">{selectedTest.name}</h2>
-                  <p className="text-xs text-[#94A3B8] mt-1">{selectedTest.description}</p>
+                  <p className="text-xs text-neutral-400 mt-1">{selectedTest.description}</p>
                 </div>
 
                 {/* Validation Badge */}
@@ -215,11 +215,11 @@ export default function SimulationPage() {
                       <CheckCircle2 className="w-4 h-4" /> DETECTION VERIFIED (100%)
                     </div>
                   ) : testStatus === "running" ? (
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#38BDF8]/20 border border-[#38BDF8] text-[#38BDF8] font-mono text-xs font-bold animate-pulse">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 border border-white text-white font-mono text-xs font-bold animate-pulse">
                       <RotateCw className="w-4 h-4 animate-spin" /> EMULATION IN-FLIGHT
                     </div>
                   ) : (
-                    <div className="px-3 py-1.5 rounded-lg bg-[#151C2E] border border-[#263248] text-[#94A3B8] font-mono text-xs">
+                    <div className="px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-400 font-mono text-xs">
                       READY TO EMULATE
                     </div>
                   )}
@@ -227,8 +227,8 @@ export default function SimulationPage() {
               </div>
 
               {/* Command Preview */}
-              <div className="p-3 rounded-lg bg-[#070C18] border border-[#263248] font-mono text-xs space-y-1">
-                <span className="text-[10px] text-[#64748B] uppercase block">Adversary Payload Command</span>
+              <div className="p-3 rounded-lg bg-black border border-neutral-800 font-mono text-xs space-y-1">
+                <span className="text-[10px] text-neutral-400 uppercase block">Adversary Payload Command</span>
                 <pre className="text-purple-300 whitespace-pre-wrap break-all text-[11px]">
                   {selectedTest.command}
                 </pre>
@@ -236,8 +236,8 @@ export default function SimulationPage() {
             </div>
 
             {/* Live Terminal Output */}
-            <div className="flex-1 p-6 overflow-y-auto font-mono text-xs text-[#F8FAFC] leading-relaxed bg-[#050811] space-y-2">
-              <div className="text-[#64748B] text-[11px] pb-2 border-b border-[#1E293B]">
+            <div className="flex-1 p-6 overflow-y-auto font-mono text-xs text-neutral-200 leading-relaxed bg-[#000000] space-y-2">
+              <div className="text-neutral-500 text-[11px] pb-2 border-b border-neutral-800">
                 {"// SOCForge Adversary Simulation Telemetry Log • Real-time Test Output"}
               </div>
               {simulationLogs.length > 0 ? (
@@ -247,7 +247,7 @@ export default function SimulationPage() {
                   </div>
                 ))
               ) : (
-                <div className="text-[#64748B] italic pt-4">
+                <div className="text-neutral-500 italic pt-4">
                   Click &quot;Run Adversary Test&quot; to emulate this TTP against the target endpoint and verify rule coverage.
                 </div>
               )}

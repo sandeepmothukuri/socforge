@@ -109,7 +109,7 @@ export function WorldThreatMap() {
                   cx={spot.x}
                   cy={spot.y}
                   r={isSelected ? "5.5" : "3.5"}
-                  fill={spot.threatLevel === "CRITICAL" ? "#EF4444" : "#38BDF8"}
+                  fill={spot.threatLevel === "CRITICAL" ? "#EF4444" : "#10B981"}
                   stroke="#FFFFFF"
                   strokeWidth="1.5"
                 />
@@ -141,16 +141,16 @@ export function WorldThreatMap() {
               </span>
             </div>
             <div className="text-neutral-300 text-[11px]">
-              Observed Attacks: <strong className="text-sky-400 font-mono">{active.attackCount} incidents</strong>
+              Observed Attacks: <strong className="text-emerald-400 font-mono">{active.attackCount} incidents</strong>
             </div>
-            <div className="text-[11px] text-purple-300">
+            <div className="text-[11px] text-neutral-300">
               Active Adversaries: {active.topThreat}
             </div>
           </div>
         )}
 
         <div className="absolute top-2 right-2 text-[10px] font-mono text-neutral-400 flex items-center gap-1.5 bg-[#000000]/90 px-2 py-1 rounded-md border border-neutral-800">
-          <Crosshair className="w-3 text-sky-400" />
+          <Crosshair className="w-3 text-emerald-400" />
           GEOINTEL SENSOR MESH
         </div>
       </div>
@@ -162,7 +162,7 @@ export function WorldThreatMap() {
             key={h.id}
             onClick={() => setSelectedHotspot(h)}
             className={`p-2 rounded-lg border transition-all cursor-pointer flex flex-col justify-between ${
-              active?.id === h.id ? "bg-neutral-800/90 border-sky-500 text-white shadow-sm" : "bg-[#050505] border-neutral-800/80 text-neutral-400 hover:text-neutral-200"
+              active?.id === h.id ? "bg-neutral-800/90 border-white text-white shadow-sm" : "bg-[#050505] border-neutral-800/80 text-neutral-400 hover:text-neutral-200"
             }`}
           >
             <div className="flex items-center justify-between font-semibold">

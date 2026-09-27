@@ -168,9 +168,9 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
   const getNodeColor = (type: GraphNode["type"]) => {
     switch (type) {
       case "user":
-        return { bg: "#0284C7", border: "#38BDF8", text: "#E0F2FE" };
+        return { bg: "#15803D", border: "#22C55E", text: "#DCFCE7" };
       case "host":
-        return { bg: "#4F46E5", border: "#818CF8", text: "#EEF2FF" };
+        return { bg: "#3F3F46", border: "#A1A1AA", text: "#FAFAFA" };
       case "process":
         return { bg: "#D97706", border: "#FBBF24", text: "#FEF3C7" };
       case "ip":
@@ -179,7 +179,7 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
       case "technique":
         return { bg: "#9333EA", border: "#C084FC", text: "#FAF5FF" };
       default:
-        return { bg: "#334155", border: "#64748B", text: "#F8FAFC" };
+        return { bg: "#262626", border: "#525252", text: "#F5F5F5" };
     }
   };
 
@@ -208,15 +208,15 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
   }, [nodes]);
 
   return (
-    <div className={`flex flex-col bg-[#0B1020] border border-[#263248] rounded-xl overflow-hidden ${isFullscreen ? "fixed inset-0 z-50 rounded-none" : "h-[620px]"}`}>
+    <div className={`flex flex-col bg-[#000000] border border-neutral-800 rounded-xl overflow-hidden shadow-2xl ${isFullscreen ? "fixed inset-0 z-50 rounded-none" : "h-[620px]"}`}>
       {/* Top Controls Toolbar */}
-      <div className="h-14 bg-[#111827] border-b border-[#263248] px-4 flex items-center justify-between">
+      <div className="h-14 bg-[#050505] border-b border-neutral-800 px-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 font-semibold text-xs text-[#F8FAFC]">
-            <ShieldAlert className="w-4 h-4 text-[#38BDF8]" />
+          <div className="flex items-center gap-1.5 font-semibold text-xs text-white">
+            <ShieldAlert className="w-4 h-4 text-emerald-400" />
             Adversary Attack Path & Evidence Graph
           </div>
-          <div className="h-4 w-px bg-[#263248]" />
+          <div className="h-4 w-px bg-neutral-800" />
           {/* Entity Type Filter */}
           <div className="flex items-center gap-1">
             {["all", "user", "host", "process", "ip", "technique"].map((t) => (
@@ -225,8 +225,8 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                 onClick={() => setSelectedType(t)}
                 className={`px-2.5 py-1 rounded text-[11px] font-medium capitalize transition ${
                   selectedType === t
-                    ? "bg-[#172033] text-[#38BDF8] border border-[#263248]"
-                    : "text-[#94A3B8] hover:text-[#F8FAFC] hover:bg-[#1E293B]"
+                    ? "bg-white text-black font-bold"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-900"
                 }`}
               >
                 {t}
@@ -237,25 +237,25 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
 
         <div className="flex items-center gap-2">
           {/* Zoom Controls */}
-          <div className="flex items-center bg-[#0B1020] border border-[#263248] rounded-lg p-0.5 text-xs text-[#94A3B8]">
+          <div className="flex items-center bg-[#000000] border border-neutral-800 rounded-lg p-0.5 text-xs text-neutral-400">
             <button
               onClick={() => setZoom((z) => Math.max(0.6, z - 0.1))}
-              className="p-1.5 hover:text-[#F8FAFC] hover:bg-[#1E293B] rounded transition"
+              className="p-1.5 hover:text-white hover:bg-neutral-900 rounded transition"
               title="Zoom Out"
             >
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="px-2 font-mono text-[10px]">{Math.round(zoom * 100)}%</span>
+            <span className="px-2 font-mono text-[10px] text-neutral-200">{Math.round(zoom * 100)}%</span>
             <button
               onClick={() => setZoom((z) => Math.min(1.6, z + 0.1))}
-              className="p-1.5 hover:text-[#F8FAFC] hover:bg-[#1E293B] rounded transition"
+              className="p-1.5 hover:text-white hover:bg-neutral-900 rounded transition"
               title="Zoom In"
             >
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => setZoom(1)}
-              className="p-1.5 hover:text-[#F8FAFC] hover:bg-[#1E293B] rounded transition"
+              className="p-1.5 hover:text-white hover:bg-neutral-900 rounded transition"
               title="Reset View"
             >
               <RefreshCw className="w-3.5 h-3.5" />
@@ -264,7 +264,7 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
 
           <button
             onClick={() => setIsFullscreen(!isFullscreen)}
-            className="p-2 text-[#94A3B8] hover:text-[#F8FAFC] bg-[#0B1020] border border-[#263248] rounded-lg transition"
+            className="p-2 text-neutral-400 hover:text-white bg-[#000000] border border-neutral-800 rounded-lg transition"
             title={isFullscreen ? "Exit Fullscreen" : "Fullscreen Graph"}
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -275,12 +275,12 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
       {/* Main Interactive Canvas & Detail Panel */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* SVG Canvas */}
-        <div className="flex-1 h-full overflow-hidden bg-[#070B14] relative cursor-grab active:cursor-grabbing">
+        <div className="flex-1 h-full overflow-hidden bg-[#000000] relative cursor-grab active:cursor-grabbing">
           {/* Subtle Grid Background */}
           <div
-            className="absolute inset-0 opacity-15"
+            className="absolute inset-0 opacity-20"
             style={{
-              backgroundImage: "radial-gradient(#38BDF8 1px, transparent 1px)",
+              backgroundImage: "radial-gradient(#333333 1px, transparent 1px)",
               backgroundSize: "24px 24px"
             }}
           />
@@ -299,7 +299,7 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                 refY="3"
                 orient="auto"
               >
-                <polygon points="0 0, 8 3, 0 6" fill="#64748B" />
+                <polygon points="0 0, 8 3, 0 6" fill="#525252" />
               </marker>
               <marker
                 id="arrowhead-active"
@@ -309,7 +309,7 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                 refY="3"
                 orient="auto"
               >
-                <polygon points="0 0, 8 3, 0 6" fill="#38BDF8" />
+                <polygon points="0 0, 8 3, 0 6" fill="#FFFFFF" />
               </marker>
             </defs>
 
@@ -332,7 +332,7 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                     y1={src.y}
                     x2={tgt.x}
                     y2={tgt.y}
-                    stroke={isConnectedToSelected ? "#38BDF8" : "#334155"}
+                    stroke={isConnectedToSelected ? "#FFFFFF" : "#333333"}
                     strokeWidth={isConnectedToSelected ? "2.5" : "1.5"}
                     strokeDasharray={edge.relationship === "BEACONED_TO" ? "4 4" : "none"}
                     markerEnd={isConnectedToSelected ? "url(#arrowhead-active)" : "url(#arrowhead)"}
@@ -341,7 +341,7 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                     x={midX}
                     y={midY - 5}
                     textAnchor="middle"
-                    fill={isConnectedToSelected ? "#38BDF8" : "#64748B"}
+                    fill={isConnectedToSelected ? "#FFFFFF" : "#737373"}
                     fontSize="9"
                     fontFamily="monospace"
                     className="select-none"
@@ -368,7 +368,7 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                   {(isSelected || node.riskScore > 90) && (
                     <circle
                       r="26"
-                      fill={node.riskScore > 90 ? "#EF4444" : "#38BDF8"}
+                      fill={node.riskScore > 90 ? "#EF4444" : "#FFFFFF"}
                       fillOpacity="0.2"
                       className="animate-pulse"
                     />
@@ -380,7 +380,7 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                     fill={style.bg}
                     stroke={isSelected ? "#FFFFFF" : style.border}
                     strokeWidth={isSelected ? "3" : "2"}
-                    filter="drop-shadow(0 4px 6px rgba(0,0,0,0.4))"
+                    filter="drop-shadow(0 4px 6px rgba(0,0,0,0.8))"
                   />
 
                   {/* Icon */}
@@ -396,15 +396,15 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                       width="120"
                       height="20"
                       rx="4"
-                      fill="#0F172A"
-                      stroke={isSelected ? "#38BDF8" : "#263248"}
+                      fill="#0A0A0A"
+                      stroke={isSelected ? "#FFFFFF" : "#262626"}
                       strokeWidth="1"
                     />
                     <text
                       x="0"
                       y="13"
                       textAnchor="middle"
-                      fill="#F8FAFC"
+                      fill="#FFFFFF"
                       fontSize="9.5"
                       fontWeight="600"
                       fontFamily="sans-serif"
@@ -436,8 +436,8 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
 
         {/* Node Inspector Drawer */}
         {selectedNode && (
-          <div className="w-80 border-l border-[#263248] bg-[#111827] flex flex-col h-full text-xs p-4 space-y-4 overflow-y-auto animate-in slide-in-from-right duration-200">
-            <div className="flex items-center justify-between border-b border-[#263248] pb-3">
+          <div className="w-80 border-l border-neutral-800 bg-[#050505] flex flex-col h-full text-xs p-4 space-y-4 overflow-y-auto animate-in slide-in-from-right duration-200">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
               <div className="flex items-center gap-2">
                 <div
                   className="w-7 h-7 rounded flex items-center justify-center text-white"
@@ -446,8 +446,8 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                   {getNodeIcon(selectedNode.type)}
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase text-[#64748B]">{selectedNode.type} Entity</span>
-                  <h4 className="font-semibold text-xs text-[#F8FAFC] truncate w-44">{selectedNode.label}</h4>
+                  <span className="text-[10px] font-mono uppercase text-neutral-500">{selectedNode.type} Entity</span>
+                  <h4 className="font-semibold text-xs text-white truncate w-44">{selectedNode.label}</h4>
                 </div>
               </div>
               <span className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] ${
@@ -461,21 +461,21 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
 
             {/* Entity Attributes */}
             <div className="space-y-2">
-              <span className="text-[10px] font-mono uppercase text-[#64748B]">Entity Telemetry</span>
+              <span className="text-[10px] font-mono uppercase text-neutral-500">Entity Telemetry</span>
               <div className="space-y-1.5">
                 {selectedNode.metadata &&
                   Object.entries(selectedNode.metadata).map(([key, val]) => (
-                    <div key={key} className="p-2 bg-[#0B1020] rounded border border-[#263248] flex justify-between">
-                      <span className="text-[#94A3B8] capitalize">{key.replace("_", " ")}</span>
-                      <span className="font-mono text-[#F8FAFC] font-medium">{String(val)}</span>
+                    <div key={key} className="p-2 bg-black rounded border border-neutral-800 flex justify-between">
+                      <span className="text-neutral-400 capitalize">{key.replace("_", " ")}</span>
+                      <span className="font-mono text-white font-medium">{String(val)}</span>
                     </div>
                   ))}
               </div>
             </div>
 
             {/* Quick Response Actions */}
-            <div className="space-y-2 pt-2 border-t border-[#263248]">
-              <span className="text-[10px] font-mono uppercase text-[#64748B]">Automated Containment Actions</span>
+            <div className="space-y-2 pt-2 border-t border-neutral-800">
+              <span className="text-[10px] font-mono uppercase text-neutral-500">Automated Containment Actions</span>
               <div className="space-y-1.5">
                 {selectedNode.type === "host" && (
                   <button className="w-full py-1.5 bg-[#EF4444]/20 hover:bg-[#EF4444]/30 border border-[#EF4444]/40 text-[#EF4444] rounded transition font-semibold flex items-center justify-center gap-1.5">
@@ -502,12 +502,12 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
       </div>
 
       {/* Bottom Attack Timeline Scrubber */}
-      <div className="h-16 bg-[#111827] border-t border-[#263248] px-6 flex items-center justify-between">
+      <div className="h-16 bg-[#050505] border-t border-neutral-800 px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Clock className="w-4 h-4 text-[#38BDF8]" />
+          <Clock className="w-4 h-4 text-emerald-400" />
           <div>
-            <span className="text-xs font-semibold text-[#F8FAFC]">Attack Kill Chain Timeline Scrubber</span>
-            <p className="text-[10px] text-[#94A3B8]">Slide to review attack progression step-by-step</p>
+            <span className="text-xs font-semibold text-white">Attack Kill Chain Timeline Scrubber</span>
+            <p className="text-[10px] text-neutral-400">Slide to review attack progression step-by-step</p>
           </div>
         </div>
 
@@ -519,21 +519,21 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
             step="1"
             value={timelineStep}
             onChange={(e) => setTimelineStep(Number(e.target.value))}
-            className="w-full accent-[#38BDF8] cursor-pointer"
+            className="w-full accent-white cursor-pointer"
           />
-          <span className="font-mono text-xs font-bold text-[#38BDF8] whitespace-nowrap">
+          <span className="font-mono text-xs font-bold text-white whitespace-nowrap">
             Stage {timelineStep} / 4
           </span>
         </div>
 
-        <div className="flex items-center gap-2 text-[11px] font-mono text-[#94A3B8]">
-          <span className={timelineStep >= 1 ? "text-[#38BDF8] font-bold" : "opacity-40"}>1. Initial Logon</span>
+        <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400">
+          <span className={timelineStep >= 1 ? "text-white font-bold" : "opacity-40"}>1. Initial Logon</span>
           <span>→</span>
-          <span className={timelineStep >= 2 ? "text-[#38BDF8] font-bold" : "opacity-40"}>2. PowerShell Exec</span>
+          <span className={timelineStep >= 2 ? "text-white font-bold" : "opacity-40"}>2. PowerShell Exec</span>
           <span>→</span>
-          <span className={timelineStep >= 3 ? "text-[#38BDF8] font-bold" : "opacity-40"}>3. LSASS Dump</span>
+          <span className={timelineStep >= 3 ? "text-white font-bold" : "opacity-40"}>3. LSASS Dump</span>
           <span>→</span>
-          <span className={timelineStep >= 4 ? "text-[#38BDF8] font-bold" : "opacity-40"}>4. C2 Exfil</span>
+          <span className={timelineStep >= 4 ? "text-white font-bold" : "opacity-40"}>4. C2 Exfil</span>
         </div>
       </div>
     </div>

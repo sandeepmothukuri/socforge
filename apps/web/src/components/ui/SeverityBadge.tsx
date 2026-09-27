@@ -31,16 +31,16 @@ export function SeverityBadge({ severity, size = "md", showDot = true }: Severit
       dot: "bg-[#F59E0B]",
     },
     low: {
-      bg: "bg-[#38BDF8]/15",
-      text: "text-[#38BDF8]",
-      border: "border-[#38BDF8]/40",
-      dot: "bg-[#38BDF8]",
+      bg: "bg-[#10B981]/15",
+      text: "text-[#10B981]",
+      border: "border-[#10B981]/40",
+      dot: "bg-[#10B981]",
     },
     informational: {
-      bg: "bg-[#6B7280]/15",
-      text: "text-[#A7B0C0]",
-      border: "border-[#6B7280]/40",
-      dot: "bg-[#6B7280]",
+      bg: "bg-neutral-900",
+      text: "text-neutral-300",
+      border: "border-neutral-800",
+      dot: "bg-neutral-400",
     },
   };
 
@@ -49,7 +49,7 @@ export function SeverityBadge({ severity, size = "md", showDot = true }: Severit
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 font-mono font-medium uppercase tracking-wider rounded border ${current.bg} ${current.text} ${current.border} ${sizeClasses}`}
+      className={`inline-flex items-center gap-1.5 font-mono font-medium uppercase tracking-wider rounded-md border ${current.bg} ${current.text} ${current.border} ${sizeClasses}`}
     >
       {showDot && <span className={`h-1.5 w-1.5 rounded-full ${current.dot}`} />}
       {severity}

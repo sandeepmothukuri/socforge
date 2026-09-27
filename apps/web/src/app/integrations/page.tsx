@@ -53,13 +53,13 @@ export default function IntegrationsPage() {
 
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0B1020] text-[#F8FAFC]">
-        <header className="h-16 border-b border-[#263248] bg-[#0E1626]/80 px-8 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#000000] text-white">
+        <header className="h-16 border-b border-neutral-800 bg-[#050505] px-8 flex items-center justify-between sticky top-0 z-20 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <Database className="w-5 h-5 text-[#38BDF8]" />
+            <Database className="w-5 h-5 text-emerald-400" />
             <div>
               <h1 className="text-sm font-bold tracking-tight text-white">Security Integrations & Connectors Hub</h1>
-              <p className="text-[11px] font-mono text-[#A7B0C0]">
+              <p className="text-[11px] font-mono text-neutral-400">
                 Vendor-Neutral Telemetry Adapters • AES-256 Vault Encryption • Live Diagnostics
               </p>
             </div>
@@ -69,7 +69,7 @@ export default function IntegrationsPage() {
             <button
               onClick={handleTestAll}
               disabled={batchTesting}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#38BDF8]/40 bg-[#38BDF8]/10 hover:bg-[#38BDF8]/20 text-[#38BDF8] transition"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white text-black hover:bg-neutral-200 transition font-bold"
             >
               <Activity className={`w-3.5 h-3.5 ${batchTesting ? "animate-spin" : ""}`} />
               <span>Test All Connectors</span>
@@ -77,9 +77,9 @@ export default function IntegrationsPage() {
 
             <button
               onClick={loadData}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#263248] bg-[#151C2E] hover:bg-[#172033] text-[#A7B0C0] hover:text-white transition"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-neutral-800 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#38BDF8]" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-white" : ""}`} />
               Refresh
             </button>
           </div>
@@ -87,15 +87,15 @@ export default function IntegrationsPage() {
 
         <div className="flex-1 p-8 overflow-y-auto max-w-6xl mx-auto w-full space-y-6">
           {/* Security & Vault Banner */}
-          <div className="p-4 rounded-xl bg-[#151C2E] border border-[#263248] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="p-4 rounded-xl bg-[#050505] border border-neutral-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4 text-[#22C55E]" />
+                <Lock className="w-4 h-4 text-emerald-400" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-white">
                   AES-256-GCM Vault Protected Credentials
                 </h3>
               </div>
-              <p className="text-xs text-[#A7B0C0]">
+              <p className="text-xs text-neutral-400">
                 API tokens, passwords, and private keys are encrypted at rest with AES-256-GCM authenticated encryption. Zero plaintext secrets in database.
               </p>
             </div>
@@ -112,12 +112,12 @@ export default function IntegrationsPage() {
               return (
                 <div
                   key={item.name}
-                  className="p-5 bg-[#151C2E] border border-[#263248] rounded-xl space-y-4 hover:border-[#38BDF8]/40 transition"
+                  className="p-5 bg-[#050505] border border-neutral-800 rounded-xl space-y-4 hover:border-neutral-700 transition"
                 >
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-sm font-bold text-white">{item.display_name}</h3>
-                      <span className="text-[11px] font-mono text-[#A7B0C0] uppercase block">
+                      <span className="text-[11px] font-mono text-neutral-400 uppercase block">
                         Type: {item.integration_type}
                       </span>
                     </div>
@@ -126,7 +126,7 @@ export default function IntegrationsPage() {
                       className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold ${
                         item.is_active
                           ? "bg-[#22C55E]/15 text-[#22C55E] border border-[#22C55E]/40"
-                          : "bg-[#172033] text-[#A7B0C0] border border-[#263248]"
+                          : "bg-neutral-900 text-neutral-400 border border-neutral-800"
                       }`}
                     >
                       {item.is_active ? "Active" : "Ready"}
@@ -134,14 +134,14 @@ export default function IntegrationsPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <span className="text-[10px] font-bold text-[#6B7280] uppercase tracking-wider block font-mono">
+                    <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider block font-mono">
                       Capabilities:
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {item.capabilities.map((cap) => (
                         <span
                           key={cap}
-                          className="px-2 py-0.5 rounded bg-[#111827] text-[#38BDF8] border border-[#263248] text-[10px] font-mono"
+                          className="px-2 py-0.5 rounded bg-neutral-900 text-white border border-neutral-800 text-[10px] font-mono"
                         >
                           {cap}
                         </span>
@@ -150,14 +150,14 @@ export default function IntegrationsPage() {
                   </div>
 
                   {res && (
-                    <div className="p-3 rounded-lg bg-[#0B1020] border border-[#263248] text-xs font-mono space-y-1">
+                    <div className="p-3 rounded-lg bg-black border border-neutral-800 text-xs font-mono space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-[#A7B0C0]">Diagnostic:</span>
-                        <span className={res.status === "healthy" ? "text-[#22C55E] font-bold" : "text-[#F59E0B] font-bold"}>
+                        <span className="text-neutral-400">Diagnostic:</span>
+                        <span className={res.status === "healthy" ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
                           {res.status.toUpperCase()}
                         </span>
                       </div>
-                      <pre className="text-[10px] text-[#A7B0C0] overflow-x-auto whitespace-pre-wrap max-h-24">
+                      <pre className="text-[10px] text-neutral-300 overflow-x-auto whitespace-pre-wrap max-h-24">
                         {JSON.stringify(res.details, null, 2)}
                       </pre>
                     </div>
@@ -166,9 +166,9 @@ export default function IntegrationsPage() {
                   <button
                     onClick={() => handleTest(item.name)}
                     disabled={testingName === item.name}
-                    className="w-full flex items-center justify-center gap-2 py-2 bg-[#111827] hover:bg-[#172033] border border-[#263248] text-white rounded-lg text-xs font-semibold transition"
+                    className="w-full flex items-center justify-center gap-2 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white rounded-lg text-xs font-semibold transition"
                   >
-                    <Activity className={`w-3.5 h-3.5 text-[#38BDF8] ${testingName === item.name ? "animate-spin" : ""}`} />
+                    <Activity className={`w-3.5 h-3.5 text-emerald-400 ${testingName === item.name ? "animate-spin" : ""}`} />
                     Test Connectivity
                   </button>
                 </div>

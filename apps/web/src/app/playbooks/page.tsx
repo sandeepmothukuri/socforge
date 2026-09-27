@@ -119,23 +119,23 @@ export default function PlaybooksPage() {
   const getNodeColor = (type: PlaybookNode["type"]) => {
     switch (type) {
       case "trigger":
-        return "border-amber-500/40 bg-amber-500/10 text-amber-300";
+        return "border-amber-500/40 bg-amber-950/20 text-amber-300";
       case "condition":
-        return "border-blue-500/40 bg-blue-500/10 text-blue-300";
+        return "border-neutral-600 bg-neutral-900/60 text-white";
       case "action":
-        return "border-red-500/40 bg-red-500/10 text-red-300";
+        return "border-red-500/40 bg-red-950/20 text-red-300";
       case "approval":
-        return "border-purple-500/40 bg-purple-500/10 text-purple-300";
+        return "border-purple-500/40 bg-purple-950/20 text-purple-300";
       case "notify":
-        return "border-emerald-500/40 bg-emerald-500/10 text-emerald-300";
+        return "border-emerald-500/40 bg-emerald-950/20 text-emerald-300";
     }
   };
 
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0B1020] text-[#F8FAFC]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#000000] text-white">
         {/* Header */}
-        <header className="h-16 border-b border-[#263248] bg-[#0E1626] px-6 flex items-center justify-between flex-shrink-0">
+        <header className="h-16 border-b border-neutral-800 bg-[#050505] px-6 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
               <ShieldCheck className="w-5 h-5" />
@@ -147,7 +147,7 @@ export default function PlaybooksPage() {
                   Automated IR
                 </span>
               </h1>
-              <p className="text-[11px] text-[#64748B] font-mono">
+              <p className="text-[11px] text-neutral-400 font-mono">
                 DAG automation workflows, conditional branching & Four-Eyes response triggers
               </p>
             </div>
@@ -157,7 +157,7 @@ export default function PlaybooksPage() {
             <button
               onClick={runPlaybookTest}
               disabled={isExecuting}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-mono font-bold transition shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+              className="flex items-center gap-1.5 px-4 py-2 text-xs rounded-lg bg-white hover:bg-neutral-200 text-black font-mono font-bold transition shadow-lg disabled:opacity-50"
             >
               <Play className={`w-3.5 h-3.5 ${isExecuting ? "animate-spin" : ""}`} />
               {isExecuting ? "Testing Playbook..." : "Execute Simulation"}
@@ -168,8 +168,8 @@ export default function PlaybooksPage() {
         {/* Content Workspace */}
         <div className="flex-1 flex overflow-hidden">
           {/* Playbook Sidebar Catalog */}
-          <div className="w-80 border-r border-[#263248] bg-[#0E1626]/60 flex flex-col overflow-y-auto p-3 space-y-2 flex-shrink-0">
-            <div className="px-2 py-1 text-[11px] font-mono uppercase text-[#64748B] font-bold">
+          <div className="w-80 border-r border-neutral-800 bg-[#050505] flex flex-col overflow-y-auto p-3 space-y-2 flex-shrink-0">
+            <div className="px-2 py-1 text-[11px] font-mono uppercase text-neutral-500 font-bold">
               SOAR Automation Catalog
             </div>
 
@@ -185,47 +185,47 @@ export default function PlaybooksPage() {
                   }}
                   className={`p-3 rounded-xl border transition cursor-pointer space-y-1.5 ${
                     isSelected
-                      ? "border-[#38BDF8] bg-[#172033] shadow-sm"
-                      : "border-[#263248] bg-[#0E1626] hover:border-[#38BDF8]/40"
+                      ? "border-white bg-neutral-900 shadow-sm"
+                      : "border-neutral-800 bg-black hover:border-neutral-700"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-mono font-bold text-emerald-400 uppercase">
                       ACTIVE (AUTO)
                     </span>
-                    <span className="text-[10px] font-mono text-[#64748B]">
+                    <span className="text-[10px] font-mono text-neutral-500">
                       {pb.nodes.length} Steps
                     </span>
                   </div>
                   <h3 className="text-xs font-bold text-white line-clamp-1">{pb.name}</h3>
-                  <p className="text-[11px] text-[#94A3B8] line-clamp-2">{pb.description}</p>
+                  <p className="text-[11px] text-neutral-400 line-clamp-2">{pb.description}</p>
                 </div>
               );
             })}
           </div>
 
           {/* Playbook Visual DAG Canvas & Debugger */}
-          <div className="flex-1 flex flex-col bg-[#0B1020] overflow-hidden">
+          <div className="flex-1 flex flex-col bg-[#000000] overflow-hidden">
             {/* Playbook Metadata Bar */}
-            <div className="p-4 border-b border-[#263248] bg-[#0E1626] flex items-center justify-between">
+            <div className="p-4 border-b border-neutral-800 bg-[#050505] flex items-center justify-between">
               <div>
                 <h2 className="text-sm font-bold text-white flex items-center gap-2">
                   {selectedPlaybook.name}
                 </h2>
-                <div className="text-xs font-mono text-[#94A3B8] mt-0.5">
-                  Trigger Expression: <span className="text-[#38BDF8]">{selectedPlaybook.triggerEvent}</span>
+                <div className="text-xs font-mono text-neutral-400 mt-0.5">
+                  Trigger Expression: <span className="text-white font-medium">{selectedPlaybook.triggerEvent}</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-2 text-xs font-mono">
-                <span className="px-2 py-1 rounded bg-[#172033] border border-[#263248] text-emerald-400 font-bold">
+                <span className="px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-emerald-400 font-bold">
                   SLA: &lt; 5s Auto-Response
                 </span>
               </div>
             </div>
 
             {/* Visual Workflow Nodes Flowchart */}
-            <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-start space-y-4 relative bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px]">
+            <div className="flex-1 overflow-y-auto p-8 flex flex-col items-center justify-start space-y-4 relative bg-[radial-gradient(#262626_1px,transparent_1px)] [background-size:16px_16px]">
               {selectedPlaybook.nodes.map((node, idx) => {
                 const isCurrent = executionStep === idx;
                 const isPassed = executionStep > idx;
@@ -235,7 +235,7 @@ export default function PlaybooksPage() {
                     <div
                       className={`w-full max-w-xl p-4 rounded-xl border transition-all duration-300 ${getNodeColor(node.type)} ${
                         isCurrent
-                          ? "ring-2 ring-[#38BDF8] shadow-lg shadow-[#38BDF8]/20 scale-105"
+                          ? "ring-2 ring-white shadow-lg shadow-white/10 scale-105"
                           : isPassed
                           ? "opacity-90"
                           : ""
@@ -244,7 +244,7 @@ export default function PlaybooksPage() {
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-black/40 border border-white/10">
+                            <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-black/60 border border-white/10">
                               Step {idx + 1}: {node.type}
                             </span>
                             {isPassed && (
@@ -253,18 +253,18 @@ export default function PlaybooksPage() {
                               </span>
                             )}
                             {isCurrent && (
-                              <span className="flex items-center gap-1 text-[10px] font-mono text-[#38BDF8] animate-pulse">
+                              <span className="flex items-center gap-1 text-[10px] font-mono text-white animate-pulse">
                                 <RotateCw className="w-3 h-3 animate-spin" /> In Flight...
                               </span>
                             )}
                           </div>
                           <h4 className="text-xs font-bold text-white">{node.title}</h4>
-                          <p className="text-[11px] text-[#94A3B8]">{node.subtitle}</p>
+                          <p className="text-[11px] text-neutral-300">{node.subtitle}</p>
                         </div>
 
-                        <div className="p-2 rounded-lg bg-black/30 border border-white/10">
+                        <div className="p-2 rounded-lg bg-black/50 border border-white/10">
                           {node.type === "trigger" && <Zap className="w-4 h-4 text-amber-400" />}
-                          {node.type === "condition" && <Settings className="w-4 h-4 text-blue-400" />}
+                          {node.type === "condition" && <Settings className="w-4 h-4 text-white" />}
                           {node.type === "action" && <Lock className="w-4 h-4 text-red-400" />}
                           {node.type === "approval" && <UserCheck className="w-4 h-4 text-purple-400" />}
                           {node.type === "notify" && <Mail className="w-4 h-4 text-emerald-400" />}
@@ -274,8 +274,8 @@ export default function PlaybooksPage() {
 
                     {idx < selectedPlaybook.nodes.length - 1 && (
                       <div className="flex flex-col items-center">
-                        <div className={`w-0.5 h-6 transition-all ${isPassed ? "bg-emerald-500" : "bg-[#263248]"}`} />
-                        <ArrowRight className={`w-4 h-4 rotate-90 -my-1 transition-all ${isPassed ? "text-emerald-500" : "text-[#64748B]"}`} />
+                        <div className={`w-0.5 h-6 transition-all ${isPassed ? "bg-emerald-500" : "bg-neutral-800"}`} />
+                        <ArrowRight className={`w-4 h-4 rotate-90 -my-1 transition-all ${isPassed ? "text-emerald-500" : "text-neutral-600"}`} />
                       </div>
                     )}
                   </React.Fragment>
@@ -285,8 +285,8 @@ export default function PlaybooksPage() {
 
             {/* Execution Debug Console */}
             {executionLog.length > 0 && (
-              <div className="h-40 border-t border-[#263248] bg-[#070C18] p-4 overflow-y-auto font-mono text-xs space-y-1 text-[#94A3B8]">
-                <div className="text-[11px] font-bold text-[#38BDF8] uppercase tracking-wider pb-1 border-b border-[#263248]">
+              <div className="h-40 border-t border-neutral-800 bg-[#050505] p-4 overflow-y-auto font-mono text-xs space-y-1 text-neutral-300">
+                <div className="text-[11px] font-bold text-white uppercase tracking-wider pb-1 border-b border-neutral-800">
                   Live SOAR Simulation Debug Trace
                 </div>
                 {executionLog.map((log, i) => (
