@@ -134,21 +134,21 @@ export default function ForensicsPage() {
 
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0B1020] text-[#F8FAFC]">
+      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#000000] text-neutral-100">
         {/* Header */}
-        <header className="h-16 border-b border-[#263248] bg-[#0E1626] px-6 flex items-center justify-between flex-shrink-0">
+        <header className="h-16 border-b border-[#262626] bg-[#050505]/95 px-6 flex items-center justify-between flex-shrink-0 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400">
+            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
               <Cpu className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-base font-bold text-white flex items-center gap-2">
+              <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
                 Malware Forensics & YARA Analysis Studio
-                <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30 font-mono font-normal">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono font-normal">
                   Hex & String Dissector
                 </span>
               </h1>
-              <p className="text-[11px] text-[#64748B] font-mono">
+              <p className="text-[11px] text-neutral-400 font-mono">
                 Static binary analysis, entropy calculation, string extraction & real-time YARA scanning
               </p>
             </div>
@@ -158,8 +158,8 @@ export default function ForensicsPage() {
         {/* Content Body */}
         <div className="flex-1 flex overflow-hidden">
           {/* Artifact Catalog */}
-          <div className="w-80 border-r border-[#263248] bg-[#0E1626]/50 flex flex-col overflow-y-auto p-3 space-y-2 flex-shrink-0">
-            <div className="px-2 py-1 text-[11px] font-mono uppercase text-[#64748B] font-bold">
+          <div className="w-80 border-r border-[#262626] bg-[#050505] flex flex-col overflow-y-auto p-3 space-y-2 flex-shrink-0">
+            <div className="px-2 py-1 text-[11px] font-mono uppercase text-neutral-400 font-bold">
               Evidence Artifacts
             </div>
 
@@ -174,59 +174,59 @@ export default function ForensicsPage() {
                   }}
                   className={`p-3 rounded-xl border transition cursor-pointer space-y-1.5 ${
                     isSelected
-                      ? "border-purple-500 bg-[#172033] shadow-md shadow-purple-500/10"
-                      : "border-[#263248] bg-[#0E1626] hover:border-purple-500/40"
+                      ? "border-white bg-[#121212]"
+                      : "border-[#262626] bg-[#0A0A0A] hover:border-neutral-500"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/30">
                       {art.threatLevel}
                     </span>
-                    <span className="text-[10px] font-mono text-[#64748B]">
+                    <span className="text-[10px] font-mono text-neutral-500">
                       {(art.sizeBytes / 1024).toFixed(0)} KB
                     </span>
                   </div>
                   <h3 className="text-xs font-bold text-white line-clamp-1">{art.filename}</h3>
-                  <div className="text-[10px] font-mono text-[#94A3B8]">Entropy: {art.entropy} / 8.0</div>
+                  <div className="text-[10px] font-mono text-neutral-400">Entropy: {art.entropy} / 8.0</div>
                 </div>
               );
             })}
           </div>
 
           {/* Artifact Inspector & YARA Workspace */}
-          <div className="flex-1 flex flex-col bg-[#0B1020] overflow-y-auto p-6 space-y-6">
+          <div className="flex-1 flex flex-col bg-[#000000] overflow-y-auto p-6 space-y-6">
             {/* Artifact Metadata Banner */}
-            <div className="p-6 rounded-2xl bg-[#0E1626] border border-[#263248] space-y-4">
+            <div className="p-6 rounded-2xl bg-[#050505] border border-[#262626] space-y-4">
               <div className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-mono text-xs font-bold">
                       {selectedArtifact.threatLevel}
                     </span>
-                    <span className="text-xs font-mono text-[#94A3B8]">{selectedArtifact.filetype}</span>
+                    <span className="text-xs font-mono text-neutral-400">{selectedArtifact.filetype}</span>
                   </div>
                   <h2 className="text-lg font-bold text-white font-mono">{selectedArtifact.filename}</h2>
                 </div>
 
                 <div className="text-right font-mono text-xs">
-                  <div className="text-[#64748B]">Entropy (Packing Score)</div>
-                  <div className="text-base font-bold text-purple-400">
-                    {selectedArtifact.entropy} / 8.00 <span className="text-[10px] text-red-400">(HIGHLY PACKED)</span>
+                  <div className="text-neutral-500">Entropy (Packing Score)</div>
+                  <div className="text-base font-bold text-amber-400">
+                    {selectedArtifact.entropy} / 8.00 <span className="text-[10px] text-red-400 font-bold">(HIGHLY PACKED)</span>
                   </div>
                 </div>
               </div>
 
               {/* Hashes */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-mono">
-                <div className="p-2.5 rounded-lg bg-black border border-neutral-800 flex items-center justify-between">
+                <div className="p-2.5 rounded-xl bg-[#0A0A0A] border border-[#262626] flex items-center justify-between">
                   <span className="text-neutral-400">MD5: <strong className="text-white">{selectedArtifact.md5}</strong></span>
-                  <button onClick={() => copyText(selectedArtifact.md5, "md5")} className="text-white hover:text-emerald-400 text-[10px] font-bold">
+                  <button onClick={() => copyText(selectedArtifact.md5, "md5")} className="text-neutral-300 hover:text-white text-[10px] font-bold">
                     {copiedHash === "md5" ? "Copied" : "Copy"}
                   </button>
                 </div>
-                <div className="p-2.5 rounded-lg bg-black border border-neutral-800 flex items-center justify-between">
+                <div className="p-2.5 rounded-xl bg-[#0A0A0A] border border-[#262626] flex items-center justify-between">
                   <span className="text-neutral-400 truncate max-w-xs">SHA256: <strong className="text-white">{selectedArtifact.sha256}</strong></span>
-                  <button onClick={() => copyText(selectedArtifact.sha256, "sha256")} className="text-white hover:text-emerald-400 text-[10px] font-bold">
+                  <button onClick={() => copyText(selectedArtifact.sha256, "sha256")} className="text-neutral-300 hover:text-white text-[10px] font-bold">
                     {copiedHash === "sha256" ? "Copied" : "Copy"}
                   </button>
                 </div>
@@ -236,12 +236,12 @@ export default function ForensicsPage() {
             {/* Hex View & Strings Dissector */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Hex Dump */}
-              <div className="p-4 rounded-xl bg-[#050505] border border-neutral-800 space-y-3 font-mono text-xs flex flex-col">
-                <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+              <div className="p-4 rounded-2xl bg-[#050505] border border-[#262626] space-y-3 font-mono text-xs flex flex-col">
+                <div className="flex items-center justify-between border-b border-[#262626] pb-2">
                   <span className="font-bold text-white uppercase tracking-wider">Hex Memory Dump Preview</span>
                   <span className="text-[10px] text-neutral-500">Offset: 0x00000000</span>
                 </div>
-                <div className="p-3 bg-black rounded-lg border border-neutral-800 overflow-x-auto text-[11px] text-emerald-400 space-y-0.5 leading-tight">
+                <div className="p-3 bg-[#000000] rounded-xl border border-[#262626] overflow-x-auto text-[11px] text-emerald-400 space-y-0.5 leading-tight">
                   {selectedArtifact.hexPreview.map((line, i) => (
                     <div key={i}>{line}</div>
                   ))}
@@ -249,8 +249,8 @@ export default function ForensicsPage() {
               </div>
 
               {/* Extracted ASCII/Unicode Strings */}
-              <div className="p-4 rounded-xl bg-[#0E1626] border border-[#263248] space-y-3 font-mono text-xs flex flex-col">
-                <div className="flex items-center justify-between border-b border-[#263248] pb-2">
+              <div className="p-4 rounded-2xl bg-[#050505] border border-[#262626] space-y-3 font-mono text-xs flex flex-col">
+                <div className="flex items-center justify-between border-b border-[#262626] pb-2">
                   <span className="font-bold text-white uppercase tracking-wider">
                     High-Signal Extracted Strings ({selectedArtifact.extractedStrings.length})
                   </span>
@@ -258,7 +258,7 @@ export default function ForensicsPage() {
                 </div>
                 <div className="space-y-1.5 overflow-y-auto max-h-56">
                   {selectedArtifact.extractedStrings.map((str, idx) => (
-                    <div key={idx} className="p-2 rounded bg-[#0B1020] border border-[#263248] text-[11px] text-purple-300 font-mono">
+                    <div key={idx} className="p-2 rounded-lg bg-[#0A0A0A] border border-[#262626] text-[11px] text-neutral-200 font-mono">
                       {str}
                     </div>
                   ))}
@@ -267,7 +267,7 @@ export default function ForensicsPage() {
             </div>
 
             {/* YARA Rule Compiler & Test Runner */}
-            <div className="p-5 rounded-2xl bg-[#0E1626] border border-[#263248] space-y-4 font-mono text-xs">
+            <div className="p-5 rounded-2xl bg-[#050505] border border-[#262626] space-y-4 font-mono text-xs">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileCode className="w-4 h-4 text-emerald-400" />
@@ -278,7 +278,7 @@ export default function ForensicsPage() {
                 <button
                   onClick={handleRunYara}
                   disabled={yaraRunning}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition shadow-lg shadow-emerald-600/20 disabled:opacity-50"
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-white hover:bg-neutral-200 text-black font-bold transition disabled:opacity-50"
                 >
                   <Play className={`w-3.5 h-3.5 ${yaraRunning ? "animate-spin" : ""}`} />
                   {yaraRunning ? "Compiling..." : "Scan with YARA"}
@@ -289,7 +289,7 @@ export default function ForensicsPage() {
                 value={yaraRule}
                 onChange={(e) => setYaraRule(e.target.value)}
                 rows={8}
-                className="w-full p-4 bg-[#000000] border border-[#262626] rounded-xl font-mono text-xs text-neutral-100 leading-relaxed focus:outline-none focus:border-emerald-500"
+                className="w-full p-4 bg-[#000000] border border-[#262626] rounded-xl font-mono text-xs text-neutral-100 leading-relaxed focus:outline-none focus:border-white"
               />
 
               {yaraResult && (
@@ -298,7 +298,7 @@ export default function ForensicsPage() {
                     <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     YARA MATCH CONFIRMED: Rule &quot;Detect_Mimikatz_Sekurlsa&quot; triggered on {selectedArtifact.filename}
                   </div>
-                  <div className="text-[11px] text-[#94A3B8] space-y-1">
+                  <div className="text-[11px] text-neutral-400 space-y-1">
                     <div>Matched signature strings:</div>
                     {yaraResult.matchedStrings.map((s, i) => (
                       <div key={i} className="text-emerald-400 pl-2 font-bold">• {s}</div>
