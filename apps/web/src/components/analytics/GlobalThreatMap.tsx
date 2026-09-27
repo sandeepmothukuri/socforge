@@ -21,9 +21,11 @@ import {
   Server,
   Crosshair,
   MapPin,
-  AlertTriangle
+  Filter
 } from "lucide-react";
 import worldMapData from "./worldMapData.json";
+
+export type ThreatSeverity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
 export interface ThreatArc {
   id: string;
@@ -40,14 +42,64 @@ export interface ThreatArc {
   technique: string;
   mitreId: string;
   protocol: string;
-  severity: "CRITICAL" | "HIGH" | "MEDIUM";
+  severity: ThreatSeverity;
   status: "BLOCKED_BY_SOAR" | "WAF_DROP" | "CONTAINED" | "INVESTIGATING";
-  color: string;
+  color: string; // Dynamic according to severity
   timestamp: string;
 }
 
-// ALL THREAT ARCS ARE BRIGHT RED DOTTED TRAJECTORIES
+// User-specified Severity Colors:
+// - CRITICAL: Dotted Dark Red (#dc2626)
+// - HIGH: Dotted Light Red (#f87171)
+// - MEDIUM: Dotted Blue (#38bdf8)
+// - LOW: Dotted Green (#22c55e)
+export const SEVERITY_CONFIG: Record<
+  ThreatSeverity,
+  {
+    color: string;
+    glowFilter: string;
+    label: string;
+    bgClass: string;
+    borderClass: string;
+    textClass: string;
+  }
+> = {
+  CRITICAL: {
+    color: "#dc2626", // Dotted Dark Red
+    glowFilter: "url(#glowDarkRed)",
+    label: "CRITICAL",
+    bgClass: "bg-red-950/80",
+    borderClass: "border-red-600/50",
+    textClass: "text-red-400"
+  },
+  HIGH: {
+    color: "#f87171", // Dotted Light Red
+    glowFilter: "url(#glowLightRed)",
+    label: "HIGH",
+    bgClass: "bg-rose-950/60",
+    borderClass: "border-rose-400/40",
+    textClass: "text-rose-300"
+  },
+  MEDIUM: {
+    color: "#38bdf8", // Dotted Blue
+    glowFilter: "url(#glowBlue)",
+    label: "MEDIUM",
+    bgClass: "bg-sky-950/60",
+    borderClass: "border-sky-400/40",
+    textClass: "text-sky-300"
+  },
+  LOW: {
+    color: "#22c55e", // Dotted Green
+    glowFilter: "url(#glowGreen)",
+    label: "LOW",
+    bgClass: "bg-emerald-950/60",
+    borderClass: "border-emerald-400/40",
+    textClass: "text-emerald-300"
+  }
+};
+
 export const INITIAL_THREAT_ARCS: ThreatArc[] = [
+  // 1. CRITICAL — Dotted Dark Red (#dc2626)
   {
     id: "arc-01",
     sourceCity: "Moscow",
@@ -65,31 +117,11 @@ export const INITIAL_THREAT_ARCS: ThreatArc[] = [
     protocol: "HTTPS / TLS 1.3",
     severity: "CRITICAL",
     status: "BLOCKED_BY_SOAR",
-    color: "#ef4444", // Bright Red
+    color: SEVERITY_CONFIG.CRITICAL.color, // Dotted Dark Red
     timestamp: "12s ago"
   },
   {
     id: "arc-02",
-    sourceCity: "Shanghai",
-    sourceCountry: "CN",
-    sourceIp: "112.90.44.18",
-    sourceAsn: "AS4134 (Chinanet)",
-    sourceCoords: [31.23, 121.47],
-    targetCity: "Frankfurt (EU-Central GCP)",
-    targetRegion: "GCP Kubernetes Cluster",
-    targetVpc: "gcp-prod-k8s-de",
-    targetCoords: [50.11, 8.68],
-    threatActor: "Volt Typhoon",
-    technique: "Living-Off-The-Land PowerShell Discovery",
-    mitreId: "T1059.001",
-    protocol: "SSH / Port 2222",
-    severity: "CRITICAL",
-    status: "CONTAINED",
-    color: "#ef4444", // Bright Red
-    timestamp: "45s ago"
-  },
-  {
-    id: "arc-03",
     sourceCity: "Pyongyang",
     sourceCountry: "KP",
     sourceIp: "175.45.176.8",
@@ -105,7 +137,29 @@ export const INITIAL_THREAT_ARCS: ThreatArc[] = [
     protocol: "WSS / Port 443",
     severity: "CRITICAL",
     status: "BLOCKED_BY_SOAR",
-    color: "#ef4444", // Bright Red
+    color: SEVERITY_CONFIG.CRITICAL.color, // Dotted Dark Red
+    timestamp: "38s ago"
+  },
+
+  // 2. HIGH — Dotted Light Red (#f87171)
+  {
+    id: "arc-03",
+    sourceCity: "Shanghai",
+    sourceCountry: "CN",
+    sourceIp: "112.90.44.18",
+    sourceAsn: "AS4134 (Chinanet)",
+    sourceCoords: [31.23, 121.47],
+    targetCity: "Frankfurt (EU-Central GCP)",
+    targetRegion: "GCP Kubernetes Cluster",
+    targetVpc: "gcp-prod-k8s-de",
+    targetCoords: [50.11, 8.68],
+    threatActor: "Volt Typhoon",
+    technique: "Living-Off-The-Land PowerShell Discovery",
+    mitreId: "T1059.001",
+    protocol: "SSH / Port 2222",
+    severity: "HIGH",
+    status: "CONTAINED",
+    color: SEVERITY_CONFIG.HIGH.color, // Dotted Light Red
     timestamp: "1m ago"
   },
   {
@@ -125,9 +179,11 @@ export const INITIAL_THREAT_ARCS: ThreatArc[] = [
     protocol: "IPsec / IKEv2",
     severity: "HIGH",
     status: "WAF_DROP",
-    color: "#ef4444", // Bright Red
+    color: SEVERITY_CONFIG.HIGH.color, // Dotted Light Red
     timestamp: "2m ago"
   },
+
+  // 3. MEDIUM — Dotted Blue (#38bdf8)
   {
     id: "arc-05",
     sourceCity: "Bucharest",
@@ -143,9 +199,9 @@ export const INITIAL_THREAT_ARCS: ThreatArc[] = [
     technique: "Automated MFA Push Fatigue Spray",
     mitreId: "T1621",
     protocol: "RADIUS / OAuth2",
-    severity: "HIGH",
+    severity: "MEDIUM",
     status: "BLOCKED_BY_SOAR",
-    color: "#ef4444", // Bright Red
+    color: SEVERITY_CONFIG.MEDIUM.color, // Dotted Blue
     timestamp: "3m ago"
   },
   {
@@ -163,10 +219,32 @@ export const INITIAL_THREAT_ARCS: ThreatArc[] = [
     technique: "Spearphishing OAuth Delegated Token Exfiltration",
     mitreId: "T1528",
     protocol: "HTTPS / REST API",
-    severity: "HIGH",
+    severity: "MEDIUM",
     status: "BLOCKED_BY_SOAR",
-    color: "#ef4444", // Bright Red
+    color: SEVERITY_CONFIG.MEDIUM.color, // Dotted Blue
     timestamp: "4m ago"
+  },
+
+  // 4. LOW — Dotted Green (#22c55e)
+  {
+    id: "arc-07",
+    sourceCity: "Amsterdam",
+    sourceCountry: "NL",
+    sourceIp: "185.107.56.204",
+    sourceAsn: "AS49981 (WorldStream)",
+    sourceCoords: [52.37, 4.89],
+    targetCity: "Ashburn (US-East AWS)",
+    targetRegion: "AWS VPC Production",
+    targetVpc: "vpc-prod-east-01",
+    targetCoords: [39.04, -77.48],
+    threatActor: "DarkGate Scanner",
+    technique: "Perimeter TLS Certificate Enumeration",
+    mitreId: "T1595.002",
+    protocol: "HTTPS / Port 8443",
+    severity: "LOW",
+    status: "WAF_DROP",
+    color: SEVERITY_CONFIG.LOW.color, // Dotted Green
+    timestamp: "6m ago"
   }
 ];
 
@@ -210,6 +288,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
   const [arcs, setArcs] = useState<ThreatArc[]>(INITIAL_THREAT_ARCS);
   const [selectedArc, setSelectedArc] = useState<ThreatArc>(INITIAL_THREAT_ARCS[0]);
   const [selectedActor, setSelectedActor] = useState<string>("ALL");
+  const [selectedSeverity, setSelectedSeverity] = useState<string>("ALL");
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [audioEnabled, setAudioEnabled] = useState<boolean>(false);
   const [copiedIoc, setCopiedIoc] = useState<boolean>(false);
@@ -265,19 +344,30 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
     }
   };
 
-  // Periodic threat stream with RED DOTTED LINES
+  // Periodic threat stream with dynamic severities (Critical, High, Medium, Low)
   useEffect(() => {
     if (!isPlaying) return;
     const interval = setInterval(() => {
-      const candidates = [
-        { city: "Shenzhen", country: "CN", ip: "183.14.30.99", asn: "AS4134", coords: [22.54, 114.05], actor: "Volt Typhoon", tech: "Living-off-the-Land WMI Query", mitre: "T1047" },
-        { city: "Khabarovsk", country: "RU", ip: "92.38.150.12", asn: "AS12389", coords: [48.48, 135.07], actor: "APT29 (Nobelium)", tech: "Active Directory Kerberoasting", mitre: "T1558.003" },
-        { city: "Hanoi", country: "VN", ip: "118.70.180.45", asn: "AS7552", coords: [21.02, 105.83], actor: "OceanLotus", tech: "Cobalt Strike HTTPS Injection", mitre: "T1055.002" },
-        { city: "Kazan", country: "RU", ip: "178.208.76.10", asn: "AS31133", coords: [55.79, 49.12], actor: "Sandworm Team", tech: "ICS/SCADA Modbus Protocol Spoof", mitre: "T0855" }
+      const candidates: Array<{
+        city: string;
+        country: string;
+        ip: string;
+        asn: string;
+        coords: [number, number];
+        actor: string;
+        tech: string;
+        mitre: string;
+        severity: ThreatSeverity;
+      }> = [
+        { city: "Shenzhen", country: "CN", ip: "183.14.30.99", asn: "AS4134", coords: [22.54, 114.05], actor: "Volt Typhoon", tech: "WMI Query Execution", mitre: "T1047", severity: "HIGH" },
+        { city: "Khabarovsk", country: "RU", ip: "92.38.150.12", asn: "AS12389", coords: [48.48, 135.07], actor: "APT29 (Nobelium)", tech: "Kerberos TGT Ticket Theft", mitre: "T1558.001", severity: "CRITICAL" },
+        { city: "Hanoi", country: "VN", ip: "118.70.180.45", asn: "AS7552", coords: [21.02, 105.83], actor: "OceanLotus", tech: "Shellcode In-Memory Injection", mitre: "T1055.002", severity: "MEDIUM" },
+        { city: "Frankfurt", country: "DE", ip: "193.142.146.88", asn: "AS201814", coords: [50.11, 8.68], actor: "Mirai Botnet Probe", tech: "Telnet Default Credential Sweep", mitre: "T1110.001", severity: "LOW" }
       ];
       const targetList = DEFENSE_DATACENTERS;
       const pickSource = candidates[Math.floor(Math.random() * candidates.length)];
       const pickTarget = targetList[Math.floor(Math.random() * targetList.length)];
+      const config = SEVERITY_CONFIG[pickSource.severity];
 
       const newArc: ThreatArc = {
         id: `arc-${Date.now().toString().slice(-4)}`,
@@ -285,7 +375,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
         sourceCountry: pickSource.country,
         sourceIp: pickSource.ip,
         sourceAsn: pickSource.asn,
-        sourceCoords: pickSource.coords as [number, number],
+        sourceCoords: pickSource.coords,
         targetCity: pickTarget.name,
         targetRegion: pickTarget.label,
         targetVpc: pickTarget.vpcId,
@@ -294,24 +384,27 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
         technique: pickSource.tech,
         mitreId: pickSource.mitre,
         protocol: "TLS 1.3 / Ingress Drop",
-        severity: "CRITICAL",
+        severity: pickSource.severity,
         status: "BLOCKED_BY_SOAR",
-        color: "#ef4444", // Bright Red Dotted Arc
+        color: config.color,
         timestamp: "just now"
       };
 
-      setArcs((prev) => [newArc, ...prev.slice(0, 7)]);
+      setArcs((prev) => [newArc, ...prev.slice(0, 8)]);
       playRadarPing();
     }, 9000);
 
     return () => clearInterval(interval);
   }, [isPlaying, audioEnabled]);
 
-  // Filter arcs by selected threat actor
+  // Filter arcs by selected actor AND severity
   const filteredArcs = useMemo(() => {
-    if (selectedActor === "ALL") return arcs;
-    return arcs.filter((a) => a.threatActor.toLowerCase().includes(selectedActor.toLowerCase()));
-  }, [arcs, selectedActor]);
+    return arcs.filter((a) => {
+      const matchActor = selectedActor === "ALL" || a.threatActor.toLowerCase().includes(selectedActor.toLowerCase());
+      const matchSeverity = selectedSeverity === "ALL" || a.severity === selectedSeverity;
+      return matchActor && matchSeverity;
+    });
+  }, [arcs, selectedActor, selectedSeverity]);
 
   // Zoom handlers
   const handleZoom = (direction: "in" | "out" | "reset") => {
@@ -345,7 +438,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
     }
   };
 
-  // Simulate Ingress Action (Bright Red Dotted Arc)
+  // Simulate Ingress Action (injects critical dark red or high light red)
   const handleSimulateNewAttack = () => {
     const randomTarget = DEFENSE_DATACENTERS[Math.floor(Math.random() * DEFENSE_DATACENTERS.length)];
     const simArc: ThreatArc = {
@@ -365,15 +458,15 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
       protocol: "UDP / WireGuard 51820",
       severity: "CRITICAL",
       status: "BLOCKED_BY_SOAR",
-      color: "#ef4444", // Bright Red
+      color: SEVERITY_CONFIG.CRITICAL.color, // Dotted Dark Red
       timestamp: "just now"
     };
 
-    setArcs((prev) => [simArc, ...prev.slice(0, 7)]);
+    setArcs((prev) => [simArc, ...prev.slice(0, 8)]);
     setSelectedArc(simArc);
     playRadarPing();
 
-    setToastMessage(`[SOAR TRIGGER] Intercepted zero-day red trajectory from ${simArc.sourceCity} (${simArc.sourceIp}) -> ${randomTarget.label}`);
+    setToastMessage(`[SOAR TRIGGER] Intercepted zero-day trajectory from ${simArc.sourceCity} (${simArc.sourceIp}) -> ${randomTarget.label}`);
     setTimeout(() => setToastMessage(null), 4000);
   };
 
@@ -436,7 +529,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
               </span>
             </div>
             <p className="text-[11px] text-slate-400">
-              Clear cartographic world visualization • Active red dotted attack vectors & C2 defense perimeter.
+              Real-time threat vectors classified by severity • Clear cartographic continents & precision defense barriers.
             </p>
           </div>
         </div>
@@ -480,53 +573,108 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
         </div>
       </div>
 
-      {/* Secondary Controls & Filter Strip */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-2.5 bg-[#030610] border-b border-[#1e293b] text-xs">
-        {/* Threat Actor Filter Pills */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] text-slate-400 uppercase font-bold mr-1 flex items-center gap-1">
-            <Crosshair className="w-3 h-3 text-red-400" /> Actor:
+      {/* Severity Color-Coding Legend & Actor Filter Bar */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 px-5 py-2.5 bg-[#030610] border-b border-[#1e293b] text-xs">
+        {/* SEVERITY DOTTED COLOR LEGEND & FILTER */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] text-slate-400 uppercase font-mono font-bold mr-1 flex items-center gap-1">
+            <Filter className="w-3 h-3 text-cyan-400" /> SEVERITY:
           </span>
-          {["ALL", "APT29", "Volt Typhoon", "Lazarus", "Sandworm", "FIN7"].map((actor) => (
-            <button
-              key={actor}
-              onClick={() => setSelectedActor(actor)}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition font-mono ${
-                selectedActor === actor
-                  ? "bg-red-600 text-white shadow-md shadow-red-600/30"
-                  : "bg-slate-900/80 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800"
-              }`}
-            >
-              {actor}
-            </button>
-          ))}
+
+          {/* ALL */}
+          <button
+            onClick={() => setSelectedSeverity("ALL")}
+            className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold transition ${
+              selectedSeverity === "ALL"
+                ? "bg-white text-black shadow-sm"
+                : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+            }`}
+          >
+            ALL
+          </button>
+
+          {/* CRITICAL: Dotted Dark Red */}
+          <button
+            onClick={() => setSelectedSeverity(selectedSeverity === "CRITICAL" ? "ALL" : "CRITICAL")}
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition ${
+              selectedSeverity === "CRITICAL"
+                ? "bg-red-950 text-red-300 border-red-500 shadow-sm shadow-red-900/50"
+                : "bg-slate-900/80 text-red-400 border-red-900/40 hover:bg-red-950/40"
+            }`}
+            title="Dotted Dark Red: Critical Severity Threats"
+          >
+            <span className="inline-block w-3 border-b-2 border-dashed border-[#dc2626]" />
+            <span>CRITICAL (Dark Red)</span>
+          </button>
+
+          {/* HIGH: Dotted Light Red */}
+          <button
+            onClick={() => setSelectedSeverity(selectedSeverity === "HIGH" ? "ALL" : "HIGH")}
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition ${
+              selectedSeverity === "HIGH"
+                ? "bg-rose-950 text-rose-200 border-rose-400 shadow-sm shadow-rose-900/50"
+                : "bg-slate-900/80 text-rose-300 border-rose-900/40 hover:bg-rose-950/40"
+            }`}
+            title="Dotted Light Red: High Severity Threats"
+          >
+            <span className="inline-block w-3 border-b-2 border-dashed border-[#f87171]" />
+            <span>HIGH (Light Red)</span>
+          </button>
+
+          {/* MEDIUM: Dotted Blue */}
+          <button
+            onClick={() => setSelectedSeverity(selectedSeverity === "MEDIUM" ? "ALL" : "MEDIUM")}
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition ${
+              selectedSeverity === "MEDIUM"
+                ? "bg-sky-950 text-sky-200 border-sky-400 shadow-sm shadow-sky-900/50"
+                : "bg-slate-900/80 text-sky-300 border-sky-900/40 hover:bg-sky-950/40"
+            }`}
+            title="Dotted Blue: Medium Severity Threats"
+          >
+            <span className="inline-block w-3 border-b-2 border-dashed border-[#38bdf8]" />
+            <span>MEDIUM (Blue)</span>
+          </button>
+
+          {/* LOW: Dotted Green */}
+          <button
+            onClick={() => setSelectedSeverity(selectedSeverity === "LOW" ? "ALL" : "LOW")}
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition ${
+              selectedSeverity === "LOW"
+                ? "bg-emerald-950 text-emerald-200 border-emerald-400 shadow-sm shadow-emerald-900/50"
+                : "bg-slate-900/80 text-emerald-300 border-emerald-900/40 hover:bg-emerald-950/40"
+            }`}
+            title="Dotted Green: Low Severity Threats"
+          >
+            <span className="inline-block w-3 border-b-2 border-dashed border-[#22c55e]" />
+            <span>LOW (Green)</span>
+          </button>
         </div>
 
-        {/* Theater Presets, Layers & Zoom */}
+        {/* Actor Quick Pills & Zoom */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Theater Region Jumps */}
           <div className="flex items-center rounded-lg bg-slate-900/90 border border-slate-800 p-0.5 text-[10px]">
             <button
               onClick={() => handleRegionPreset("global")}
-              className={`px-2 py-0.5 rounded transition ${viewBox.w === 1000 ? "bg-red-500/20 text-red-300 font-bold" : "text-slate-400 hover:text-white"}`}
+              className={`px-2 py-0.5 rounded transition ${viewBox.w === 1000 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
             >
               Global
             </button>
             <button
               onClick={() => handleRegionPreset("na")}
-              className={`px-2 py-0.5 rounded transition ${viewBox.x === 120 ? "bg-red-500/20 text-red-300 font-bold" : "text-slate-400 hover:text-white"}`}
+              className={`px-2 py-0.5 rounded transition ${viewBox.x === 120 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
             >
               Americas
             </button>
             <button
               onClick={() => handleRegionPreset("eu")}
-              className={`px-2 py-0.5 rounded transition ${viewBox.x === 420 ? "bg-red-500/20 text-red-300 font-bold" : "text-slate-400 hover:text-white"}`}
+              className={`px-2 py-0.5 rounded transition ${viewBox.x === 420 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
             >
               EMEA
             </button>
             <button
               onClick={() => handleRegionPreset("apac")}
-              className={`px-2 py-0.5 rounded transition ${viewBox.x === 650 ? "bg-red-500/20 text-red-300 font-bold" : "text-slate-400 hover:text-white"}`}
+              className={`px-2 py-0.5 rounded transition ${viewBox.x === 650 ? "bg-cyan-500/20 text-cyan-300 font-bold" : "text-slate-400 hover:text-white"}`}
             >
               APAC
             </button>
@@ -588,13 +736,13 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
         {/* Floating Country / Hub Hover Info Tooltip */}
         {hoveredCountry && (
           <div
-            className="absolute z-20 pointer-events-none px-3 py-1.5 rounded-lg bg-slate-900/95 border border-red-500/50 shadow-xl backdrop-blur-md text-white text-xs font-mono flex items-center gap-2 transform -translate-x-1/2 -translate-y-full mb-2"
+            className="absolute z-20 pointer-events-none px-3 py-1.5 rounded-lg bg-slate-900/95 border border-cyan-500/50 shadow-xl backdrop-blur-md text-white text-xs font-mono flex items-center gap-2 transform -translate-x-1/2 -translate-y-full mb-2"
             style={{ left: `${(hoveredCountry.x / 1000) * 100}%`, top: `${(hoveredCountry.y / 500) * 100}%` }}
           >
-            <MapPin className="w-3.5 h-3.5 text-red-400" />
-            <span className="font-bold text-red-200">{hoveredCountry.name || "Geographic Territory"}</span>
+            <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="font-bold text-cyan-200">{hoveredCountry.name || "Geographic Territory"}</span>
             {hoveredCountry.code && (
-              <span className="px-1.5 py-0.2 rounded bg-red-950 text-red-400 text-[10px] font-bold">
+              <span className="px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-400 text-[10px] font-bold">
                 {hoveredCountry.code}
               </span>
             )}
@@ -615,8 +763,29 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
               <stop offset="100%" stopColor="#040912" stopOpacity="1" />
             </radialGradient>
 
-            {/* Glowing Red Laser Filter */}
-            <filter id="laserGlowRed" x="-40%" y="-40%" width="180%" height="180%">
+            {/* Severity-Specific Laser Glow Filters */}
+            <filter id="glowDarkRed" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="3.2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="glowLightRed" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="glowBlue" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="glowGreen" x="-40%" y="-40%" width="180%" height="180%">
               <feGaussianBlur stdDeviation="3" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
@@ -658,10 +827,10 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
                   <path
                     key={`country-${c.id}`}
                     d={c.d}
-                    fill={isThreatSource ? "#ef444418" : "transparent"}
-                    stroke={isThreatSource ? "#ef444455" : "#24344d"}
+                    fill={isThreatSource ? "#dc262615" : "transparent"}
+                    stroke={isThreatSource ? "#dc262650" : "#24344d"}
                     strokeWidth={isThreatSource ? "1" : "0.55"}
-                    className="transition-colors duration-200 cursor-pointer hover:fill-red-500/20 hover:stroke-red-400"
+                    className="transition-colors duration-200 cursor-pointer hover:fill-cyan-500/20 hover:stroke-cyan-400"
                     onMouseEnter={(e) => {
                       const rect = (e.target as SVGPathElement).getBBox();
                       setHoveredCountry({
@@ -774,11 +943,13 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
             })}
           </g>
 
-          {/* Threat Origin Beacons (Red Beacons) */}
+          {/* Threat Origin Beacons with Severity-Specific Colors */}
           <g>
             {filteredArcs.map((arc) => {
               const [sx, sy] = projectCoordinates(arc.sourceCoords[0], arc.sourceCoords[1]);
               const isSelected = selectedArc?.id === arc.id;
+              const severityCfg = SEVERITY_CONFIG[arc.severity];
+
               return (
                 <g
                   key={`origin-${arc.id}`}
@@ -794,7 +965,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
                     cy={sy}
                     r={isSelected ? "14" : "10"}
                     fill="none"
-                    stroke="#ef4444"
+                    stroke={arc.color}
                     strokeWidth="1.2"
                     opacity="0.7"
                     className="animate-ping"
@@ -804,8 +975,8 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
                     cx={sx}
                     cy={sy}
                     r={isSelected ? "5" : "3.5"}
-                    fill="#ef4444"
-                    filter="url(#laserGlowRed)"
+                    fill={arc.color}
+                    filter={severityCfg.glowFilter}
                   />
                   <circle cx={sx} cy={sy} r="1.5" fill="#ffffff" />
 
@@ -814,7 +985,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
                     x={sx}
                     y={sy + 12}
                     textAnchor="middle"
-                    fill="#fecaca"
+                    fill="#f1f5f9"
                     fontSize="7"
                     fontFamily="monospace"
                     fontWeight="bold"
@@ -827,13 +998,19 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
             })}
           </g>
 
-          {/* Ballistic Attack Trajectory Arcs — ALL ARE RED DOTTED LINES */}
+          {/* DOTTED BALLISTIC ATTACK ARCS (COLOR-CODED BY SEVERITY)
+              - CRITICAL: Dotted Dark Red (#dc2626)
+              - HIGH: Dotted Light Red (#f87171)
+              - MEDIUM: Dotted Blue (#38bdf8)
+              - LOW: Dotted Green (#22c55e)
+          */}
           <g>
             {filteredArcs.map((arc) => {
               const sourcePt = projectCoordinates(arc.sourceCoords[0], arc.sourceCoords[1]);
               const targetPt = projectCoordinates(arc.targetCoords[0], arc.targetCoords[1]);
               const d = getTrajectoryPath(sourcePt, targetPt);
               const isSelected = selectedArc?.id === arc.id;
+              const severityCfg = SEVERITY_CONFIG[arc.severity];
 
               return (
                 <g
@@ -844,33 +1021,33 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
                     if (onSelectThreat) onSelectThreat(arc);
                   }}
                 >
-                  {/* Outer Red Dotted Glow Line */}
+                  {/* Outer Dotted Glow Line */}
                   <path
                     d={d}
                     fill="none"
-                    stroke="#ef4444"
-                    strokeWidth={isSelected ? "5" : "3.5"}
+                    stroke={arc.color}
+                    strokeWidth={isSelected ? "5.5" : "3.8"}
                     strokeDasharray="6,4"
-                    opacity={isSelected ? "0.6" : "0.35"}
-                    filter="url(#laserGlowRed)"
+                    opacity={isSelected ? "0.65" : "0.35"}
+                    filter={severityCfg.glowFilter}
                   />
 
-                  {/* Core RED DOTTED Trajectory Line */}
+                  {/* Core DOTTED Trajectory Line */}
                   <path
                     d={d}
                     fill="none"
-                    stroke="#ef4444"
+                    stroke={arc.color}
                     strokeWidth={isSelected ? "2.6" : "2.0"}
                     strokeDasharray="6,4"
                     opacity="0.95"
                   />
 
-                  {/* High-Velocity Traveling Red/White Particle Pulse */}
+                  {/* Traveling Particle Pulse */}
                   {isPlaying && (
-                    <circle r={isSelected ? "3.5" : "2.8"} fill="#ffffff" filter="url(#laserGlowRed)">
+                    <circle r={isSelected ? "3.5" : "2.8"} fill="#ffffff" filter={severityCfg.glowFilter}>
                       <animateMotion
                         path={d}
-                        dur={arc.severity === "CRITICAL" ? "2.4s" : "3.6s"}
+                        dur={arc.severity === "CRITICAL" ? "2.2s" : arc.severity === "HIGH" ? "2.8s" : arc.severity === "MEDIUM" ? "3.4s" : "4.0s"}
                         repeatCount="indefinite"
                       />
                     </circle>
@@ -887,10 +1064,9 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
               y1="0"
               x2="0"
               y2="500"
-              stroke="#ef4444"
+              stroke="#06b6d4"
               strokeWidth="1.5"
               opacity="0.3"
-              filter="url(#laserGlowRed)"
             >
               <animate
                 attributeName="x1"
@@ -911,11 +1087,11 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
         </svg>
 
         {/* Live Attack Metric Watermark */}
-        <div className="absolute bottom-3 left-4 flex items-center gap-3 bg-[#030712]/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] font-mono">
+        <div className="absolute bottom-3 left-4 flex items-center gap-3 bg-[#030712]/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] font-mono">
           <div className="flex items-center gap-1.5 text-slate-400">
             <Radio className="w-3.5 h-3.5 text-red-400 animate-pulse" />
-            <span>RED VECTORS:</span>
-            <span className="text-white font-bold">{filteredArcs.length} ACTIVE</span>
+            <span>ACTIVE VECTORS:</span>
+            <span className="text-white font-bold">{filteredArcs.length}</span>
           </div>
           <span className="text-slate-600">|</span>
           <div className="flex items-center gap-1.5 text-slate-400">
@@ -936,12 +1112,20 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
                 Attributed Threat Actor
               </span>
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-sm shadow-red-500/50" />
+                <span
+                  className="w-2.5 h-2.5 rounded-full shadow-sm"
+                  style={{ backgroundColor: selectedArc.color }}
+                />
                 <h4 className="text-sm font-bold text-white font-sans">{selectedArc.threatActor}</h4>
+                <span
+                  className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold border ${SEVERITY_CONFIG[selectedArc.severity].bgClass} ${SEVERITY_CONFIG[selectedArc.severity].borderClass} ${SEVERITY_CONFIG[selectedArc.severity].textClass}`}
+                >
+                  {selectedArc.severity}
+                </span>
               </div>
               <p className="text-xs text-slate-400 font-mono">
                 Origin: <span className="text-slate-200">{selectedArc.sourceCity}, {selectedArc.sourceCountry}</span>
-                {" "}(<span className="text-red-400">{selectedArc.sourceIp}</span>)
+                {" "}(<span style={{ color: selectedArc.color }}>{selectedArc.sourceIp}</span>)
               </p>
             </div>
 
@@ -992,7 +1176,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
               onClick={() => setShowTelemetryModal(true)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-bold transition"
             >
-              <FileCode className="w-3.5 h-3.5 text-red-400" />
+              <FileCode className="w-3.5 h-3.5" style={{ color: selectedArc.color }} />
               <span>C2 Telemetry</span>
             </button>
           </div>
@@ -1002,10 +1186,10 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
       {/* Raw C2 Telemetry Modal */}
       {showTelemetryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-[#070c18] border border-red-500/30 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4">
+          <div className="bg-[#070c18] border border-cyan-500/30 rounded-2xl w-full max-w-lg p-5 shadow-2xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
-                <FileCode className="w-4 h-4 text-red-400" />
+                <FileCode className="w-4 h-4 text-cyan-400" />
                 <h3 className="text-sm font-bold text-white font-mono">C2 Telemetry Package — {selectedArc.id}</h3>
               </div>
               <button
@@ -1016,7 +1200,10 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
               </button>
             </div>
 
-            <pre className="p-3 rounded-xl bg-[#030610] border border-slate-800 text-red-400 text-xs font-mono overflow-x-auto max-h-64">
+            <pre
+              className="p-3 rounded-xl bg-[#030610] border border-slate-800 text-xs font-mono overflow-x-auto max-h-64"
+              style={{ color: selectedArc.color }}
+            >
               {JSON.stringify(selectedArc, null, 2)}
             </pre>
 
@@ -1031,7 +1218,7 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
 
               <button
                 onClick={() => setShowTelemetryModal(false)}
-                className="px-4 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold font-sans transition"
+                className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold font-sans transition"
               >
                 Close
               </button>
