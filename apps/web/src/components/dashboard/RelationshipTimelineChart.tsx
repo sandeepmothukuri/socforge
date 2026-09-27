@@ -44,7 +44,7 @@ export function RelationshipTimelineChart({ data = DEFAULT_TIMELINE }: { data?: 
 
   return (
     <div className="flex flex-col h-full font-sans text-xs">
-      <div className="relative flex-1 bg-[#070C18] rounded-xl border border-slate-800/80 p-2 flex items-center justify-center">
+      <div className="relative flex-1 bg-[#000000] rounded-xl border border-neutral-800/80 p-2 flex items-center justify-center">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full select-none">
           <defs>
             <linearGradient id="lineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -54,9 +54,9 @@ export function RelationshipTimelineChart({ data = DEFAULT_TIMELINE }: { data?: 
           </defs>
 
           {/* Grid lines */}
-          <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="#1E293B" strokeWidth="0.5" strokeDasharray="3 3" />
-          <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="#1E293B" strokeWidth="0.5" strokeDasharray="3 3" />
-          <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#1E293B" strokeWidth="1" />
+          <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="#262626" strokeWidth="0.5" strokeDasharray="3 3" />
+          <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="#262626" strokeWidth="0.5" strokeDasharray="3 3" />
+          <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#262626" strokeWidth="1" />
 
           {/* Shaded Area */}
           <path d={areaD} fill="url(#lineGrad)" />
@@ -74,7 +74,7 @@ export function RelationshipTimelineChart({ data = DEFAULT_TIMELINE }: { data?: 
                 cy={p.y}
                 r={isHovered ? 6 : 3.5}
                 fill={isHovered ? "#FFFFFF" : "#38BDF8"}
-                stroke="#0B1020"
+                stroke="#000000"
                 strokeWidth={2}
                 className="cursor-pointer transition-all"
                 onMouseEnter={() => setHoveredPoint(p)}
@@ -84,14 +84,14 @@ export function RelationshipTimelineChart({ data = DEFAULT_TIMELINE }: { data?: 
           })}
 
           {/* Axis Labels */}
-          <text x={padding} y={height - 10} fill="#64748B" fontSize="10" fontFamily="sans-serif">May 2024</text>
-          <text x={width / 2} y={height - 10} fill="#64748B" fontSize="10" fontFamily="sans-serif" textAnchor="middle">Nov 2024</text>
-          <text x={width - padding} y={height - 10} fill="#64748B" fontSize="10" fontFamily="sans-serif" textAnchor="end">Apr 2025</text>
+          <text x={padding} y={height - 10} fill="#71717A" fontSize="10" fontFamily="sans-serif">May 2024</text>
+          <text x={width / 2} y={height - 10} fill="#71717A" fontSize="10" fontFamily="sans-serif" textAnchor="middle">Nov 2024</text>
+          <text x={width - padding} y={height - 10} fill="#71717A" fontSize="10" fontFamily="sans-serif" textAnchor="end">Apr 2025</text>
         </svg>
 
         {/* Dynamic Hover Tooltip */}
         {hoveredPoint && (
-          <div className="absolute top-2 right-2 px-3 py-1.5 rounded-lg bg-[#0B1020]/95 border border-sky-500/50 shadow-xl text-xs pointer-events-none">
+          <div className="absolute top-2 right-2 px-3 py-1.5 rounded-lg bg-[#050505]/95 border border-sky-500/50 shadow-xl text-xs pointer-events-none">
             <span className="font-semibold text-white block">{hoveredPoint.month}</span>
             <span className="text-sky-400 font-mono text-[11px]">{hoveredPoint.count.toLocaleString()} Linkages</span>
           </div>

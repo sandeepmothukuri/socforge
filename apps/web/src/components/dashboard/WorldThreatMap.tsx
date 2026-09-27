@@ -36,11 +36,11 @@ export function WorldThreatMap() {
   return (
     <div className="flex flex-col h-full font-sans">
       {/* Interactive SVG World Map Canvas */}
-      <div className="relative flex-1 min-h-[220px] bg-[#070B16] rounded-xl border border-slate-800/80 overflow-hidden flex items-center justify-center p-2">
+      <div className="relative flex-1 min-h-[220px] bg-[#000000] rounded-xl border border-neutral-800/80 overflow-hidden flex items-center justify-center p-2">
         <svg viewBox="0 0 1000 500" className="w-full h-full select-none">
           <defs>
             <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#131C2E" strokeWidth="0.5" />
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#141414" strokeWidth="0.5" />
             </pattern>
           </defs>
 
@@ -49,38 +49,38 @@ export function WorldThreatMap() {
           {/* Continents Geo-paths */}
           <path
             d="M 120 80 Q 200 60 280 90 Q 320 140 260 210 Q 220 230 180 280 Q 150 250 140 200 Z"
-            fill="#0F172A"
-            stroke="#1E293B"
+            fill="#0A0A0A"
+            stroke="#1F1F1F"
             strokeWidth="1"
           />
           <path
             d="M 280 270 Q 360 290 350 370 Q 310 440 270 420 Q 250 340 280 270 Z"
-            fill="#0F172A"
-            stroke="#1E293B"
+            fill="#0A0A0A"
+            stroke="#1F1F1F"
             strokeWidth="1"
           />
           <path
             d="M 460 90 Q 550 80 580 140 Q 530 190 480 180 Q 450 130 460 90 Z"
-            fill="#0F172A"
-            stroke="#1E293B"
+            fill="#0A0A0A"
+            stroke="#1F1F1F"
             strokeWidth="1"
           />
           <path
             d="M 470 200 Q 570 200 580 290 Q 530 390 490 350 Q 450 270 470 200 Z"
-            fill="#0F172A"
-            stroke="#1E293B"
+            fill="#0A0A0A"
+            stroke="#1F1F1F"
             strokeWidth="1"
           />
           <path
             d="M 580 80 Q 820 60 880 140 Q 850 240 730 260 Q 640 220 580 150 Z"
-            fill="#0F172A"
-            stroke="#1E293B"
+            fill="#0A0A0A"
+            stroke="#1F1F1F"
             strokeWidth="1"
           />
           <path
             d="M 780 340 Q 870 330 890 390 Q 840 440 780 400 Z"
-            fill="#0F172A"
-            stroke="#1E293B"
+            fill="#0A0A0A"
+            stroke="#1F1F1F"
             strokeWidth="1"
           />
 
@@ -117,7 +117,7 @@ export function WorldThreatMap() {
                 <text
                   x={spot.x + 8}
                   y={spot.y + 4}
-                  fill="#94A3B8"
+                  fill="#71717A"
                   fontSize="10"
                   fontFamily="sans-serif"
                   fontWeight="600"
@@ -132,7 +132,7 @@ export function WorldThreatMap() {
 
         {/* Selected Country Telemetry Overlay */}
         {active && (
-          <div className="absolute bottom-2 left-2 px-3 py-2 bg-slate-950/90 border border-slate-700/80 rounded-xl shadow-2xl text-xs space-y-1 backdrop-blur-md pointer-events-none z-10 font-sans">
+          <div className="absolute bottom-2 left-2 px-3 py-2 bg-[#000000]/95 border border-neutral-700/80 rounded-xl shadow-2xl text-xs space-y-1 backdrop-blur-md pointer-events-none z-10 font-sans">
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${active.threatLevel === "CRITICAL" ? "bg-red-500 animate-ping" : "bg-amber-400"}`} />
               <span className="font-semibold text-white text-xs">{active.country} ({active.code})</span>
@@ -140,7 +140,7 @@ export function WorldThreatMap() {
                 {active.threatLevel}
               </span>
             </div>
-            <div className="text-slate-300 text-[11px]">
+            <div className="text-neutral-300 text-[11px]">
               Observed Attacks: <strong className="text-sky-400 font-mono">{active.attackCount} incidents</strong>
             </div>
             <div className="text-[11px] text-purple-300">
@@ -149,8 +149,8 @@ export function WorldThreatMap() {
           </div>
         )}
 
-        <div className="absolute top-2 right-2 text-[10px] font-mono text-slate-400 flex items-center gap-1.5 bg-slate-900/80 px-2 py-1 rounded-md border border-slate-800">
-          <Crosshair className="w-3 h-3 text-sky-400" />
+        <div className="absolute top-2 right-2 text-[10px] font-mono text-neutral-400 flex items-center gap-1.5 bg-[#000000]/90 px-2 py-1 rounded-md border border-neutral-800">
+          <Crosshair className="w-3 text-sky-400" />
           GEOINTEL SENSOR MESH
         </div>
       </div>
@@ -162,14 +162,14 @@ export function WorldThreatMap() {
             key={h.id}
             onClick={() => setSelectedHotspot(h)}
             className={`p-2 rounded-lg border transition-all cursor-pointer flex flex-col justify-between ${
-              active?.id === h.id ? "bg-slate-800/90 border-sky-500 text-white shadow-sm" : "bg-slate-900/50 border-slate-800/80 text-slate-400 hover:text-slate-200"
+              active?.id === h.id ? "bg-neutral-800/90 border-sky-500 text-white shadow-sm" : "bg-[#050505] border-neutral-800/80 text-neutral-400 hover:text-neutral-200"
             }`}
           >
             <div className="flex items-center justify-between font-semibold">
               <span>{h.code}</span>
               <span className="text-red-400 font-mono font-bold text-[11px]">{h.attackCount}</span>
             </div>
-            <div className="truncate text-[10px] text-slate-400 mt-0.5">{h.country}</div>
+            <div className="truncate text-[10px] text-neutral-400 mt-0.5">{h.country}</div>
           </div>
         ))}
       </div>

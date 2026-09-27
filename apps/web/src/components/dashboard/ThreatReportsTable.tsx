@@ -62,7 +62,7 @@ export function ThreatReportsTable({ reports = DEFAULT_REPORTS }: { reports?: Th
   const getTlpColor = (tlp: ThreatReportItem["tlp"]) => {
     switch (tlp) {
       case "CLEAR":
-        return "bg-slate-800/90 text-slate-300 border-slate-700";
+        return "bg-neutral-900 text-neutral-300 border-neutral-800";
       case "GREEN":
         return "bg-emerald-500/15 text-emerald-400 border-emerald-500/30";
       case "AMBER":
@@ -77,7 +77,7 @@ export function ThreatReportsTable({ reports = DEFAULT_REPORTS }: { reports?: Th
   return (
     <div className="overflow-x-auto font-sans text-xs w-full">
       <table className="w-full text-left border-collapse">
-        <thead className="bg-[#070B16] text-slate-400 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-800">
+        <thead className="bg-[#000000] text-neutral-400 text-[11px] font-semibold uppercase tracking-wider border-b border-neutral-800">
           <tr>
             <th className="p-3">Category</th>
             <th className="p-3">Dossier / Report Title</th>
@@ -87,21 +87,21 @@ export function ThreatReportsTable({ reports = DEFAULT_REPORTS }: { reports?: Th
             <th className="p-3">MITRE TTP Tags</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800/60">
+        <tbody className="divide-y divide-neutral-800/60">
           {reports.map((rep) => (
-            <tr key={rep.id} className="hover:bg-slate-800/40 transition-colors">
+            <tr key={rep.id} className="hover:bg-neutral-900/50 transition-colors">
               <td className="p-3 whitespace-nowrap">
-                <span className="px-2 py-0.5 rounded-md bg-slate-800/80 border border-slate-700/80 text-[11px] font-medium text-sky-400">
+                <span className="px-2 py-0.5 rounded-md bg-neutral-900 border border-neutral-800 text-[11px] font-medium text-sky-400">
                   {rep.type}
                 </span>
               </td>
-              <td className="p-3 font-medium text-slate-100 max-w-sm truncate">
+              <td className="p-3 font-medium text-white max-w-sm truncate">
                 <Link href="/intel" className="hover:text-sky-400 transition-colors font-semibold">
                   {rep.name}
                 </Link>
               </td>
-              <td className="p-3 text-slate-300 whitespace-nowrap">{rep.author}</td>
-              <td className="p-3 text-slate-400 font-mono text-[11px] whitespace-nowrap">{rep.createdAt}</td>
+              <td className="p-3 text-neutral-300 whitespace-nowrap">{rep.author}</td>
+              <td className="p-3 text-neutral-400 font-mono text-[11px] whitespace-nowrap">{rep.createdAt}</td>
               <td className="p-3 whitespace-nowrap">
                 <span className={`px-2 py-0.5 rounded-md border font-mono text-[10px] font-bold ${getTlpColor(rep.tlp)}`}>
                   TLP:{rep.tlp}
@@ -110,7 +110,7 @@ export function ThreatReportsTable({ reports = DEFAULT_REPORTS }: { reports?: Th
               <td className="p-3">
                 <div className="flex flex-wrap gap-1.5">
                   {rep.labels.map((lbl) => (
-                    <span key={lbl} className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300 font-mono">
+                    <span key={lbl} className="px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-[10px] text-neutral-300 font-mono">
                       {lbl}
                     </span>
                   ))}

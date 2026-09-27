@@ -65,14 +65,14 @@ export function PolarRoseChart({ data = DEFAULT_MALWARE }: { data?: MalwareSegme
       <div className="relative w-64 h-64 flex items-center justify-center">
         <svg viewBox="0 0 260 260" className="w-full h-full">
           {/* Background Concentric Radar Rings */}
-          <circle cx={cx} cy={cy} r={maxRadius} fill="none" stroke="#1E293B" strokeWidth="1" strokeDasharray="3 3" />
-          <circle cx={cx} cy={cy} r={maxRadius * 0.75} fill="none" stroke="#1E293B" strokeWidth="1" strokeDasharray="3 3" />
-          <circle cx={cx} cy={cy} r={maxRadius * 0.5} fill="none" stroke="#1E293B" strokeWidth="1" strokeDasharray="3 3" />
-          <circle cx={cx} cy={cy} r={maxRadius * 0.25} fill="none" stroke="#1E293B" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx={cx} cy={cy} r={maxRadius} fill="none" stroke="#262626" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx={cx} cy={cy} r={maxRadius * 0.75} fill="none" stroke="#262626" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx={cx} cy={cy} r={maxRadius * 0.5} fill="none" stroke="#262626" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx={cx} cy={cy} r={maxRadius * 0.25} fill="none" stroke="#262626" strokeWidth="1" strokeDasharray="3 3" />
 
           {/* Crosshair guidelines */}
-          <line x1={cx} y1={cy - maxRadius} x2={cx} y2={cy + maxRadius} stroke="#1E293B" strokeWidth="1" />
-          <line x1={cx - maxRadius} y1={cy} x2={cx + maxRadius} y2={cy} stroke="#1E293B" strokeWidth="1" />
+          <line x1={cx} y1={cy - maxRadius} x2={cx} y2={cy + maxRadius} stroke="#262626" strokeWidth="1" />
+          <line x1={cx - maxRadius} y1={cy} x2={cx + maxRadius} y2={cy} stroke="#262626" strokeWidth="1" />
 
           {/* Slices */}
           {paths.map((slice, i) => {
@@ -98,7 +98,7 @@ export function PolarRoseChart({ data = DEFAULT_MALWARE }: { data?: MalwareSegme
 
         {/* Dynamic Center/Hover Tooltip */}
         {hoveredIndex !== null && (
-          <div className="absolute top-2 right-2 px-3 py-1.5 rounded-lg bg-slate-900/95 border border-sky-500/40 shadow-2xl text-xs pointer-events-none z-10 backdrop-blur-md">
+          <div className="absolute top-2 right-2 px-3 py-1.5 rounded-lg bg-[#000000]/95 border border-sky-500/40 shadow-2xl text-xs pointer-events-none z-10 backdrop-blur-md">
             <span className="font-semibold text-white block">{data[hoveredIndex].name}</span>
             <span className="text-sky-400 font-mono text-[11px] font-bold">{data[hoveredIndex].count} Ingested Samples</span>
           </div>
@@ -113,7 +113,7 @@ export function PolarRoseChart({ data = DEFAULT_MALWARE }: { data?: MalwareSegme
             onMouseEnter={() => setHoveredIndex(idx)}
             onMouseLeave={() => setHoveredIndex(null)}
             className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-all cursor-pointer ${
-              hoveredIndex === idx ? "bg-slate-800 text-white font-semibold" : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
+              hoveredIndex === idx ? "bg-neutral-800 text-white font-semibold" : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900/60"
             }`}
           >
             <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />

@@ -13,19 +13,19 @@ module.exports = {
       },
       colors: {
         bg: {
-          DEFAULT: "#0B1020",
-          secondary: "#111827",
-          elevated: "#172033",
-          card: "#151C2E",
+          DEFAULT: "#000000",
+          secondary: "#080808",
+          elevated: "#121212",
+          card: "#0D0D0D",
         },
         border: {
-          DEFAULT: "#263248",
-          subtle: "#1E293B",
+          DEFAULT: "#262626",
+          subtle: "#171717",
         },
         text: {
-          primary: "#F8FAFC",
-          secondary: "#A7B0C0",
-          muted: "#6B7280",
+          primary: "#FFFFFF",
+          secondary: "#A1A1AA",
+          muted: "#71717A",
         },
         accent: {
           DEFAULT: "#38BDF8",

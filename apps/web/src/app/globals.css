@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --background: #050811;
+  --background: #000000;
   --foreground: #f8fafc;
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -17,32 +17,32 @@ body {
   letter-spacing: -0.011em;
 }
 
-/* Elite enterprise dark scrollbars */
+/* Elite OLED black scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #070a14;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #1f1f1f;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #333333;
 }
 
-/* Subtle card glowing glass effect */
+/* OLED dark card glass effect */
 .glass-panel {
-  background: rgba(11, 16, 32, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(30, 41, 59, 0.7);
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(38, 38, 38, 0.8);
 }
 
 .glass-panel:hover {
-  border-color: rgba(56, 189, 248, 0.35);
+  border-color: rgba(56, 189, 248, 0.4);
 }

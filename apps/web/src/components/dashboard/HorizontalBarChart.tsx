@@ -39,16 +39,16 @@ export function HorizontalBarChart({
             onMouseEnter={() => setHoveredId(item.id)}
             onMouseLeave={() => setHoveredId(null)}
             className={`group flex items-center justify-between gap-3 px-2.5 py-1.5 rounded-lg transition-all duration-150 cursor-pointer ${
-              isHovered ? "bg-slate-800/60 shadow-sm" : "hover:bg-slate-900/40"
+              isHovered ? "bg-neutral-800/70 shadow-sm" : "hover:bg-neutral-900/50"
             }`}
           >
             {/* Clean Sans-Serif Label */}
-            <div className="w-36 sm:w-40 truncate text-xs font-medium text-slate-300 group-hover:text-white transition-colors flex-shrink-0">
+            <div className="w-36 sm:w-40 truncate text-xs font-medium text-neutral-300 group-hover:text-white transition-colors flex-shrink-0">
               {item.label}
             </div>
 
             {/* Proportional Rounded Bar Container */}
-            <div className="flex-1 h-2.5 bg-[#070C18] rounded-full overflow-hidden relative border border-slate-800/80">
+            <div className="flex-1 h-2.5 bg-[#000000] rounded-full overflow-hidden relative border border-neutral-800/80">
               <div
                 className="h-full rounded-full transition-all duration-500 ease-out"
                 style={{
@@ -60,7 +60,7 @@ export function HorizontalBarChart({
             </div>
 
             {/* Numerical Value in Monospace Badge */}
-            <div className="w-12 text-right font-mono text-[11px] font-semibold text-slate-200 group-hover:text-sky-400 transition-colors flex-shrink-0">
+            <div className="w-12 text-right font-mono text-[11px] font-semibold text-neutral-200 group-hover:text-sky-400 transition-colors flex-shrink-0">
               {item.value.toLocaleString()}
             </div>
           </div>
