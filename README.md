@@ -20,8 +20,6 @@
   <img src="https://img.shields.io/badge/Deploy-Docker_Compose-blue.svg" alt="Docker Compose">
 </p>
 
-**Author**: [Sandeep Mothukuri](https://github.com/sandeepmothukuri)  
-**Website**: [https://cybertechnology.in](https://cybertechnology.in)
 
 ---
 
@@ -395,6 +393,54 @@ See [docs/security/threat-model.md](docs/security/threat-model.md) for full thre
 
 ---
 
-## 8. License
+# 👤 Author
+
+## Sandeep Mothukuri
+
+**Senior SOC Analyst (L3) · Detection Engineering · Threat Hunting · Incident Response · Security Engineering**
+
+Focus areas:
+
+- Security Operations
+- Detection Engineering
+- Threat Hunting
+- Incident Response
+- SIEM / XDR
+- SOAR
+- DFIR
+- MITRE ATT&CK
+- Security Automation
+- AI-Augmented SOC Operations
+
+This repository is maintained as a practical security engineering environment for designing, testing and validating modern SOC capabilities.
+
+- GitHub: [@sandeepmothukuri](https://github.com/sandeepmothukuri)
+- Website: [cybertechnology.in](https://cybertechnology.in)
+- LinkedIn: [linkedin.com/in/sandeepmothukuri](https://www.linkedin.com/in/sandeepmothukuri)
+- Email: [sandeep.mothukuris@gmail.com](mailto:sandeep.mothukuris@gmail.com)
+
+---
+
+# 🗂️ All Repositories
+
+| Repository Description | |
+| --- | --- |
+| [AI-SOC-Decision-Engine](https://github.com/sandeepmothukuri/AI-SOC-Decision-Engine) | AI-assisted SOC decision/control plane for triage, enrichment, safety controls and analyst approval |
+| [AI-Augmented-SOC-Lab](https://github.com/sandeepmothukuri/AI-Augmented-SOC-Lab) | AI-augmented SOC with Wazuh + TheHive + Ollama (LLaMA3) for analyst-assisted triage |
+| [Enterprise-Detection-Engineering-SOC-Lab](https://github.com/sandeepmothukuri/Enterprise-Detection-Engineering-SOC-Lab) | 12-tool SOC lab with OpenSearch, Suricata, Zeek, MISP, Caldera, Velociraptor |
+| [Autonomous-SOC-Lab](https://github.com/sandeepmothukuri/Autonomous-SOC-Lab) | Autonomous SOC with AI-driven detection and self-healing playbooks |
+| [soc-threat-hunting-lab](https://github.com/sandeepmothukuri/soc-threat-hunting-lab) | Threat detection lab — Zeek, RITA, Arkime, Velociraptor, OSQuery, MISP |
+| [soc-lab-free](https://github.com/sandeepmothukuri/soc-lab-free) | Free SOC lab — OpenVAS, Wazuh, pfSense, Proxmox Mail, Lynis |
+| [SOC-Detection-and-Threat-Hunting-Lab](https://github.com/sandeepmothukuri/SOC-Detection-and-Threat-Hunting-Lab) | SOC analyst home lab — Wazuh, Sysmon, MITRE ATT&CK mapping and incident response |
+| [PromptSentinel](https://github.com/sandeepmothukuri/PromptSentinel) | Enterprise-grade prompt injection detection and AI firewall for LLM applications |
+| [PromptShield](https://github.com/sandeepmothukuri/PromptShield) | AI Security + SOC Detection Engineering Lab with prompt-security telemetry, detections and response |
+| [sentinel-detection-engine](https://github.com/sandeepmothukuri/sentinel-detection-engine) | Detection-as-code for Microsoft Sentinel and Defender XDR with KQL, SOAR and ATT&CK coverage |
+
+---
+
+### 📄 License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for details.
+
+**Author portfolio:** [github.com/sandeepmothukuri](https://github.com/sandeepmothukuri)
+
