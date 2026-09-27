@@ -21,7 +21,9 @@ import {
   RefreshCw,
   Cpu,
   Layers,
-  Lock
+  Lock,
+  Download,
+  Plus
 } from "lucide-react";
 
 export default function InvestigationsPage() {
@@ -35,6 +37,13 @@ export default function InvestigationsPage() {
   // Response containment simulation state
   const [actionStatus, setActionStatus] = useState<string | null>(null);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+
+  // Add finding modal state
+  const [addFindingModalOpen, setAddFindingModalOpen] = useState(false);
+  const [newFindingTitle, setNewFindingTitle] = useState("");
+  const [newFindingConfidence, setNewFindingConfidence] = useState<"high" | "medium" | "low">("high");
+  const [newFindingDesc, setNewFindingDesc] = useState("");
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   async function loadData() {
     setLoading(true);
@@ -87,6 +96,50 @@ export default function InvestigationsPage() {
     }, 1200);
   };
 
+  const handleExportGraph = () => {
+    if (!graphData && !selectedInv) return;
+    const exportPayload = {
+      investigation_id: selectedInv?.id || "INV-PRIMARY",
+      title: selectedInv?.title || "Active Investigation",
+      risk_score: selectedInv?.risk_score || 94,
+      exported_at: new Date().toISOString(),
+      nodes: graphData?.nodes || [],
+      edges: graphData?.edges || [],
+      findings: findings
+    };
+
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `SOCForge_Investigation_${selectedInv?.id || "Graph"}_Export.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setToastMessage("Investigation graph JSON exported successfully.");
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleAddFinding = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFindingTitle.trim()) return;
+
+    const newF: FindingItem = {
+      id: `f-${Date.now()}`,
+      investigation_id: selectedInv?.id || "INV-001",
+      title: newFindingTitle.trim(),
+      description: newFindingDesc.trim() || "Empirical observable correlation verified by lead analyst.",
+      confidence: newFindingConfidence,
+      created_at: new Date().toISOString()
+    };
+
+    setFindings((prev) => [newF, ...prev]);
+    setAddFindingModalOpen(false);
+    setNewFindingTitle("");
+    setNewFindingDesc("");
+    setToastMessage(`Finding "${newF.title}" added to investigation record.`);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
   return (
     <AppShell>
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#000000] text-neutral-100">
@@ -103,6 +156,14 @@ export default function InvestigationsPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={handleExportGraph}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg border border-[#262626] bg-[#0A0A0A] hover:bg-[#171717] text-neutral-300 transition font-mono"
+              title="Export complete evidence graph topology and findings as JSON"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              Export Graph
+            </button>
             <button
               onClick={loadData}
               className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg border border-[#262626] bg-[#0A0A0A] hover:bg-[#171717] text-neutral-300 transition font-mono"
@@ -207,7 +268,15 @@ export default function InvestigationsPage() {
                 <span className="text-xs font-semibold text-white uppercase tracking-wider flex items-center gap-1.5 font-mono">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Analyst Evidence-Backed Findings
                 </span>
-                <span className="text-xs text-neutral-500 font-mono">{findings.length} Documented</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs text-neutral-500 font-mono">{findings.length} Documented</span>
+                  <button
+                    onClick={() => setAddFindingModalOpen(true)}
+                    className="flex items-center gap-1 text-[10px] font-mono text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded transition"
+                  >
+                    <Plus className="w-3 h-3" /> Add Finding
+                  </button>
+                </div>
               </div>
 
               {findings.map((f) => (
@@ -327,6 +396,94 @@ export default function InvestigationsPage() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Add Finding Modal */}
+        {addFindingModalOpen && (
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-[#050505] border border-[#262626] rounded-2xl p-6 max-w-lg w-full space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between pb-3 border-b border-[#262626]">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Document Analyst Finding</h3>
+                    <p className="text-xs text-neutral-400">Attach empirical observable hypothesis to active investigation graph</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setAddFindingModalOpen(false)}
+                  className="text-neutral-400 hover:text-white p-1 text-sm font-mono"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleAddFinding} className="space-y-3.5 text-xs font-mono">
+                <div>
+                  <label className="text-neutral-400 block mb-1">Finding Title / Assertion *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Lateral SMB authentication spike from DC-BACKUP-02"
+                    value={newFindingTitle}
+                    onChange={(e) => setNewFindingTitle(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-neutral-400 block mb-1">Analytic Confidence</label>
+                  <select
+                    value={newFindingConfidence}
+                    onChange={(e: any) => setNewFindingConfidence(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="high">HIGH CONFIDENCE (Correlated across &gt;3 logs)</option>
+                    <option value="medium">MEDIUM CONFIDENCE (Single-source telemetry)</option>
+                    <option value="low">LOW CONFIDENCE (Heuristic indicator)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-neutral-400 block mb-1">Evidence Summary & Methodology</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Describe how the observable was validated against event timeline, parent PID, or network flow records..."
+                    value={newFindingDesc}
+                    onChange={(e) => setNewFindingDesc(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 resize-none font-sans"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#262626]">
+                  <button
+                    type="button"
+                    onClick={() => setAddFindingModalOpen(false)}
+                    className="px-4 py-2 bg-[#121212] hover:bg-[#1a1a1a] text-neutral-300 border border-[#262626] rounded-xl transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-black font-bold rounded-xl transition shadow-lg shadow-emerald-600/30 flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Attach Finding</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Toast */}
+        {toastMessage && (
+          <div className="fixed bottom-6 right-6 z-50 bg-[#050505] border border-emerald-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-mono animate-in fade-in slide-in-from-bottom-3">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>{toastMessage}</span>
           </div>
         )}
       </div>

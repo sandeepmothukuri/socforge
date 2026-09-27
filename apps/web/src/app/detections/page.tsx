@@ -31,7 +31,8 @@ import {
   TrendingDown,
   DollarSign,
   Gauge,
-  Sliders
+  Sliders,
+  PlusCircle
 } from "lucide-react";
 
 export default function DetectionsPage() {
@@ -49,6 +50,59 @@ export default function DetectionsPage() {
   const [copiedTarget, setCopiedTarget] = useState<string | null>(null);
   const [editorTab, setEditorTab] = useState<"source" | "transpiled" | "evaluation" | "optimizer">("source");
   const [optimizerApplied, setOptimizerApplied] = useState(false);
+
+  // Author New Rule Modal State
+  const [newRuleModalOpen, setNewRuleModalOpen] = useState(false);
+  const [newRuleName, setNewRuleName] = useState("");
+  const [newRuleSeverity, setNewRuleSeverity] = useState<"critical" | "high" | "medium" | "low">("high");
+  const [newRuleTactic, setNewRuleTactic] = useState("Execution");
+  const [newRuleTechnique, setNewRuleTechnique] = useState("T1059.001");
+  const [newRuleContent, setNewRuleContent] = useState(
+`title: Suspicious Execution Pattern
+status: experimental
+description: Detects unusual command-line invocations mapped to enterprise threat behaviors
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith:
+            - '\\powershell.exe'
+            - '\\cmd.exe'
+        CommandLine|contains:
+            - '-enc'
+            - 'downloadstring'
+    condition: selection
+falsepositives:
+    - Legitimate administrative orchestration scripts
+level: high`
+  );
+  const [detectionToast, setDetectionToast] = useState<string | null>(null);
+
+  const handleCreateRule = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRuleName.trim()) return;
+
+    const newRule: DetectionItem = {
+      id: `SIGMA-${Math.floor(1000 + Math.random() * 9000)}`,
+      name: newRuleName.trim(),
+      severity: newRuleSeverity,
+      status: "approved",
+      rule_language: "sigma",
+      description: `Analyst-authored Sigma rule for ${newRuleTactic} / ${newRuleTechnique}`,
+      content: newRuleContent,
+      mitre_techniques: [newRuleTechnique],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    setDetections((prev) => [newRule, ...prev]);
+    setSelectedDet(newRule);
+    setNewRuleModalOpen(false);
+    setNewRuleName("");
+    setDetectionToast(`Rule "${newRule.name}" compiled and registered into catalog.`);
+    setTimeout(() => setDetectionToast(null), 3500);
+  };
 
   async function loadData() {
     setLoading(true);
@@ -160,6 +214,14 @@ export default function DetectionsPage() {
           </div>
 
           <div className="flex items-center gap-2 text-xs font-mono">
+            <button
+              onClick={() => setNewRuleModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-black font-bold transition shadow-md shadow-emerald-600/20"
+            >
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>Author Rule</span>
+            </button>
+
             <button
               onClick={() => {
                 if (typeof window !== "undefined") {
@@ -620,6 +682,125 @@ export default function DetectionsPage() {
             </div>
           )}
         </div>
+
+        {/* Author Rule Modal */}
+        {newRuleModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+            <div className="bg-[#050505] border border-[#262626] rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between pb-3 border-b border-[#262626]">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                    <Code2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Author Detection-as-Code Rule</h3>
+                    <p className="text-xs text-neutral-400">Compose vendor-agnostic Sigma v2.0 rule with automated AST transpilation</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setNewRuleModalOpen(false)}
+                  className="text-neutral-400 hover:text-white p-1 text-sm font-mono"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateRule} className="space-y-3.5 text-xs font-mono">
+                <div>
+                  <label className="text-neutral-400 block mb-1">Rule Title / Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Cobalt Strike Process Injection via WMI"
+                    value={newRuleName}
+                    onChange={(e) => setNewRuleName(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-neutral-400 block mb-1">Severity</label>
+                    <select
+                      value={newRuleSeverity}
+                      onChange={(e: any) => setNewRuleSeverity(e.target.value)}
+                      className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    >
+                      <option value="critical">Critical</option>
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-neutral-400 block mb-1">Tactic</label>
+                    <select
+                      value={newRuleTactic}
+                      onChange={(e) => setNewRuleTactic(e.target.value)}
+                      className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    >
+                      <option value="Execution">Execution</option>
+                      <option value="Persistence">Persistence</option>
+                      <option value="Privilege Escalation">Privilege Escalation</option>
+                      <option value="Defense Evasion">Defense Evasion</option>
+                      <option value="Credential Access">Credential Access</option>
+                      <option value="Discovery">Discovery</option>
+                      <option value="Lateral Movement">Lateral Movement</option>
+                      <option value="Command & Control">Command & Control</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-neutral-400 block mb-1">MITRE Technique</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. T1059.001"
+                      value={newRuleTechnique}
+                      onChange={(e) => setNewRuleTechnique(e.target.value)}
+                      className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-neutral-400 block mb-1">Sigma Definition (YAML)</label>
+                  <textarea
+                    rows={8}
+                    value={newRuleContent}
+                    onChange={(e) => setNewRuleContent(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-emerald-300 focus:outline-none focus:border-emerald-500 font-mono text-[11px] resize-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262626]">
+                  <button
+                    type="button"
+                    onClick={() => setNewRuleModalOpen(false)}
+                    className="px-4 py-2 bg-[#121212] hover:bg-[#1a1a1a] text-neutral-300 border border-[#262626] rounded-xl transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-black font-bold rounded-xl transition shadow-lg shadow-emerald-600/30 flex items-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Register Detection Rule</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Toast */}
+        {detectionToast && (
+          <div className="fixed bottom-6 right-6 z-50 bg-[#050505] border border-emerald-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-mono animate-in fade-in slide-in-from-bottom-3">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>{detectionToast}</span>
+          </div>
+        )}
       </div>
     </AppShell>
   );

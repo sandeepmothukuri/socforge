@@ -59,13 +59,55 @@ const SCENARIOS: Record<string, { name: string; description: string; nodes: Grap
       { id: "re4", source: "proc-cmd", target: "proc-encryptor", relationship: "DROPPED", stage: 3 },
       { id: "re5", source: "proc-encryptor", target: "host-file01", relationship: "ENCRYPTING_SMB", stage: 4 }
     ]
+  },
+  volt_typhoon: {
+    name: "Scenario 3: Volt Typhoon Critical Infrastructure Living-off-the-Land (LOTL)",
+    description: "SOHO Router proxy -> Built-in WMIC commands -> Portproxy stealth tunnel -> ntdsutil Active Directory DB extract.",
+    nodes: [
+      { id: "edge-router", label: "Edge-Router-Cisco-RV", type: "host", riskScore: 88, stage: 1, x: 80, y: 160, metadata: { vendor: "Cisco RV340", compromised_via: "CVE-2023-38606" } },
+      { id: "proc-wmic", label: "wmic.exe process call", type: "process", riskScore: 92, stage: 2, x: 280, y: 110, metadata: { cmdline: "wmic process call create 'cmd.exe /c whoami'" } },
+      { id: "tech-wmi", label: "T1047 (WMI / LOTL)", type: "technique", riskScore: 75, stage: 2, x: 280, y: 20, metadata: { tactic: "Execution" } },
+      { id: "proc-netsh", label: "netsh.exe interface portproxy", type: "process", riskScore: 94, stage: 3, x: 480, y: 110, metadata: { cmdline: "netsh interface portproxy add v4tov4 listenport=5000 connectaddress=10.0.0.1" } },
+      { id: "tech-proxy", label: "T1090.001 (Port Forwarding)", type: "technique", riskScore: 82, stage: 3, x: 480, y: 20, metadata: { tactic: "Command and Control" } },
+      { id: "proc-ntdsutil", label: "ntdsutil.exe ac i ntds ifm", type: "process", riskScore: 98, stage: 4, x: 680, y: 110, metadata: { cmdline: "ntdsutil \"ac i ntds\" \"ifm\" \"create full C:\\temp\\ad\" q q" } },
+      { id: "host-dc", label: "CRIT-INFRA-DC01", type: "host", riskScore: 99, stage: 4, x: 860, y: 160, metadata: { role: "Industrial SCADA Domain Controller", ip: "10.0.0.5" } }
+    ],
+    edges: [
+      { id: "ve1", source: "edge-router", target: "proc-wmic", relationship: "LOTL_COMMAND_DISPATCH", stage: 1 },
+      { id: "ve2", source: "proc-wmic", target: "tech-wmi", relationship: "USES_TTP", stage: 2 },
+      { id: "ve3", source: "proc-wmic", target: "proc-netsh", relationship: "ESTABLISHED_PROXY", stage: 3 },
+      { id: "ve4", source: "proc-netsh", target: "tech-proxy", relationship: "USES_TTP", stage: 3 },
+      { id: "ve5", source: "proc-netsh", target: "proc-ntdsutil", relationship: "INVOKED_CRED_THEFT", stage: 4 },
+      { id: "ve6", source: "proc-ntdsutil", target: "host-dc", relationship: "EXTRACTED_NTDS_DIT", stage: 4 }
+    ]
   }
 };
 
 export default function GraphPage() {
   const [selectedScenarioKey, setSelectedScenarioKey] = useState<string>("mimikatz");
   const [showTimeline, setShowTimeline] = useState(true);
+  const [graphToast, setGraphToast] = useState<string | null>(null);
   const currentScenario = SCENARIOS[selectedScenarioKey] || SCENARIOS.mimikatz;
+
+  const handleExportGraphJSON = () => {
+    const payload = {
+      scenario_key: selectedScenarioKey,
+      name: currentScenario.name,
+      description: currentScenario.description,
+      exported_at: new Date().toISOString(),
+      nodes: currentScenario.nodes,
+      edges: currentScenario.edges
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `SOCForge_AttackGraph_${selectedScenarioKey}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setGraphToast(`Exported "${currentScenario.name}" graph JSON.`);
+    setTimeout(() => setGraphToast(null), 3000);
+  };
 
   return (
     <AppShell>
@@ -101,8 +143,18 @@ export default function GraphPage() {
               >
                 <option value="mimikatz" className="bg-black text-white">Mimikatz LSASS & DC DCSync</option>
                 <option value="ransomware" className="bg-black text-white">LockBit 3.0 Ransomware Impact</option>
+                <option value="volt_typhoon" className="bg-black text-white">Volt Typhoon LOTL & Portproxy</option>
               </select>
             </div>
+
+            <button
+              onClick={handleExportGraphJSON}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-800 transition"
+              title="Export active attack graph topology as JSON"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Export JSON</span>
+            </button>
 
             <button
               onClick={() => setShowTimeline(!showTimeline)}
@@ -152,6 +204,14 @@ export default function GraphPage() {
         {showTimeline && (
           <div className="p-6 bg-[#000000]">
             <AttackTimelineScrubber />
+          </div>
+        )}
+
+        {/* Toast */}
+        {graphToast && (
+          <div className="fixed bottom-6 right-6 z-50 bg-[#050505] border border-emerald-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-mono animate-in fade-in slide-in-from-bottom-3">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>{graphToast}</span>
           </div>
         )}
       </div>

@@ -24,7 +24,8 @@ import {
   Sparkles,
   ExternalLink,
   Layers,
-  FileCode
+  FileCode,
+  Plus
 } from "lucide-react";
 
 interface HoneypotAsset {
@@ -112,6 +113,64 @@ export default function DeceptionPage() {
   const [logs, setLogs] = useState(INITIAL_KEYSTROKE_LOGS);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
+  // Deploy Modal State
+  const [deployModalOpen, setDeployModalOpen] = useState(false);
+  const [newTrapName, setNewTrapName] = useState("");
+  const [newTrapType, setNewTrapType] = useState<"Honey SPN" | "SSH Trap" | "Decoy SMB" | "Canary AWS Key" | "Fake Web Portal">("Honey SPN");
+  const [newTrapLocation, setNewTrapLocation] = useState("");
+  const [newTrapTactic, setNewTrapTactic] = useState("T1558.003 (Kerberoasting)");
+
+  const handleDeployTrap = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTrapName.trim()) return;
+
+    const newTrap: HoneypotAsset = {
+      id: `trap-${Date.now()}`,
+      name: newTrapName.trim(),
+      type: newTrapType,
+      ipOrLocation: newTrapLocation.trim() || "Active Directory Tier-0",
+      status: "ARMED & LISTENING",
+      hits24h: 0,
+      lastAttackerIp: "None",
+      lastAttackerGeo: "Pending Ingress",
+      tactic: newTrapTactic
+    };
+
+    setAssets((prev) => [newTrap, ...prev]);
+    setSelectedAsset(newTrap);
+    setDeployModalOpen(false);
+    setNewTrapName("");
+    setNewTrapLocation("");
+    setActionNotice(`Deception sensor "${newTrap.name}" successfully deployed and armed.`);
+    setTimeout(() => setActionNotice(null), 4000);
+  };
+
+  const handleSimulateCanaryTrip = () => {
+    const trippedIp = "194.165.16.24";
+    const newLog = {
+      time: new Date().toLocaleTimeString() + " UTC",
+      ip: trippedIp,
+      cmd: `CANARY TRIGGERED: Unauthorized probe against [${selectedAsset.name}] -> TELEMETRY CAPTURED`
+    };
+    setLogs((prev) => [newLog, ...prev]);
+    setAssets((prev) =>
+      prev.map((a) =>
+        a.id === selectedAsset.id
+          ? { ...a, status: "TRIPPED (LIVE INGRESS)", hits24h: a.hits24h + 1, lastAttackerIp: trippedIp, lastAttackerGeo: "Lithuania 🇱🇹" }
+          : a
+      )
+    );
+    setSelectedAsset((prev) => ({
+      ...prev,
+      status: "TRIPPED (LIVE INGRESS)",
+      hits24h: prev.hits24h + 1,
+      lastAttackerIp: trippedIp,
+      lastAttackerGeo: "Lithuania 🇱🇹"
+    }));
+    setActionNotice(`Alert: Canary Trap [${selectedAsset.name}] tripped by ${trippedIp}!`);
+    setTimeout(() => setActionNotice(null), 4000);
+  };
+
   // Simulate live incoming attacker keystrokes
   useEffect(() => {
     const interval = setInterval(() => {
@@ -168,9 +227,26 @@ export default function DeceptionPage() {
           </div>
 
           <div className="flex items-center gap-2 text-xs font-mono">
+            <button
+              onClick={() => setDeployModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-semibold shadow-md shadow-purple-600/20 transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Deploy Honeytoken</span>
+            </button>
+
+            <button
+              onClick={handleSimulateCanaryTrip}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-amber-400 border border-[#262626] font-semibold transition"
+              title="Simulate attacker interaction with active decoy sensor"
+            >
+              <Flame className="w-3.5 h-3.5" />
+              <span>Simulate Probe</span>
+            </button>
+
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0a0a0a] border border-[#262626] text-neutral-300">
               <Radio className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-              <span>DECEPTION SENSORS: ONLINE</span>
+              <span>SENSORS: ARMED</span>
             </div>
           </div>
         </div>
@@ -362,6 +438,100 @@ export default function DeceptionPage() {
             </div>
           </div>
         </div>
+
+        {/* Deploy Honeytoken Modal */}
+        {deployModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+            <div className="bg-[#050505] border border-[#262626] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between pb-3 border-b border-[#262626]">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400">
+                    <Eye className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Deploy Deception Canary Sensor</h3>
+                    <p className="text-xs text-neutral-400">Arm high-fidelity honeypot trap with zero production impact</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDeployModalOpen(false)}
+                  className="text-neutral-400 hover:text-white p-1 text-sm font-mono"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleDeployTrap} className="space-y-3.5 text-xs font-mono">
+                <div>
+                  <label className="text-neutral-400 block mb-1">Honey Asset / Canary Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. CORP\\svc_k8s_cluster_admin or \\\\SRV-PAYROLL\\Confidential$"
+                    value={newTrapName}
+                    onChange={(e) => setNewTrapName(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-neutral-400 block mb-1">Trap Technology</label>
+                    <select
+                      value={newTrapType}
+                      onChange={(e: any) => setNewTrapType(e.target.value)}
+                      className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                    >
+                      <option value="Honey SPN">Honey SPN (Kerberoasting)</option>
+                      <option value="SSH Trap">SSH Trap (Cowrie Emulation)</option>
+                      <option value="Decoy SMB">Decoy SMB Share</option>
+                      <option value="Canary AWS Key">Canary AWS IAM Key</option>
+                      <option value="Fake Web Portal">Fake Web Portal</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-neutral-400 block mb-1">Deployment Target / Host</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 10.0.12.50:445 or AD Forest"
+                      value={newTrapLocation}
+                      onChange={(e) => setNewTrapLocation(e.target.value)}
+                      className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-neutral-400 block mb-1">MITRE ATT&CK Attribution</label>
+                  <input
+                    type="text"
+                    value={newTrapTactic}
+                    onChange={(e) => setNewTrapTactic(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262626]">
+                  <button
+                    type="button"
+                    onClick={() => setDeployModalOpen(false)}
+                    className="px-4 py-2 bg-[#121212] hover:bg-[#1a1a1a] text-neutral-300 border border-[#262626] rounded-xl transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-xl transition shadow-lg shadow-purple-600/30 flex items-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Arm Deception Trap</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </AppShell>
   );

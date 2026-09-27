@@ -26,7 +26,8 @@ import {
   Terminal,
   Activity,
   Cpu,
-  CornerDownRight
+  CornerDownRight,
+  Download
 } from "lucide-react";
 
 interface PlaybookNode {
@@ -100,6 +101,54 @@ export default function PlaybooksPage() {
   const [activeExecutingNodeId, setActiveExecutingNodeId] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<PlaybookNode | null>(null);
   const [executionLogs, setExecutionLogs] = useState<string[]>([]);
+
+  // Create Playbook Modal State
+  const [newPlaybookModalOpen, setNewPlaybookModalOpen] = useState(false);
+  const [newPbName, setNewPbName] = useState("");
+  const [newPbDesc, setNewPbDesc] = useState("");
+  const [newPbTrigger, setNewPbTrigger] = useState("");
+  const [playbookToast, setPlaybookToast] = useState<string | null>(null);
+
+  const handleCreatePlaybook = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPbName.trim()) return;
+
+    const newWf: PlaybookWorkflow = {
+      id: `pb-${Date.now()}`,
+      name: newPbName.trim(),
+      description: newPbDesc.trim() || "Automated response playbook workflow.",
+      triggerEvent: newPbTrigger.trim() || "Alert Severity == CRITICAL",
+      active: true,
+      nodes: [
+        { id: "1", type: "trigger", title: `Trigger: ${newPbName.slice(0, 24)}`, subtitle: newPbTrigger.trim() || "Rule condition matched", x: 60, y: 140 },
+        { id: "2", type: "condition", title: "Condition: Asset Criticality", subtitle: "Verify asset tag in [Production, Tier-0]", x: 280, y: 140 },
+        { id: "3", type: "approval", title: "Approval: Dual-Sign Off Gate", subtitle: "Incident Commander verification", x: 500, y: 140 },
+        { id: "4", type: "action", title: "Action: Automated Containment", subtitle: "Quarantine IP / Host via API adapter", x: 720, y: 140 },
+        { id: "5", type: "notify", title: "Notify: Dispatch Escalation", subtitle: "Log audit record & notify channel", x: 940, y: 140 }
+      ]
+    };
+
+    setPlaybooks((prev) => [newWf, ...prev]);
+    setSelectedPlaybook(newWf);
+    setNewPlaybookModalOpen(false);
+    setNewPbName("");
+    setNewPbDesc("");
+    setNewPbTrigger("");
+    setPlaybookToast(`Playbook "${newWf.name}" compiled and activated.`);
+    setTimeout(() => setPlaybookToast(null), 3500);
+  };
+
+  const handleExportPlaybookJSON = () => {
+    const blob = new Blob([JSON.stringify(selectedPlaybook, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `SOCForge_Playbook_${selectedPlaybook.id}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setPlaybookToast(`Exported "${selectedPlaybook.name}" as JSON.`);
+    setTimeout(() => setPlaybookToast(null), 3000);
+  };
 
   const getNodeColor = (type: string) => {
     switch (type) {
@@ -188,6 +237,25 @@ export default function PlaybooksPage() {
                 </option>
               ))}
             </select>
+
+            {/* New Playbook Button */}
+            <button
+              onClick={() => setNewPlaybookModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-emerald-400 border border-[#262626] font-semibold text-xs font-mono transition"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>New Playbook</span>
+            </button>
+
+            {/* Export JSON Button */}
+            <button
+              onClick={handleExportPlaybookJSON}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-[#262626] font-semibold text-xs font-mono transition"
+              title="Export playbook definition as JSON"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Export</span>
+            </button>
 
             {/* Dry-Run Simulation Button */}
             <button
@@ -355,6 +423,92 @@ export default function PlaybooksPage() {
             </div>
           </div>
         </div>
+
+        {/* New Playbook Modal */}
+        {newPlaybookModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+            <div className="bg-[#050505] border border-[#262626] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between pb-3 border-b border-[#262626]">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Author SOAR Playbook</h3>
+                    <p className="text-xs text-neutral-400">Design automated response workflow with dual-approval safeguards</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setNewPlaybookModalOpen(false)}
+                  className="text-neutral-400 hover:text-white p-1 text-sm font-mono"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleCreatePlaybook} className="space-y-3.5 text-xs font-mono">
+                <div>
+                  <label className="text-neutral-400 block mb-1">Playbook Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Cobalt Strike Beaconing Host Severance & TGT Revocation"
+                    value={newPbName}
+                    onChange={(e) => setNewPbName(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-neutral-400 block mb-1">Trigger Condition Filter</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Alert Severity == CRITICAL and Rule == 'CobaltStrike'"
+                    value={newPbTrigger}
+                    onChange={(e) => setNewPbTrigger(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-neutral-400 block mb-1">Description & Operational Objective</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Automates rapid response upon verifiable detection, routing through Tier-3 dual sign-off..."
+                    value={newPbDesc}
+                    onChange={(e) => setNewPbDesc(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-emerald-500 resize-none font-sans"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262626]">
+                  <button
+                    type="button"
+                    onClick={() => setNewPlaybookModalOpen(false)}
+                    className="px-4 py-2 bg-[#121212] hover:bg-[#1a1a1a] text-neutral-300 border border-[#262626] rounded-xl transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-black font-bold rounded-xl transition shadow-lg shadow-emerald-600/30 flex items-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Create Playbook</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Toast */}
+        {playbookToast && (
+          <div className="fixed bottom-6 right-6 z-50 bg-[#050505] border border-emerald-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-mono animate-in fade-in slide-in-from-bottom-3">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>{playbookToast}</span>
+          </div>
+        )}
       </div>
     </AppShell>
   );

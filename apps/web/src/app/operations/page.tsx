@@ -29,10 +29,22 @@ export default function OperationsPage() {
     "Day Shift Summary: Handled 14 alerts, escalated 2 critical incidents (Mimikatz DC dump & Ransomware precursor). SRV-DC01 is isolated in quarantine VLAN. Next shift duty: Monitor EDR heartbeat and oversee secondary approval for Kerberos token reset."
   );
   const [handoffSaved, setHandoffSaved] = useState(false);
+  const [appliedTuning, setAppliedTuning] = useState<string[]>([]);
+  const [operationsToast, setOperationsToast] = useState<string | null>(null);
+
+  const handleApplyTuning = (ruleId: string) => {
+    setAppliedTuning((prev) => [...prev, ruleId]);
+    setOperationsToast(`Whitelist filter exclusion for ${ruleId} deployed to Sigma engine.`);
+    setTimeout(() => setOperationsToast(null), 3500);
+  };
 
   const handleSaveHandoff = () => {
     setHandoffSaved(true);
-    setTimeout(() => setHandoffSaved(false), 3000);
+    setOperationsToast("Shift changeover log saved to database.");
+    setTimeout(() => {
+      setHandoffSaved(false);
+      setOperationsToast(null);
+    }, 3000);
   };
 
   const handleExportBrief = () => {
@@ -281,6 +293,20 @@ ${handoffNotes}
                     <div className="p-2.5 rounded bg-[#050505] border border-neutral-800 text-emerald-400 text-[10px]">
                       Recommended Whitelist Exclusion: <code>CommandLine NOT LIKE &quot;*C:\\Windows\\CCM\\*&quot;</code>
                     </div>
+                    <div className="pt-1 flex justify-end">
+                      {appliedTuning.includes("T1059.001") ? (
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-mono font-bold">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Exclusion Applied to Catalog
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleApplyTuning("T1059.001")}
+                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-black font-semibold rounded-lg text-xs font-mono transition"
+                        >
+                          Apply Filter Exception
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="p-4 rounded-xl bg-black border border-neutral-800 space-y-2">
@@ -296,12 +322,34 @@ ${handoffNotes}
                     <div className="p-2.5 rounded bg-[#050505] border border-neutral-800 text-emerald-400 text-[10px]">
                       Recommended Whitelist Exclusion: <code>User != &quot;svc_qualys_scan&quot;</code>
                     </div>
+                    <div className="pt-1 flex justify-end">
+                      {appliedTuning.includes("T1078.002") ? (
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-mono font-bold">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Exclusion Applied to Catalog
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleApplyTuning("T1078.002")}
+                          className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-black font-semibold rounded-lg text-xs font-mono transition"
+                        >
+                          Apply Filter Exception
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
         </div>
+
+        {/* Toast */}
+        {operationsToast && (
+          <div className="fixed bottom-6 right-6 z-50 bg-[#050505] border border-emerald-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-mono animate-in fade-in slide-in-from-bottom-3">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>{operationsToast}</span>
+          </div>
+        )}
       </div>
     </AppShell>
   );

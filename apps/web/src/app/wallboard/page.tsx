@@ -18,7 +18,10 @@ import {
   HeartPulse,
   Flame,
   CheckCircle2,
-  BarChart3
+  BarChart3,
+  Volume2,
+  VolumeX,
+  Bell
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 
@@ -56,12 +59,34 @@ export default function WallboardPage() {
     }
   };
 
-  const liveAlerts = [
+  const [alertsList, setAlertsList] = useState([
     { id: "A-1", sev: "CRITICAL", title: "Mimikatz LSASS Dump via PowerShell", target: "SRV-DC01", time: "09:14:02" },
     { id: "A-2", sev: "HIGH", title: "Cobalt Strike Named Pipe Beaconing", target: "WKSTN-FIN-04", time: "09:12:45" },
     { id: "A-3", sev: "HIGH", title: "Anomalous MFA Push Fatigue Attack", target: "corp\\jdoe", time: "09:08:11" },
     { id: "A-4", sev: "MEDIUM", title: "Perimeter SSH Port Scan Sweep (22/TCP)", target: "FW-EDGE-01", time: "08:59:30" }
-  ];
+  ]);
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [severityFilter, setSeverityFilter] = useState<"ALL" | "CRITICAL" | "HIGH">("ALL");
+  const [wallboardToast, setWallboardToast] = useState<string | null>(null);
+
+  const toggleAudio = () => {
+    setAudioEnabled(!audioEnabled);
+    setWallboardToast(!audioEnabled ? "Audio Klaxon Chime: ENABLED for SEV-1 Incidents" : "Audio Klaxon Chime: MUTED");
+    setTimeout(() => setWallboardToast(null), 3000);
+  };
+
+  const simulateIngressAlert = () => {
+    const newAlt = {
+      id: `A-${Date.now().toString().slice(-4)}`,
+      sev: "CRITICAL",
+      title: "Volumetric Kerberoasting Attack against Decoy SPN",
+      target: "SRV-DC02",
+      time: new Date().toLocaleTimeString()
+    };
+    setAlertsList((prev) => [newAlt, ...prev]);
+    setWallboardToast(`🚨 LIVE INGRESS ALERT: ${newAlt.title} on ${newAlt.target}`);
+    setTimeout(() => setWallboardToast(null), 4000);
+  };
 
   return (
     <div className="min-h-screen bg-[#000000] text-white font-sans flex flex-col p-6 space-y-6 select-none overflow-x-hidden">
@@ -84,8 +109,30 @@ export default function WallboardPage() {
           </div>
         </div>
 
-        {/* Global Timers & Fullscreen */}
-        <div className="flex items-center gap-4 text-xs font-mono">
+        {/* Global Timers & Actions */}
+        <div className="flex items-center gap-3 text-xs font-mono">
+          <button
+            onClick={simulateIngressAlert}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold transition shadow-md shadow-red-600/20"
+            title="Simulate high-priority threat ingress event"
+          >
+            <Flame className="w-3.5 h-3.5" />
+            <span>Simulate Ingress</span>
+          </button>
+
+          <button
+            onClick={toggleAudio}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition ${
+              audioEnabled
+                ? "bg-amber-500/20 border-amber-500 text-amber-300 font-bold"
+                : "bg-neutral-900 border-neutral-800 text-neutral-400 hover:text-white"
+            }`}
+            title="Toggle Audio Alarm Klaxon for SEV-1 alerts"
+          >
+            {audioEnabled ? <Volume2 className="w-3.5 h-3.5 text-amber-400" /> : <VolumeX className="w-3.5 h-3.5" />}
+            <span>{audioEnabled ? "Audio Alarm ON" : "Audio Muted"}</span>
+          </button>
+
           <div className="px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-center">
             <span className="text-[10px] text-neutral-400 block">SYSTEM UTC</span>
             <span className="text-sm font-bold text-white">{timeUtc || "00:00:00 UTC"}</span>
@@ -221,11 +268,27 @@ export default function WallboardPage() {
               <Radio className="w-4 h-4 text-red-400 animate-pulse" />
               LIVE TELEMETRY ALERTS STREAM
             </div>
-            <span className="text-[10px] text-emerald-400 font-bold">AUTO-STREAM</span>
+            <div className="flex items-center gap-1">
+              {(["ALL", "CRITICAL", "HIGH"] as const).map((sev) => (
+                <button
+                  key={sev}
+                  onClick={() => setSeverityFilter(sev)}
+                  className={`px-2 py-0.5 rounded text-[10px] transition ${
+                    severityFilter === sev
+                      ? "bg-white text-black font-bold"
+                      : "bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800"
+                  }`}
+                >
+                  {sev}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="space-y-2.5 flex-1 overflow-y-auto">
-            {liveAlerts.map((alt) => (
+            {alertsList
+              .filter((alt) => severityFilter === "ALL" || alt.sev === severityFilter)
+              .map((alt) => (
               <div
                 key={alt.id}
                 className="p-3 rounded-xl bg-black border border-neutral-800 space-y-1.5"
@@ -259,6 +322,14 @@ export default function WallboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Toast */}
+      {wallboardToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#050505] border border-red-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-mono animate-in fade-in slide-in-from-bottom-3">
+          <span className="h-2 w-2 rounded-full bg-red-400 animate-ping" />
+          <span>{wallboardToast}</span>
+        </div>
+      )}
     </div>
   );
 }

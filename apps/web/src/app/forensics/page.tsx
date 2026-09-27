@@ -24,7 +24,8 @@ import {
   Activity,
   Binary,
   Eye,
-  Hash
+  Hash,
+  Plus
 } from "lucide-react";
 
 interface ForensicArtifact {
@@ -155,11 +156,77 @@ const DEFAULT_YARA_RULE = `rule Suspicious_Memory_Dump_Extractor {
 }`;
 
 export default function ForensicsPage() {
+  const [artifacts, setAssets] = useState<ForensicArtifact[]>(SAMPLE_ARTIFACTS);
   const [selectedArtifact, setSelectedArtifact] = useState<ForensicArtifact>(SAMPLE_ARTIFACTS[0]);
   const [yaraRule, setYaraRule] = useState<string>(DEFAULT_YARA_RULE);
   const [yaraResult, setYaraResult] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"disassembly" | "hex" | "strings" | "yara" | "entropy">("disassembly");
   const [copied, setCopied] = useState(false);
+
+  // Ingest Modal State
+  const [ingestModalOpen, setIngestModalOpen] = useState(false);
+  const [newFilename, setNewFilename] = useState("");
+  const [newFiletype, setNewFiletype] = useState("PE32+ executable (x86-64)");
+  const [newThreat, setNewThreat] = useState<"MALICIOUS" | "SUSPICIOUS" | "CLEAN">("MALICIOUS");
+  const [forensicsToast, setForensicsToast] = useState<string | null>(null);
+
+  const handleUploadArtifact = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFilename.trim()) return;
+
+    const newArt: ForensicArtifact = {
+      id: `art-${Date.now()}`,
+      filename: newFilename.trim(),
+      filetype: newFiletype,
+      sizeBytes: 819200,
+      entropy: 7.65,
+      md5: "c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6",
+      sha256: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+      threatLevel: newThreat,
+      magicBytes: "4D 5A 90 00 03 00 00 00 (MZ...)",
+      extractedStrings: [
+        "CreateRemoteThread",
+        "VirtualAllocEx",
+        "WriteProcessMemory",
+        "OpenProcess",
+        "cmd.exe /c start"
+      ],
+      hexPreview: [
+        "00000000  4d 5a 90 00 03 00 00 00  04 00 00 00 ff ff 00 00  |MZ..............|",
+        "00000010  b8 00 00 00 00 00 00 00  40 00 00 00 00 00 00 00  |........@.......|"
+      ],
+      disassembly: [
+        { offset: "0x140001000", bytes: "48 83 EC 28", opcode: "sub rsp, 28h", comment: "Alloc frame" },
+        { offset: "0x140001004", bytes: "48 8D 0D 20 10 00 00", opcode: "lea rcx, [rip+0x1020]", comment: "Target PID" },
+        { offset: "0x14000100B", bytes: "FF 15 A0 20 01 00", opcode: "call qword ptr [OpenProcess]", comment: "Acquire handle" }
+      ],
+      sections: [
+        { name: ".text", virtualSize: "0x30000", rawSize: "196,608 bytes", entropy: 6.85, isSuspicious: false },
+        { name: ".rdata", virtualSize: "0x10000", rawSize: "65,536 bytes", entropy: 5.10, isSuspicious: false },
+        { name: ".data", virtualSize: "0x6000", rawSize: "24,576 bytes", entropy: 3.40, isSuspicious: false },
+        { name: ".vmp0", virtualSize: "0x70000", rawSize: "458,752 bytes", entropy: 7.91, isSuspicious: true }
+      ]
+    };
+
+    setAssets((prev) => [newArt, ...prev]);
+    setSelectedArtifact(newArt);
+    setIngestModalOpen(false);
+    setNewFilename("");
+    setForensicsToast(`Artifact "${newArt.filename}" ingested and indexed in static dissector.`);
+    setTimeout(() => setForensicsToast(null), 3500);
+  };
+
+  const handleExportForensicReport = () => {
+    const blob = new Blob([JSON.stringify(selectedArtifact, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `SOCForge_Forensics_${selectedArtifact.filename}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setForensicsToast(`Exported "${selectedArtifact.filename}" forensic report JSON.`);
+    setTimeout(() => setForensicsToast(null), 3000);
+  };
 
   const runYaraScan = () => {
     setYaraResult("SCANNING...");
@@ -205,17 +272,34 @@ export default function ForensicsPage() {
             <select
               value={selectedArtifact.id}
               onChange={(e) => {
-                const found = SAMPLE_ARTIFACTS.find((a) => a.id === e.target.value);
+                const found = artifacts.find((a) => a.id === e.target.value);
                 if (found) setSelectedArtifact(found);
               }}
               className="px-3 py-1.5 rounded-lg bg-[#0a0a0a] border border-[#262626] text-white font-medium focus:outline-none cursor-pointer text-xs"
             >
-              {SAMPLE_ARTIFACTS.map((art) => (
+              {artifacts.map((art) => (
                 <option key={art.id} value={art.id} className="bg-black text-white">
                   {art.filename} ({(art.sizeBytes / 1024).toFixed(0)} KB)
                 </option>
               ))}
             </select>
+
+            <button
+              onClick={() => setIngestModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-rose-400 border border-[#262626] font-semibold text-xs transition font-mono"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Ingest Artifact</span>
+            </button>
+
+            <button
+              onClick={handleExportForensicReport}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-[#262626] font-semibold text-xs transition font-mono"
+              title="Export complete forensic dissection profile as JSON"
+            >
+              <Download className="w-3.5 h-3.5 text-rose-400" />
+              <span>Export Dossier</span>
+            </button>
 
             <button
               onClick={runYaraScan}
@@ -442,6 +526,100 @@ export default function ForensicsPage() {
             </div>
           )}
         </div>
+
+        {/* Ingest Artifact Modal */}
+        {ingestModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+            <div className="bg-[#050505] border border-[#262626] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between pb-3 border-b border-[#262626]">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400">
+                    <Binary className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white">Ingest Forensic Artifact</h3>
+                    <p className="text-xs text-neutral-400">Submit binary or memory dump for static disassembly & entropy analysis</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIngestModalOpen(false)}
+                  className="text-neutral-400 hover:text-white p-1 text-sm font-mono"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form onSubmit={handleUploadArtifact} className="space-y-3.5 text-xs font-mono">
+                <div>
+                  <label className="text-neutral-400 block mb-1">Artifact Filename *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. CobaltStrike_Stager_x64.bin"
+                    value={newFilename}
+                    onChange={(e) => setNewFilename(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-neutral-400 block mb-1">File Classification</label>
+                    <select
+                      value={newFiletype}
+                      onChange={(e) => setNewFiletype(e.target.value)}
+                      className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    >
+                      <option value="PE32+ executable (x86-64)">PE32+ Executable (x86-64)</option>
+                      <option value="PE32+ DLL (x86-64)">PE32+ DLL (x86-64)</option>
+                      <option value="ELF 64-bit LSB Executable">ELF 64-bit LSB Linux</option>
+                      <option value="Memory Dump Raw Image">Memory Dump (.dmp / .raw)</option>
+                      <option value="Shellcode Payload Stream">Shellcode Payload Stream</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-neutral-400 block mb-1">Initial Triage Posture</label>
+                    <select
+                      value={newThreat}
+                      onChange={(e: any) => setNewThreat(e.target.value)}
+                      className="w-full bg-[#0A0A0A] border border-[#262626] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    >
+                      <option value="MALICIOUS">MALICIOUS (Known Signature)</option>
+                      <option value="SUSPICIOUS">SUSPICIOUS (Heuristic Anomaly)</option>
+                      <option value="CLEAN">CLEAN (Baseline Binary)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262626]">
+                  <button
+                    type="button"
+                    onClick={() => setIngestModalOpen(false)}
+                    className="px-4 py-2 bg-[#121212] hover:bg-[#1a1a1a] text-neutral-300 border border-[#262626] rounded-xl transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-xl transition shadow-lg shadow-rose-600/30 flex items-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Dissect & Analyze</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Toast */}
+        {forensicsToast && (
+          <div className="fixed bottom-6 right-6 z-50 bg-[#050505] border border-emerald-500/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs font-mono animate-in fade-in slide-in-from-bottom-3">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>{forensicsToast}</span>
+          </div>
+        )}
       </div>
     </AppShell>
   );
