@@ -32,7 +32,13 @@ import {
   Sparkles,
   Zap,
   Cpu,
-  Users
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  Cloud,
+  FolderOpen,
+  Boxes,
+  Compass
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
@@ -47,13 +53,13 @@ export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
   const [copilotOpen, setCopilotOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [selectedEnv, setSelectedEnv] = useState<"Production" | "Staging" | "Sandbox">("Production");
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>("24h");
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<string>("60s");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<string>("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [healthStatus, setHealthStatus] = useState<{ status: string; uptime_seconds: number; components: Record<string, string> }>({
     status: "healthy",
     uptime_seconds: 3600,
@@ -95,43 +101,52 @@ export default function AppShell({ children }: AppShellProps) {
     getHealthStatus().then((res) => {
       if (res) setHealthStatus(res);
     }).catch(() => {});
-    // Dispatch custom event for child views
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("socforge-refresh"));
     }
     setTimeout(() => setIsRefreshing(false), 600);
   };
 
+  // OpenCTI-style Categorized Navigation Hierarchy
   const navSections = [
     {
-      title: "OPERATIONS",
+      title: "CTI & ANALYSES",
       items: [
-        { href: "/dashboard", label: "SOC Command Center", icon: Activity },
-        { href: "/alerts", label: "Alert Triage Queue", icon: AlertTriangle },
+        { href: "/dashboard", label: "CTI Overview", icon: Home },
+        { href: "/intel", label: "Threat Actor Matrix", icon: Globe },
+        { href: "/analytics", label: "Analytics & MITRE", icon: BarChart3 },
+      ]
+    },
+    {
+      title: "CASES & RESPONSE",
+      items: [
         { href: "/incidents", label: "Incident War Room", icon: ShieldAlert },
         { href: "/investigations", label: "Investigation Studio", icon: Share2 },
         { href: "/graph", label: "Attack Path Visualizer", icon: Network },
-        { href: "/operations", label: "Shift Handoff & SLAs", icon: Users },
-        { href: "/wallboard", label: "OLED Command Wallboard", icon: Radio },
       ]
     },
     {
-      title: "ENGINEERING & INTEL",
+      title: "EVENTS & OBSERVATIONS",
+      items: [
+        { href: "/alerts", label: "Alert Triage Queue", icon: AlertTriangle },
+        { href: "/entities", label: "Observables & Indicators", icon: Layers },
+      ]
+    },
+    {
+      title: "SECURITY ARSENAL",
       items: [
         { href: "/detections", label: "Detection Engineering", icon: FileCode },
         { href: "/playbooks", label: "Visual SOAR Playbooks", icon: Zap },
-        { href: "/hunts", label: "Threat Hunting Studio", icon: Crosshair },
         { href: "/simulation", label: "Adversary BAS Simulator", icon: ShieldCheck },
-        { href: "/intel", label: "Threat Actor Matrix", icon: Globe },
         { href: "/forensics", label: "Malware & YARA Lab", icon: Cpu },
-        { href: "/analytics", label: "Analytics & MITRE", icon: BarChart3 },
-        { href: "/entities", label: "Assets & Indicators", icon: Layers },
       ]
     },
     {
-      title: "GOVERNANCE & PLATFORM",
+      title: "OPERATIONS & PLATFORM",
       items: [
-        { href: "/responses", label: "Response Ledger", icon: ShieldCheck },
+        { href: "/hunts", label: "Threat Hunting Studio", icon: Crosshair },
+        { href: "/operations", label: "Shift Handoff & SLAs", icon: Users },
+        { href: "/wallboard", label: "OLED Command Wallboard", icon: Radio },
         { href: "/integrations", label: "SIEM Connectors", icon: Database },
         { href: "/audit", label: "Audit & Security Logs", icon: FileText },
         { href: "/desktop", label: "Client Workspace", icon: Laptop },
@@ -140,32 +155,34 @@ export default function AppShell({ children }: AppShellProps) {
   ];
 
   return (
-    <div className="flex h-screen bg-[#0B1020] text-[#F8FAFC] overflow-hidden font-sans">
+    <div className="flex h-screen bg-[#070C18] text-[#F8FAFC] overflow-hidden font-sans select-none">
       <GlobalSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
       <SOCCopilotDrawer isOpen={copilotOpen} onClose={() => setCopilotOpen(false)} />
 
-      {/* Sidebar */}
-      <aside className="w-64 border-r border-[#263248] bg-[#111827] flex flex-col flex-shrink-0 z-30">
+      {/* Collapsible OpenCTI-style Sidebar */}
+      <aside className={`${isCollapsed ? "w-16" : "w-64"} border-r border-[#1E293B] bg-[#0A0F1D] flex flex-col flex-shrink-0 z-30 transition-all duration-300 ease-in-out`}>
         {/* Brand Header */}
-        <div className="h-16 border-b border-[#263248] px-4 flex items-center justify-between bg-[#0B1020]">
-          <Link href="/" className="hover:opacity-90 transition">
-            <SocForgeLogo size="sm" showWordmark={true} />
+        <div className="h-16 border-b border-[#1E293B] px-4 flex items-center justify-between bg-[#070C18]">
+          <Link href="/" className="hover:opacity-90 transition flex items-center gap-2 overflow-hidden">
+            <SocForgeLogo size="sm" showWordmark={!isCollapsed} />
           </Link>
-          <div className="flex items-center gap-1">
+          {!isCollapsed && (
             <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#172033] border border-[#263248] text-[#38BDF8]">
-              v1.0
+              v2.0
             </span>
-          </div>
+          )}
         </div>
 
         {/* Navigation Sections */}
-        <nav className="p-3 space-y-4 text-xs font-medium flex-1 overflow-y-auto">
+        <nav className="p-2 space-y-4 text-xs font-medium flex-1 overflow-y-auto">
           {navSections.map((sec, secIdx) => (
             <div key={secIdx} className="space-y-1">
-              <span className="px-3 text-[10px] font-mono uppercase tracking-wider text-[#64748B]">
-                {sec.title}
-              </span>
-              <div className="space-y-0.5 pt-1">
+              {!isCollapsed && (
+                <span className="px-3 text-[9px] font-mono uppercase tracking-wider text-[#64748B] font-bold">
+                  {sec.title}
+                </span>
+              )}
+              <div className="space-y-0.5 pt-0.5">
                 {sec.items.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
@@ -173,14 +190,15 @@ export default function AppShell({ children }: AppShellProps) {
                     <Link
                       key={item.href}
                       href={item.href}
+                      title={isCollapsed ? item.label : undefined}
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition font-medium ${
                         isActive
                           ? "bg-[#172033] text-[#38BDF8] border border-[#263248] font-semibold shadow-sm"
-                          : "text-[#94A3B8] hover:bg-[#151C2E] hover:text-[#F8FAFC]"
+                          : "text-[#94A3B8] hover:bg-[#111827] hover:text-[#F8FAFC]"
                       }`}
                     >
                       <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-[#38BDF8]" : "text-[#64748B]"}`} />
-                      <span className="truncate">{item.label}</span>
+                      {!isCollapsed && <span className="truncate">{item.label}</span>}
                     </Link>
                   );
                 })}
@@ -189,53 +207,63 @@ export default function AppShell({ children }: AppShellProps) {
           ))}
         </nav>
 
-        {/* Workspace Footer */}
-        <div className="p-3 border-t border-[#263248] bg-[#0B1020] flex items-center justify-between text-xs">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span className="font-semibold text-[#F8FAFC] text-[11px]">SOCForge Enterprise</span>
+        {/* Workspace & Collapse Toggle Footer */}
+        <div className="p-2 border-t border-[#1E293B] bg-[#070C18] flex items-center justify-between text-xs">
+          {!isCollapsed && (
+            <div className="flex flex-col truncate pr-1">
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <span className="font-semibold text-white text-[11px] truncate">SOCForge Enterprise</span>
+              </div>
+              <span className="text-[10px] text-[#64748B] font-mono">OpenCTI + Falcon Engine</span>
             </div>
-            <span className="text-[10px] text-[#64748B] font-mono">Workspace: default (SecOps)</span>
-          </div>
-          <span 
-            className={`h-2 w-2 rounded-full ${healthStatus.status === "healthy" ? "bg-[#22C55E]" : "bg-[#F59E0B]"} animate-pulse`} 
-            title={`System Status: ${healthStatus.status}`} 
-          />
+          )}
+          
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="p-1.5 rounded-lg border border-[#1E293B] hover:bg-[#172033] text-[#94A3B8] hover:text-white transition flex items-center gap-1 text-[10px] font-mono"
+            title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : (
+              <>
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Collapse</span>
+              </>
+            )}
+          </button>
         </div>
       </aside>
 
-      {/* Main Content Area with Global Header */}
+      {/* Main Content Area with OpenCTI-style Top Bar */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Global Top Control Bar */}
-        <header className="h-16 border-b border-[#263248] bg-[#0E1626] px-6 flex items-center justify-between flex-shrink-0 z-20">
-          {/* Left: Organization & Environment Selector */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-[#151C2E] border border-[#263248] text-xs font-mono">
-              <Layers className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span className="text-[#94A3B8]">Env:</span>
-              <select
-                value={selectedEnv}
-                onChange={(e) => setSelectedEnv(e.target.value as any)}
-                className="bg-transparent text-[#F8FAFC] font-semibold focus:outline-none cursor-pointer text-xs"
-              >
-                <option value="Production" className="bg-[#0F172A] text-white">Production (Corp)</option>
-                <option value="Staging" className="bg-[#0F172A] text-white">Staging (SecLab)</option>
-                <option value="Sandbox" className="bg-[#0F172A] text-white">Sandbox (Replay)</option>
-              </select>
-            </div>
-
-            {/* Global Search Button (⌘K) */}
+        <header className="h-16 border-b border-[#1E293B] bg-[#0A0F1D] px-6 flex items-center justify-between flex-shrink-0 z-20">
+          {/* Left: Search the Platform (Omnisearch matching OpenCTI) */}
+          <div className="flex items-center gap-3 flex-1 max-w-xl">
             <button
               onClick={() => setSearchOpen(true)}
-              className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg border border-[#263248] bg-[#151C2E] text-[#94A3B8] hover:text-[#F8FAFC] hover:border-[#38BDF8]/40 transition text-xs font-mono"
+              className="w-full flex items-center justify-between px-3.5 py-2 rounded-xl border border-[#1E293B] bg-[#070C18] text-[#94A3B8] hover:text-[#F8FAFC] hover:border-[#38BDF8]/40 transition text-xs font-mono shadow-inner"
             >
-              <Search className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span className="hidden sm:inline">Search telemetry, IOCs, rules...</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[#0B1020] text-[10px] text-[#64748B] border border-[#263248]">
+              <div className="flex items-center gap-2.5">
+                <Search className="w-4 h-4 text-[#38BDF8]" />
+                <span>Search the platform (IOCs, CVEs, TTPs, Threat Actors)...</span>
+              </div>
+              <kbd className="px-1.5 py-0.5 rounded bg-[#0A0F1D] text-[10px] text-[#64748B] border border-[#1E293B]">
                 ⌘K
               </kbd>
             </button>
+          </div>
+
+          {/* Right Controls: Cloud Feeds, Copilot, Time Range, Health, Notifications, Profile */}
+          <div className="flex items-center gap-2.5 text-xs font-mono">
+            {/* Live Threat Feed Sync Status */}
+            <div 
+              title="TAXII / MISP / VirusTotal Threat Feeds Connected"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#1E293B] bg-[#070C18] text-[#94A3B8]"
+            >
+              <Cloud className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+              <span className="text-[11px] text-emerald-400 font-bold">FEEDS SYNCED</span>
+            </div>
 
             {/* SOC AI Copilot Button (⌘J) */}
             <button
@@ -244,94 +272,65 @@ export default function AppShell({ children }: AppShellProps) {
             >
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
               <span className="hidden sm:inline font-semibold">SOC Copilot</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-[#0B1020] text-[10px] text-indigo-400 border border-indigo-500/30">
+              <kbd className="px-1.5 py-0.5 rounded bg-[#070C18] text-[10px] text-indigo-400 border border-indigo-500/30">
                 ⌘J
               </kbd>
             </button>
-          </div>
 
-          {/* Right Controls: Time Range, Auto-Refresh, Refresh, Notifications, Profile */}
-          <div className="flex items-center gap-2.5 text-xs font-mono">
-            {/* Time Range Selector */}
-            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#151C2E] border border-[#263248] text-[#94A3B8]">
+            {/* Time Window Selector */}
+            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#070C18] border border-[#1E293B] text-[#94A3B8]">
               <span>Window:</span>
               <select
                 value={selectedTimeRange}
                 onChange={(e) => setSelectedTimeRange(e.target.value)}
-                className="bg-transparent text-[#F8FAFC] font-semibold focus:outline-none cursor-pointer text-xs"
+                className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer text-xs"
               >
-                <option value="15m" className="bg-[#0F172A] text-white">Last 15 min</option>
-                <option value="1h" className="bg-[#0F172A] text-white">Last 1 hour</option>
-                <option value="6h" className="bg-[#0F172A] text-white">Last 6 hours</option>
-                <option value="24h" className="bg-[#0F172A] text-white">Last 24 hours</option>
-                <option value="7d" className="bg-[#0F172A] text-white">Last 7 days</option>
-                <option value="30d" className="bg-[#0F172A] text-white">Last 30 days</option>
+                <option value="1h" className="bg-[#0A0F1D] text-white">Last 1 hour</option>
+                <option value="24h" className="bg-[#0A0F1D] text-white">Last 24 hours</option>
+                <option value="7d" className="bg-[#0A0F1D] text-white">Last 7 days</option>
+                <option value="3m" className="bg-[#0A0F1D] text-white">Last 3 months</option>
+                <option value="1y" className="bg-[#0A0F1D] text-white">Last 1 year</option>
               </select>
             </div>
 
-            {/* Auto Refresh */}
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#151C2E] border border-[#263248] text-[#94A3B8]">
-              <span>Sync:</span>
-              <select
-                value={autoRefreshInterval}
-                onChange={(e) => setAutoRefreshInterval(e.target.value)}
-                className="bg-transparent text-[#38BDF8] font-semibold focus:outline-none cursor-pointer text-xs"
-              >
-                <option value="off" className="bg-[#0F172A] text-white">Manual</option>
-                <option value="30s" className="bg-[#0F172A] text-white">30s</option>
-                <option value="60s" className="bg-[#0F172A] text-white">1m</option>
-                <option value="300s" className="bg-[#0F172A] text-white">5m</option>
-              </select>
-            </div>
-
-            {/* Manual Refresh Button */}
+            {/* Manual Refresh */}
             <button
               onClick={handleManualRefresh}
-              title={`Last refreshed: ${lastRefreshed}`}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#263248] bg-[#151C2E] hover:bg-[#1E293B] text-[#F8FAFC] transition"
+              title={`Last synced: ${lastRefreshed}`}
+              className="p-2 rounded-lg border border-[#1E293B] bg-[#070C18] hover:bg-[#172033] text-white transition"
             >
               <RefreshCw className={`w-3.5 h-3.5 text-[#38BDF8] ${isRefreshing ? "animate-spin" : ""}`} />
-              <span className="hidden xl:inline text-[11px] text-[#94A3B8]">{lastRefreshed}</span>
             </button>
-
-            {/* Health Indicator Badge */}
-            <div 
-              title={`API & Database: ${healthStatus.status}`}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-lg border border-[#263248] bg-[#151C2E] text-[11px]"
-            >
-              <HeartPulse className={`w-3.5 h-3.5 ${healthStatus.status === "healthy" ? "text-emerald-400" : "text-amber-400"}`} />
-              <span className="hidden md:inline font-semibold text-emerald-400 uppercase text-[10px]">HEALTHY</span>
-            </div>
 
             {/* Notifications Bell */}
             <div className="relative">
               <button
                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="p-1.5 rounded-lg border border-[#263248] bg-[#151C2E] text-[#94A3B8] hover:text-[#F8FAFC] transition relative"
+                className="p-2 rounded-lg border border-[#1E293B] bg-[#070C18] text-[#94A3B8] hover:text-white transition relative"
                 aria-label="Notifications"
               >
-                <Bell className="w-4 h-4" />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#EF4444]" />
+                <Bell className="w-3.5 h-3.5" />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
               </button>
 
               {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-[#0F172A] border border-[#263248] rounded-xl shadow-2xl p-4 z-50 space-y-3 font-sans">
-                  <div className="flex items-center justify-between border-b border-[#263248] pb-2 font-mono">
-                    <span className="text-xs font-bold text-[#F8FAFC]">Live Security Notifications</span>
+                <div className="absolute right-0 mt-2 w-80 bg-[#0A0F1D] border border-[#1E293B] rounded-xl shadow-2xl p-4 z-50 space-y-3 font-sans">
+                  <div className="flex items-center justify-between border-b border-[#1E293B] pb-2 font-mono">
+                    <span className="text-xs font-bold text-white">Live Threat Intelligence Alerts</span>
                     <span className="text-[10px] text-[#38BDF8]">3 New</span>
                   </div>
                   <div className="space-y-2 text-xs">
-                    <div className="p-2 rounded bg-[#1E293B] border border-[#334155] space-y-1">
+                    <div className="p-2 rounded bg-[#070C18] border border-[#1E293B] space-y-1">
                       <div className="flex items-center gap-1.5 text-red-400 font-semibold text-[11px]">
-                        <AlertTriangle className="w-3.5 h-3.5" /> High-Severity Alert
+                        <AlertTriangle className="w-3.5 h-3.5" /> New High-Confidence Exploit
                       </div>
-                      <p className="text-[#94A3B8] text-[11px]">Mimikatz LSASS memory dump flagged on SRV-DC01</p>
+                      <p className="text-[#94A3B8] text-[11px]">CVE-2024-1709 added to CISA Known Exploited Vulnerabilities</p>
                     </div>
-                    <div className="p-2 rounded bg-[#1E293B] border border-[#334155] space-y-1">
+                    <div className="p-2 rounded bg-[#070C18] border border-[#1E293B] space-y-1">
                       <div className="flex items-center gap-1.5 text-emerald-400 font-semibold text-[11px]">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Detection Validated
+                        <CheckCircle2 className="w-3.5 h-3.5" /> TAXII Feed Ingested
                       </div>
-                      <p className="text-[#94A3B8] text-[11px]">Sigma rule T1003.001 passed replay test (F1=1.0)</p>
+                      <p className="text-[#94A3B8] text-[11px]">Processed 26,002 new IP/domain IOC observables</p>
                     </div>
                   </div>
                 </div>
@@ -339,12 +338,12 @@ export default function AppShell({ children }: AppShellProps) {
             </div>
 
             {/* Analyst Profile */}
-            <div className="flex items-center gap-2 pl-2 border-l border-[#263248]">
+            <div className="flex items-center gap-2 pl-2 border-l border-[#1E293B]">
               <div className="w-7 h-7 rounded-full bg-[#172033] border border-[#38BDF8]/40 flex items-center justify-center text-[#38BDF8] font-bold text-xs">
                 SM
               </div>
               <div className="hidden xl:flex flex-col">
-                <span className="text-xs font-semibold text-[#F8FAFC] leading-none">Sandeep Mothukuri</span>
+                <span className="text-xs font-semibold text-white leading-none">Sandeep Mothukuri</span>
                 <span className="text-[10px] text-[#64748B] font-mono leading-tight">Lead SecOps Architect</span>
               </div>
             </div>
