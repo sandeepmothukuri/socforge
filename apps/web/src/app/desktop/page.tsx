@@ -352,37 +352,57 @@ if (Test-Path ".\\SOCForge-Window.exe") {
                     <div className="p-3 rounded-xl bg-[#0A0A0A] border border-[#262626] flex items-center justify-between">
                       <div className="space-y-0.5">
                         <div className="text-emerald-400 font-bold">.\SOCForge-Window.exe</div>
-                        <div className="text-[11px] text-neutral-500">18.07 MB Single-file binary</div>
+                        <div className="text-[11px] text-neutral-500">18.06 MB Single-file binary • Web Console Window</div>
                       </div>
-                      <button
-                        onClick={() => copy(".\\SOCForge-Window.exe")}
-                        className="text-neutral-500 hover:text-white p-1"
-                        title="Copy name"
-                      >
-                        {copiedText === ".\\SOCForge-Window.exe" ? (
-                          <Check className="w-4 h-4 text-emerald-400" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href="/SOCForge-Window.exe"
+                          download="SOCForge-Window.exe"
+                          className="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs flex items-center gap-1 transition shadow-sm"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download</span>
+                        </a>
+                        <button
+                          onClick={() => copy(".\\SOCForge-Window.exe")}
+                          className="text-neutral-500 hover:text-white p-1"
+                          title="Copy name"
+                        >
+                          {copiedText === ".\\SOCForge-Window.exe" ? (
+                            <Check className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
 
                     <div className="p-3 rounded-xl bg-[#0A0A0A] border border-[#262626] flex items-center justify-between">
                       <div className="space-y-0.5">
                         <div className="text-white font-bold">.\SOCForge-Operations.exe</div>
-                        <div className="text-[11px] text-neutral-500">11.60 MB Single-file binary</div>
+                        <div className="text-[11px] text-neutral-500">11.60 MB Single-file binary • Docker & Port Control</div>
                       </div>
-                      <button
-                        onClick={() => copy(".\\SOCForge-Operations.exe")}
-                        className="text-neutral-500 hover:text-white p-1"
-                        title="Copy name"
-                      >
-                        {copiedText === ".\\SOCForge-Operations.exe" ? (
-                          <Check className="w-4 h-4 text-emerald-400" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <a
+                          href="/SOCForge-Operations.exe"
+                          download="SOCForge-Operations.exe"
+                          className="px-2.5 py-1 rounded-lg bg-white hover:bg-neutral-200 text-black font-bold text-xs flex items-center gap-1 transition shadow-sm"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download</span>
+                        </a>
+                        <button
+                          onClick={() => copy(".\\SOCForge-Operations.exe")}
+                          className="text-neutral-500 hover:text-white p-1"
+                          title="Copy name"
+                        >
+                          {copiedText === ".\\SOCForge-Operations.exe" ? (
+                            <Check className="w-4 h-4 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-4 h-4" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -150,7 +150,7 @@ SPLASH_HTML = f"""<!DOCTYPE html>
 class DesktopApi:
     """Python API exposed to the JavaScript context inside WebView2."""
 
-    def __init__(self, window: webview.Window):
+    def __init__(self, window: webview.Window | None = None):
         self.window = window
 
     def get_system_status(self) -> dict:
@@ -205,6 +205,7 @@ def main():
         start_url = None
         splash = True
 
+    api = DesktopApi()
     window = webview.create_window(
         title="SOCForge — Security Operations Console",
         url=start_url if not splash else None,
@@ -214,8 +215,9 @@ def main():
         min_size=(1024, 680),
         background_color="#030712",
         text_select=True,
+        js_api=api,
     )
-    window.expose(DesktopApi(window))
+    api.window = window
 
     if splash:
         t = threading.Thread(target=wait_and_load, args=(window,), daemon=True)
