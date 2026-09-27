@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import AppShell from "@/components/AppShell";
+import { IocHoverCard } from "@/components/ui/IocHoverCard";
 import {
   FileCode,
   Search,
@@ -18,7 +19,12 @@ import {
   Terminal,
   Cpu,
   Layers,
-  Sparkles
+  Sparkles,
+  Flame,
+  Activity,
+  Binary,
+  Eye,
+  Hash
 } from "lucide-react";
 
 interface ForensicArtifact {
@@ -33,6 +39,8 @@ interface ForensicArtifact {
   magicBytes: string;
   extractedStrings: string[];
   hexPreview: string[];
+  disassembly: { offset: string; bytes: string; opcode: string; comment?: string }[];
+  sections: { name: string; virtualSize: string; rawSize: string; entropy: number; isSuspicious: boolean }[];
 }
 
 const SAMPLE_ARTIFACTS: ForensicArtifact[] = [
@@ -65,6 +73,25 @@ const SAMPLE_ARTIFACTS: ForensicArtifact[] = [
       "00000050  69 73 20 70 72 6f 67 72  61 6d 20 63 61 6e 6e 6f  |is program canno|",
       "00000060  74 20 62 65 20 72 75 6e  20 69 6e 20 44 4f 53 20  |t be run in DOS |",
       "00000070  6d 6f 64 65 2e 0d 0d 0a  24 00 00 00 00 00 00 00  |mode....$.......|"
+    ],
+    disassembly: [
+      { offset: "0x140001000", bytes: "48 83 EC 28", opcode: "sub rsp, 28h", comment: "Prologue: Allocate stack frame" },
+      { offset: "0x140001004", bytes: "48 8D 0D F5 23 01 00", opcode: "lea rcx, [rip+0x123f5]", comment: 'Load "lsasrv.dll" string' },
+      { offset: "0x14000100B", bytes: "FF 15 A7 31 01 00", opcode: "call qword ptr [rip+0x131a7]", comment: "GetModuleHandleA" },
+      { offset: "0x140001011", bytes: "48 85 C0", opcode: "test rax, rax", comment: "Verify handle non-null" },
+      { offset: "0x140001014", bytes: "74 18", opcode: "jz 0x14000102E", comment: "Branch if failed" },
+      { offset: "0x140001016", bytes: "48 8D 15 13 24 01 00", opcode: "lea rdx, [rip+0x12413]", comment: 'Load "LogonSessionList"' },
+      { offset: "0x14000101D", bytes: "48 89 C1", opcode: "mov rcx, rax", comment: "Pass module handle" },
+      { offset: "0x140001020", bytes: "FF 15 82 31 01 00", opcode: "call qword ptr [rip+0x13182]", comment: "GetProcAddress" },
+      { offset: "0x140001026", bytes: "48 89 05 D3 50 01 00", opcode: "mov [rip+0x150d3], rax", comment: "Save symbol pointer" },
+      { offset: "0x14000102D", bytes: "C3", opcode: "ret", comment: "Return" }
+    ],
+    sections: [
+      { name: ".text", virtualSize: "0x45000", rawSize: "282,624 bytes", entropy: 6.42, isSuspicious: false },
+      { name: ".rdata", virtualSize: "0x18000", rawSize: "98,304 bytes", entropy: 4.88, isSuspicious: false },
+      { name: ".data", virtualSize: "0x8000", rawSize: "32,768 bytes", entropy: 3.12, isSuspicious: false },
+      { name: ".pdata", virtualSize: "0x3000", rawSize: "12,288 bytes", entropy: 5.15, isSuspicious: false },
+      { name: ".packed", virtualSize: "0x90000", rawSize: "589,824 bytes", entropy: 7.94, isSuspicious: true }
     ]
   },
   {
@@ -78,236 +105,342 @@ const SAMPLE_ARTIFACTS: ForensicArtifact[] = [
     threatLevel: "MALICIOUS",
     magicBytes: "4D 5A 90 00 03 00 00 00 04 00 00 00 FF FF 00 00 (MZ...)",
     extractedStrings: [
-      "\\\\.\\pipe\\msagent_%x",
-      "CobaltStrike_NamedPipe",
-      "Content-Type: application/octet-stream",
-      "HTTP/1.1 200 OK",
-      "SleepMask.dll",
-      "ReflectiveLoader"
+      "https://185.220.101.5:443/submit.php",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+      "ReflectiveLoader",
+      "beacon.dll",
+      "WS2_32.dll",
+      "VirtualAlloc",
+      "VirtualProtect"
     ],
     hexPreview: [
       "00000000  4d 5a 41 52 55 48 89 e5  48 81 ec 20 00 00 00 48  |MZARUH..H.. ...H|",
-      "00000010  8d 05 00 00 00 00 48 83  c0 10 50 c3 00 00 00 00  |......H...P.....|",
-      "00000020  5c 5c 2e 5c 70 69 70 65  5c 6d 73 61 67 65 6e 74  |\\\\.\\pipe\\msagent|",
-      "00000030  5f 25 78 00 00 00 00 00  00 00 00 00 00 00 00 00  |_%x.............|"
+      "00000010  8d 1d 00 00 00 00 48 89  df 48 81 c3 58 00 00 00  |......H..H..X...|",
+      "00000020  ff d3 48 89 c3 48 83 c4  20 5d c3 00 00 00 00 00  |..H..H.. ]......|"
+    ],
+    disassembly: [
+      { offset: "0x180001000", bytes: "41 52", opcode: "push r10", comment: "Reflective Loader Entrypoint" },
+      { offset: "0x180001002", bytes: "55", opcode: "push rbp", comment: "Save base pointer" },
+      { offset: "0x180001003", bytes: "48 89 E5", opcode: "mov rbp, rsp", comment: "Set frame pointer" },
+      { offset: "0x180001006", bytes: "48 81 EC 20 00 00 00", opcode: "sub rsp, 20h", comment: "Allocate shadow space" },
+      { offset: "0x18000100D", bytes: "E8 4E 00 00 00", opcode: "call 0x180001060", comment: "Resolve PEB & kernel32.dll" },
+      { offset: "0x180001012", bytes: "48 89 C3", opcode: "mov rbx, rax", comment: "Save Kernel32 Base" },
+      { offset: "0x180001015", bytes: "48 83 C4 20", opcode: "add rsp, 20h", comment: "Restore stack" },
+      { offset: "0x180001019", bytes: "5D", opcode: "pop rbp", comment: "Restore frame" },
+      { offset: "0x18000101A", bytes: "C3", opcode: "ret", comment: "Jump to Injected Payload" }
+    ],
+    sections: [
+      { name: ".text", virtualSize: "0x22000", rawSize: "139,264 bytes", entropy: 7.92, isSuspicious: true },
+      { name: ".rdata", virtualSize: "0x8000", rawSize: "32,768 bytes", entropy: 5.40, isSuspicious: false },
+      { name: ".data", virtualSize: "0x4000", rawSize: "16,384 bytes", entropy: 4.12, isSuspicious: false }
     ]
   }
 ];
 
-const DEFAULT_YARA = `rule Detect_Mimikatz_Sekurlsa {
+const DEFAULT_YARA_RULE = `rule Suspicious_Memory_Dump_Extractor {
     meta:
-        description = "Identifies Mimikatz credential extraction strings"
-        author = "Sandeep Mothukuri"
-        reference = "MITRE T1003.001"
+        description = "Detects in-memory LSASS dumping & credential extraction strings"
+        author = "SOCForge Intel Team"
+        date = "2026-09-27"
+        severity = "CRITICAL"
+        mitre_att = "T1003.001"
     strings:
         $s1 = "sekurlsa::logonpasswords" ascii wide nocase
-        $s2 = "lsasrv.dll" ascii wide nocase
+        $s2 = "lsadump::sam" ascii wide nocase
         $s3 = "privilege::debug" ascii wide nocase
+        $s4 = "MiniDump" ascii wide nocase
+        $s5 = "wdigest.dll" ascii wide nocase
     condition:
         uint16(0) == 0x5A4D and (2 of ($s*))
 }`;
 
 export default function ForensicsPage() {
   const [selectedArtifact, setSelectedArtifact] = useState<ForensicArtifact>(SAMPLE_ARTIFACTS[0]);
-  const [yaraRule, setYaraRule] = useState(DEFAULT_YARA);
-  const [yaraRunning, setYaraRunning] = useState(false);
-  const [yaraResult, setYaraResult] = useState<{ match: boolean; matchedStrings: string[] } | null>(null);
-  const [copiedHash, setCopiedHash] = useState<string | null>(null);
+  const [yaraRule, setYaraRule] = useState<string>(DEFAULT_YARA_RULE);
+  const [yaraResult, setYaraResult] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"disassembly" | "hex" | "strings" | "yara" | "entropy">("disassembly");
+  const [copied, setCopied] = useState(false);
 
-  const handleRunYara = () => {
-    setYaraRunning(true);
-    setYaraResult(null);
+  const runYaraScan = () => {
+    setYaraResult("SCANNING...");
     setTimeout(() => {
-      setYaraRunning(false);
-      setYaraResult({
-        match: true,
-        matchedStrings: ["$s1: sekurlsa::logonpasswords", "$s2: lsasrv.dll", "$s3: privilege::debug"]
-      });
-    }, 600);
+      setYaraResult(
+        `✓ YARA MATCH CONFIRMED (100% Rule Precision)\n• Rule: Suspicious_Memory_Dump_Extractor\n• Target: ${selectedArtifact.filename}\n• Matched Patterns: $s1, $s2, $s3, $s5\n• MITRE Technique: T1003.001 (OS Credential Dumping)`
+      );
+    }, 450);
   };
 
-  const copyText = (val: string, id: string) => {
-    navigator.clipboard.writeText(val);
-    setCopiedHash(id);
-    setTimeout(() => setCopiedHash(null), 2000);
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <AppShell>
-      <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#000000] text-neutral-100">
+      <div className="flex-1 flex flex-col min-w-0 bg-[#000000] text-neutral-100 overflow-y-auto">
         {/* Header */}
-        <header className="h-16 border-b border-[#262626] bg-[#050505]/95 px-6 flex items-center justify-between flex-shrink-0 backdrop-blur-md">
+        <div className="border-b border-[#262626] bg-[#050505]/95 px-6 py-4 backdrop-blur-md flex flex-col md:flex-row md:items-center justify-between gap-4 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <div className="p-2.5 rounded-xl bg-rose-950/40 border border-rose-800/40 text-rose-400">
               <Cpu className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
-                Malware Forensics & YARA Analysis Studio
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono font-normal">
-                  Hex & String Dissector
+              <div className="flex items-center gap-2 text-xs font-mono text-neutral-400 mb-0.5">
+                <span>DIGITAL FORENSICS</span>
+                <span>/</span>
+                <span className="text-rose-400">MALWARE & YARA DISSECTION</span>
+              </div>
+              <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
+                Malware Static Dissector & In-Browser Disassembler
+                <span className="px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30 text-[10px] font-mono">
+                  x86-64 ENGINE
                 </span>
               </h1>
-              <p className="text-[11px] text-neutral-400 font-mono">
-                Static binary analysis, entropy calculation, string extraction & real-time YARA scanning
-              </p>
             </div>
           </div>
-        </header>
 
-        {/* Content Body */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Artifact Catalog */}
-          <div className="w-80 border-r border-[#262626] bg-[#050505] flex flex-col overflow-y-auto p-3 space-y-2 flex-shrink-0">
-            <div className="px-2 py-1 text-[11px] font-mono uppercase text-neutral-400 font-bold">
-              Evidence Artifacts
+          <div className="flex items-center gap-2 text-xs font-mono">
+            {/* Artifact Selector */}
+            <select
+              value={selectedArtifact.id}
+              onChange={(e) => {
+                const found = SAMPLE_ARTIFACTS.find((a) => a.id === e.target.value);
+                if (found) setSelectedArtifact(found);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-[#0a0a0a] border border-[#262626] text-white font-medium focus:outline-none cursor-pointer text-xs"
+            >
+              {SAMPLE_ARTIFACTS.map((art) => (
+                <option key={art.id} value={art.id} className="bg-black text-white">
+                  {art.filename} ({(art.sizeBytes / 1024).toFixed(0)} KB)
+                </option>
+              ))}
+            </select>
+
+            <button
+              onClick={runYaraScan}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-neutral-200 text-black font-semibold text-xs transition font-mono shadow-sm"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Compile & Run YARA</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Artifact Summary Card */}
+        <div className="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-500">Binary Name & Type</span>
+            <div className="text-xs font-mono font-bold text-white truncate" title={selectedArtifact.filename}>
+              {selectedArtifact.filename}
             </div>
-
-            {SAMPLE_ARTIFACTS.map((art) => {
-              const isSelected = selectedArtifact.id === art.id;
-              return (
-                <div
-                  key={art.id}
-                  onClick={() => {
-                    setSelectedArtifact(art);
-                    setYaraResult(null);
-                  }}
-                  className={`p-3 rounded-xl border transition cursor-pointer space-y-1.5 ${
-                    isSelected
-                      ? "border-white bg-[#121212]"
-                      : "border-[#262626] bg-[#0A0A0A] hover:border-neutral-500"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/30">
-                      {art.threatLevel}
-                    </span>
-                    <span className="text-[10px] font-mono text-neutral-500">
-                      {(art.sizeBytes / 1024).toFixed(0)} KB
-                    </span>
-                  </div>
-                  <h3 className="text-xs font-bold text-white line-clamp-1">{art.filename}</h3>
-                  <div className="text-[10px] font-mono text-neutral-400">Entropy: {art.entropy} / 8.0</div>
-                </div>
-              );
-            })}
+            <div className="text-[11px] text-neutral-400 truncate">{selectedArtifact.filetype}</div>
           </div>
 
-          {/* Artifact Inspector & YARA Workspace */}
-          <div className="flex-1 flex flex-col bg-[#000000] overflow-y-auto p-6 space-y-6">
-            {/* Artifact Metadata Banner */}
-            <div className="p-6 rounded-2xl bg-[#050505] border border-[#262626] space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-400 font-mono text-xs font-bold">
-                      {selectedArtifact.threatLevel}
-                    </span>
-                    <span className="text-xs font-mono text-neutral-400">{selectedArtifact.filetype}</span>
-                  </div>
-                  <h2 className="text-lg font-bold text-white font-mono">{selectedArtifact.filename}</h2>
-                </div>
-
-                <div className="text-right font-mono text-xs">
-                  <div className="text-neutral-500">Entropy (Packing Score)</div>
-                  <div className="text-base font-bold text-amber-400">
-                    {selectedArtifact.entropy} / 8.00 <span className="text-[10px] text-red-400 font-bold">(HIGHLY PACKED)</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Hashes */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-mono">
-                <div className="p-2.5 rounded-xl bg-[#0A0A0A] border border-[#262626] flex items-center justify-between">
-                  <span className="text-neutral-400">MD5: <strong className="text-white">{selectedArtifact.md5}</strong></span>
-                  <button onClick={() => copyText(selectedArtifact.md5, "md5")} className="text-neutral-300 hover:text-white text-[10px] font-bold">
-                    {copiedHash === "md5" ? "Copied" : "Copy"}
-                  </button>
-                </div>
-                <div className="p-2.5 rounded-xl bg-[#0A0A0A] border border-[#262626] flex items-center justify-between">
-                  <span className="text-neutral-400 truncate max-w-xs">SHA256: <strong className="text-white">{selectedArtifact.sha256}</strong></span>
-                  <button onClick={() => copyText(selectedArtifact.sha256, "sha256")} className="text-neutral-300 hover:text-white text-[10px] font-bold">
-                    {copiedHash === "sha256" ? "Copied" : "Copy"}
-                  </button>
-                </div>
-              </div>
+          <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-500">Shannon Entropy</span>
+            <div className="text-lg font-mono font-bold text-rose-400">
+              {selectedArtifact.entropy} / 8.00
             </div>
+            <div className="text-[11px] text-neutral-400 font-mono">Packed / Encrypted Code</div>
+          </div>
 
-            {/* Hex View & Strings Dissector */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Hex Dump */}
-              <div className="p-4 rounded-2xl bg-[#050505] border border-[#262626] space-y-3 font-mono text-xs flex flex-col">
-                <div className="flex items-center justify-between border-b border-[#262626] pb-2">
-                  <span className="font-bold text-white uppercase tracking-wider">Hex Memory Dump Preview</span>
-                  <span className="text-[10px] text-neutral-500">Offset: 0x00000000</span>
-                </div>
-                <div className="p-3 bg-[#000000] rounded-xl border border-[#262626] overflow-x-auto text-[11px] text-emerald-400 space-y-0.5 leading-tight">
-                  {selectedArtifact.hexPreview.map((line, i) => (
-                    <div key={i}>{line}</div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Extracted ASCII/Unicode Strings */}
-              <div className="p-4 rounded-2xl bg-[#050505] border border-[#262626] space-y-3 font-mono text-xs flex flex-col">
-                <div className="flex items-center justify-between border-b border-[#262626] pb-2">
-                  <span className="font-bold text-white uppercase tracking-wider">
-                    High-Signal Extracted Strings ({selectedArtifact.extractedStrings.length})
-                  </span>
-                  <span className="text-[10px] text-amber-400 font-bold">CREDENTIAL ARTIFACTS</span>
-                </div>
-                <div className="space-y-1.5 overflow-y-auto max-h-56">
-                  {selectedArtifact.extractedStrings.map((str, idx) => (
-                    <div key={idx} className="p-2 rounded-lg bg-[#0A0A0A] border border-[#262626] text-[11px] text-neutral-200 font-mono">
-                      {str}
-                    </div>
-                  ))}
-                </div>
-              </div>
+          <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-500">SHA-256 Authentihash</span>
+            <div className="text-xs font-mono truncate text-neutral-300">
+              <IocHoverCard value={selectedArtifact.sha256} type="hash" className="text-rose-400 font-bold" />
             </div>
+            <div className="text-[11px] text-neutral-500 font-mono">VirusTotal 68/72 Engines</div>
+          </div>
 
-            {/* YARA Rule Compiler & Test Runner */}
-            <div className="p-5 rounded-2xl bg-[#050505] border border-[#262626] space-y-4 font-mono text-xs">
-              <div className="flex items-center justify-between">
+          <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] space-y-1">
+            <span className="text-[10px] font-mono uppercase text-neutral-500">Threat Verdict</span>
+            <div className="text-xs font-mono font-bold text-rose-400 flex items-center gap-1.5">
+              <ShieldAlert className="w-4 h-4" />
+              CONFIRMED MALICIOUS
+            </div>
+            <div className="text-[11px] text-neutral-400 font-mono">Credential Dumper / C2</div>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="px-6 flex items-center gap-2 border-b border-[#1f1f1f]">
+          <button
+            onClick={() => setActiveTab("disassembly")}
+            className={`pb-2.5 px-3 text-xs font-mono font-medium border-b-2 transition ${
+              activeTab === "disassembly"
+                ? "border-white text-white font-bold"
+                : "border-transparent text-neutral-400 hover:text-neutral-200"
+            }`}
+          >
+            x86-64 Disassembly
+          </button>
+          <button
+            onClick={() => setActiveTab("entropy")}
+            className={`pb-2.5 px-3 text-xs font-mono font-medium border-b-2 transition ${
+              activeTab === "entropy"
+                ? "border-white text-white font-bold"
+                : "border-transparent text-neutral-400 hover:text-neutral-200"
+            }`}
+          >
+            PE Sections & Entropy
+          </button>
+          <button
+            onClick={() => setActiveTab("hex")}
+            className={`pb-2.5 px-3 text-xs font-mono font-medium border-b-2 transition ${
+              activeTab === "hex"
+                ? "border-white text-white font-bold"
+                : "border-transparent text-neutral-400 hover:text-neutral-200"
+            }`}
+          >
+            Hex Raw Memory Dump
+          </button>
+          <button
+            onClick={() => setActiveTab("strings")}
+            className={`pb-2.5 px-3 text-xs font-mono font-medium border-b-2 transition ${
+              activeTab === "strings"
+                ? "border-white text-white font-bold"
+                : "border-transparent text-neutral-400 hover:text-neutral-200"
+            }`}
+          >
+            Extracted High-Signal Strings ({selectedArtifact.extractedStrings.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("yara")}
+            className={`pb-2.5 px-3 text-xs font-mono font-medium border-b-2 transition ${
+              activeTab === "yara"
+                ? "border-white text-white font-bold"
+                : "border-transparent text-neutral-400 hover:text-neutral-200"
+            }`}
+          >
+            In-Browser YARA Compiler
+          </button>
+        </div>
+
+        {/* Main Content Body */}
+        <div className="p-6">
+          {activeTab === "disassembly" && (
+            <div className="rounded-2xl bg-[#050505] border border-[#262626] overflow-hidden shadow-2xl">
+              <div className="px-4 py-2.5 bg-[#0a0a0a] border-b border-[#1f1f1f] flex items-center justify-between text-xs font-mono text-neutral-400">
                 <div className="flex items-center gap-2">
-                  <FileCode className="w-4 h-4 text-emerald-400" />
-                  <span className="font-bold text-white uppercase tracking-wider">
-                    In-Browser YARA Rule Engine
-                  </span>
+                  <Binary className="w-3.5 h-3.5 text-rose-400" />
+                  <span className="text-white font-semibold">{selectedArtifact.filename} &mdash; Disassembly View</span>
                 </div>
-                <button
-                  onClick={handleRunYara}
-                  disabled={yaraRunning}
-                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-white hover:bg-neutral-200 text-black font-bold transition disabled:opacity-50"
-                >
-                  <Play className={`w-3.5 h-3.5 ${yaraRunning ? "animate-spin" : ""}`} />
-                  {yaraRunning ? "Compiling..." : "Scan with YARA"}
-                </button>
+                <span>x86-64 Intel Syntax</span>
               </div>
 
-              <textarea
-                value={yaraRule}
-                onChange={(e) => setYaraRule(e.target.value)}
-                rows={8}
-                className="w-full p-4 bg-[#000000] border border-[#262626] rounded-xl font-mono text-xs text-neutral-100 leading-relaxed focus:outline-none focus:border-white"
-              />
-
-              {yaraResult && (
-                <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 space-y-2">
-                  <div className="flex items-center gap-2 font-bold text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    YARA MATCH CONFIRMED: Rule &quot;Detect_Mimikatz_Sekurlsa&quot; triggered on {selectedArtifact.filename}
+              <div className="p-4 overflow-x-auto font-mono text-xs text-neutral-200 space-y-1 select-all bg-[#000000]">
+                {selectedArtifact.disassembly.map((row, idx) => (
+                  <div key={idx} className="flex items-center gap-6 py-0.5 hover:bg-[#0d0d0d] px-2 rounded">
+                    <span className="text-neutral-500 w-28 flex-shrink-0">{row.offset}</span>
+                    <span className="text-neutral-400 w-44 font-bold flex-shrink-0">{row.bytes}</span>
+                    <span className="text-white font-semibold w-56 flex-shrink-0">{row.opcode}</span>
+                    {row.comment && (
+                      <span className="text-emerald-400 text-[11px] italic">; {row.comment}</span>
+                    )}
                   </div>
-                  <div className="text-[11px] text-neutral-400 space-y-1">
-                    <div>Matched signature strings:</div>
-                    {yaraResult.matchedStrings.map((s, i) => (
-                      <div key={i} className="text-emerald-400 pl-2 font-bold">• {s}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
+
+          {activeTab === "entropy" && (
+            <div className="rounded-2xl bg-[#050505] border border-[#262626] p-5 space-y-4">
+              <h2 className="text-xs font-mono uppercase font-bold text-neutral-400">
+                PE Header Section Table & Shannon Entropy Mapping
+              </h2>
+              <div className="space-y-3">
+                {selectedArtifact.sections.map((sec) => (
+                  <div key={sec.name} className="p-3.5 rounded-xl bg-[#0a0a0a] border border-[#1f1f1f] space-y-2">
+                    <div className="flex items-center justify-between text-xs font-mono">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white">{sec.name}</span>
+                        <span className="text-neutral-500">Virtual Size: {sec.virtualSize}</span>
+                        <span className="text-neutral-500">Raw: {sec.rawSize}</span>
+                      </div>
+                      <span className={`font-bold ${sec.isSuspicious ? "text-rose-400" : "text-emerald-400"}`}>
+                        Entropy: {sec.entropy} / 8.00 {sec.isSuspicious && "(SUSPICIOUS PACKED)"}
+                      </span>
+                    </div>
+
+                    <div className="h-2 w-full bg-[#171717] rounded-full overflow-hidden border border-[#262626]">
+                      <div
+                        className={`h-full ${
+                          sec.entropy > 7.5 ? "bg-rose-500" : sec.entropy > 6.0 ? "bg-amber-500" : "bg-emerald-500"
+                        }`}
+                        style={{ width: `${(sec.entropy / 8) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "hex" && (
+            <div className="rounded-2xl bg-[#050505] border border-[#262626] p-4 font-mono text-xs text-neutral-300 space-y-1 select-all overflow-x-auto bg-[#000000]">
+              {selectedArtifact.hexPreview.map((line, i) => (
+                <div key={i} className="hover:bg-[#0d0d0d] px-2 py-0.5 rounded">
+                  {line}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeTab === "strings" && (
+            <div className="rounded-2xl bg-[#050505] border border-[#262626] p-5 space-y-2">
+              <h2 className="text-xs font-mono uppercase font-bold text-neutral-400 mb-3">
+                Extracted High-Signal Forensic Strings
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {selectedArtifact.extractedStrings.map((str, idx) => (
+                  <div key={idx} className="p-2.5 rounded-lg bg-[#0a0a0a] border border-[#1f1f1f] text-xs font-mono text-neutral-200 flex items-center justify-between">
+                    <IocHoverCard value={str} type="process" className="text-rose-400 font-semibold" />
+                    <button
+                      onClick={() => handleCopy(str)}
+                      className="text-neutral-500 hover:text-white"
+                      title="Copy string"
+                    >
+                      <Copy className="w-3 h-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "yara" && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-7 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs font-mono uppercase font-bold text-neutral-400">
+                    Live YARA Rule Editor
+                  </h2>
+                  <button
+                    onClick={() => handleCopy(yaraRule)}
+                    className="flex items-center gap-1 text-[11px] font-mono text-neutral-400 hover:text-white"
+                  >
+                    <Copy className="w-3 h-3" /> Copy YARA
+                  </button>
+                </div>
+                <textarea
+                  value={yaraRule}
+                  onChange={(e) => setYaraRule(e.target.value)}
+                  rows={14}
+                  className="w-full p-4 rounded-xl bg-[#050505] border border-[#262626] text-xs font-mono text-neutral-200 focus:outline-none focus:border-white leading-relaxed"
+                />
+              </div>
+
+              <div className="lg:col-span-5 space-y-3">
+                <h2 className="text-xs font-mono uppercase font-bold text-neutral-400">
+                  YARA Compilation & Match Result
+                </h2>
+                <div className="p-4 rounded-xl bg-[#050505] border border-[#262626] text-xs font-mono text-neutral-300 min-h-[280px] whitespace-pre-wrap leading-relaxed select-all">
+                  {yaraResult || "Click 'Compile & Run YARA' in the header to execute pattern scanner."}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AppShell>

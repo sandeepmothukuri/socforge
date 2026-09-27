@@ -129,6 +129,8 @@ export default function DashboardPage() {
     return () => window.removeEventListener("socforge-refresh", handleRefresh);
   }, [loadData]);
 
+  const [workspaceProfile, setWorkspaceProfile] = useState<"default" | "hunter" | "commander" | "ciso">("default");
+
   return (
     <AppShell>
       <div className="flex-1 flex flex-col h-full overflow-y-auto bg-[#000000] text-neutral-100 font-sans">
@@ -152,6 +154,21 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-2.5 text-xs">
+            {/* Analyst Persona Profile Switcher */}
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#0A0A0A] border border-neutral-800 text-neutral-400 font-mono text-[11px]">
+              <span className="text-neutral-500">Profile:</span>
+              <select
+                value={workspaceProfile}
+                onChange={(e: any) => setWorkspaceProfile(e.target.value)}
+                className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"
+              >
+                <option value="default" className="bg-black text-white">Full SecOps Matrix</option>
+                <option value="hunter" className="bg-black text-white">Threat Hunter Workspace</option>
+                <option value="commander" className="bg-black text-white">Incident Commander War Room</option>
+                <option value="ciso" className="bg-black text-white">CISO Executive Briefing</option>
+              </select>
+            </div>
+
             {/* View Switcher */}
             <div className="flex items-center gap-1 bg-[#0A0A0A] p-1 rounded-lg border border-neutral-800">
               <button

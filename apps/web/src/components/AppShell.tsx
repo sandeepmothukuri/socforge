@@ -38,7 +38,8 @@ import {
   Cloud,
   FolderOpen,
   Boxes,
-  Compass
+  Compass,
+  Eye
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
 import { GlobalSearchModal } from "@/components/GlobalSearchModal";
@@ -141,6 +142,7 @@ export default function AppShell({ children }: AppShellProps) {
       items: [
         { href: "/detections", label: "Detection Engineering", icon: FileCode },
         { href: "/playbooks", label: "Visual SOAR Playbooks", icon: Zap },
+        { href: "/deception", label: "Deception & Honeypots", icon: Eye },
         { href: "/simulation", label: "Adversary BAS Simulator", icon: ShieldCheck },
         { href: "/forensics", label: "Malware & YARA Lab", icon: Cpu },
       ]

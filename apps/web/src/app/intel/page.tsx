@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import AppShell from "@/components/AppShell";
+import { IocHoverCard } from "@/components/ui/IocHoverCard";
 import {
   Globe,
   ShieldAlert,
@@ -279,11 +280,72 @@ export default function ThreatIntelPage() {
               </div>
             </div>
 
-            {/* Adversary Diamond Model Grid */}
+            {/* Interactive Visual Diamond Model Canvas */}
             <div className="space-y-3">
-              <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-400 font-bold">
-                Adversary Diamond Model Correlation
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-400 font-bold flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-emerald-400" />
+                  Diamond Model of Intrusion Analysis ({selectedActor.name})
+                </h3>
+                <span className="text-[10px] font-mono text-neutral-500">Structured CTI Topology</span>
+              </div>
+
+              {/* Diamond SVG Visualizer */}
+              <div className="relative rounded-2xl bg-[#050505] border border-[#262626] p-6 shadow-2xl overflow-hidden flex items-center justify-center min-h-[300px]">
+                <svg viewBox="0 0 700 320" className="w-full max-w-2xl h-auto select-none">
+                  {/* Outer Diamond Connecting Lines */}
+                  <polygon
+                    points="350,30 630,160 350,290 70,160"
+                    fill="none"
+                    stroke="#262626"
+                    strokeWidth="1.5"
+                    strokeDasharray="4,4"
+                  />
+                  {/* Central Cross Axis */}
+                  <line x1="350" y1="30" x2="350" y2="290" stroke="#1a1a1a" strokeWidth="1" />
+                  <line x1="70" y1="160" x2="630" y2="160" stroke="#1a1a1a" strokeWidth="1" />
+
+                  {/* Core Node: Threat Group Center */}
+                  <circle cx="350" cy="160" r="28" fill="#121212" stroke="#f43f5e" strokeWidth="2" className="animate-pulse" />
+                  <text x="350" y="164" textAnchor="middle" fill="#ffffff" fontSize="10" fontFamily="monospace" fontWeight="bold">
+                    {selectedActor.id.toUpperCase()}
+                  </text>
+
+                  {/* Top Node: ADVERSARY */}
+                  <g transform="translate(350, 30)">
+                    <circle r="18" fill="#171717" stroke="#f59e0b" strokeWidth="1.5" />
+                    <text y="4" textAnchor="middle" fill="#f59e0b" fontSize="9" fontFamily="monospace" fontWeight="bold">ADV</text>
+                    <text y="-24" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="sans-serif" fontWeight="bold">ADVERSARY</text>
+                    <text y="-12" textAnchor="middle" fill="#a1a1aa" fontSize="9" fontFamily="monospace">{selectedActor.name}</text>
+                  </g>
+
+                  {/* Left Node: CAPABILITY */}
+                  <g transform="translate(70, 160)">
+                    <circle r="18" fill="#171717" stroke="#ffffff" strokeWidth="1.5" />
+                    <text y="4" textAnchor="middle" fill="#ffffff" fontSize="9" fontFamily="monospace" fontWeight="bold">CAP</text>
+                    <text y="-24" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="sans-serif" fontWeight="bold">CAPABILITY</text>
+                    <text y="-12" textAnchor="middle" fill="#a1a1aa" fontSize="9" fontFamily="monospace">Custom Mal/TTPs</text>
+                  </g>
+
+                  {/* Right Node: INFRASTRUCTURE */}
+                  <g transform="translate(630, 160)">
+                    <circle r="18" fill="#171717" stroke="#a855f7" strokeWidth="1.5" />
+                    <text y="4" textAnchor="middle" fill="#a855f7" fontSize="9" fontFamily="monospace" fontWeight="bold">INF</text>
+                    <text y="-24" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="sans-serif" fontWeight="bold">INFRASTRUCTURE</text>
+                    <text y="-12" textAnchor="middle" fill="#a1a1aa" fontSize="9" fontFamily="monospace">C2 & Fast-Flux</text>
+                  </g>
+
+                  {/* Bottom Node: VICTIM */}
+                  <g transform="translate(350, 290)">
+                    <circle r="18" fill="#171717" stroke="#10b981" strokeWidth="1.5" />
+                    <text y="4" textAnchor="middle" fill="#10b981" fontSize="9" fontFamily="monospace" fontWeight="bold">VIC</text>
+                    <text y="30" textAnchor="middle" fill="#ffffff" fontSize="11" fontFamily="sans-serif" fontWeight="bold">VICTIM</text>
+                    <text y="42" textAnchor="middle" fill="#a1a1aa" fontSize="9" fontFamily="monospace">{selectedActor.targetSectors[0]}</text>
+                  </g>
+                </svg>
+              </div>
+
+              {/* Correlation Details Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
                 <div className="p-4 rounded-xl bg-[#050505] border border-amber-500/30 space-y-1">
                   <span className="text-amber-400 font-bold uppercase block">1. ADVERSARY (MOTIVATION & IDENTITY)</span>
@@ -334,7 +396,9 @@ export default function ThreatIntelPage() {
                     <div key={idx} className="p-2.5 rounded-xl bg-[#0A0A0A] border border-[#262626] flex items-center justify-between">
                       <div className="space-y-0.5 truncate max-w-[240px]">
                         <span className="text-[10px] text-amber-400 uppercase font-bold block">{ioc.type}</span>
-                        <span className="text-white font-mono truncate block text-[11px]">{ioc.value}</span>
+                        <span className="text-white font-mono truncate block text-[11px]">
+                          <IocHoverCard value={ioc.value} className="text-neutral-200 font-bold" />
+                        </span>
                       </div>
                       <span className="text-emerald-400 text-[10px] font-bold">
                         {ioc.confidence}% Confidence
