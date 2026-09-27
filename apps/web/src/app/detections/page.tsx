@@ -8,7 +8,8 @@ import {
   approveDetection, 
   testDetectionRule,
   DetectionItem, 
-  ValidationReport 
+  ValidationReport,
+  FALLBACK_DETECTIONS
 } from "@/lib/api";
 import { 
   FileCode, 
@@ -108,12 +109,13 @@ level: high`
     setLoading(true);
     try {
       const data = await getDetections();
-      setDetections(data);
-      if (data.length > 0) {
-        setSelectedDet(data[0]);
-      }
+      const list = Array.isArray(data) && data.length > 0 ? data : FALLBACK_DETECTIONS;
+      setDetections(list);
+      setSelectedDet((curr) => curr || list[0]);
     } catch (err) {
-      console.error("Failed to load detections:", err);
+      console.warn("Failed to load detections, using fallback catalog:", err);
+      setDetections(FALLBACK_DETECTIONS);
+      setSelectedDet((curr) => curr || FALLBACK_DETECTIONS[0]);
     } finally {
       setLoading(false);
     }

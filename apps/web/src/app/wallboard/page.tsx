@@ -28,6 +28,7 @@ import GlobalThreatMap from "@/components/analytics/GlobalThreatMap";
 
 export default function WallboardPage() {
   const [centerView, setCenterView] = useState<"map" | "radar">("map");
+  const [mapLayout, setMapLayout] = useState<"standard" | "cinema">("standard");
   const [timeUtc, setTimeUtc] = useState<string>("");
   const [timeLocal, setTimeLocal] = useState<string>("");
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -209,11 +210,11 @@ export default function WallboardPage() {
       </div>
 
       {/* Center Radar & Live Alert Stream */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
-        {/* Left 2 Cols: Threat Radar / Global Threat Map & Fleet Matrix */}
-        <div className="lg:col-span-2 flex flex-col space-y-4">
-          {/* View Mode Toggle Header */}
-          <div className="flex items-center justify-between px-1 font-mono text-xs">
+      <div className={mapLayout === "cinema" ? "flex flex-col space-y-6 flex-1" : "grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1"}>
+        {/* Left / Center: Threat Radar / Global Threat Map & Fleet Matrix */}
+        <div className={mapLayout === "cinema" ? "w-full flex flex-col space-y-4" : "lg:col-span-2 flex flex-col space-y-4"}>
+          {/* View Mode & Layout Toggle Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1 font-mono text-xs">
             <div className="flex items-center gap-1 bg-[#050505] p-1 rounded-xl border border-neutral-800">
               <button
                 onClick={() => setCenterView("map")}
@@ -239,13 +240,37 @@ export default function WallboardPage() {
               </button>
             </div>
 
-            <div className="text-[11px] text-neutral-500 font-mono hidden sm:block">
-              {centerView === "map" ? "Real-time Equirectangular Ballistic Ingress" : "Local Sensor Frequency Sweep"}
+            {/* Layout Mode Controls */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-[#050505] p-1 rounded-xl border border-neutral-800">
+                <button
+                  onClick={() => setMapLayout("standard")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                    mapLayout === "standard"
+                      ? "bg-neutral-800 text-white shadow-sm"
+                      : "text-neutral-500 hover:text-white"
+                  }`}
+                  title="2/3 Map + 1/3 Stream Split View"
+                >
+                  Split View
+                </button>
+                <button
+                  onClick={() => setMapLayout("cinema")}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                    mapLayout === "cinema"
+                      ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-sm"
+                      : "text-neutral-500 hover:text-white"
+                  }`}
+                  title="Full-Width Panoramic War Room View"
+                >
+                  Full-Width War Room
+                </button>
+              </div>
             </div>
           </div>
 
           {centerView === "map" ? (
-            <GlobalThreatMap compact={true} />
+            <GlobalThreatMap compact={mapLayout === "standard"} />
           ) : (
             <div className="p-6 rounded-2xl bg-[#050505] border border-neutral-800 flex flex-col items-center justify-center relative overflow-hidden min-h-[320px]">
               {/* Animated Radar Canvas */}

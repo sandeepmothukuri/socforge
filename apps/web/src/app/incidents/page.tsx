@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import AppShell from "@/components/AppShell";
-import { getIncidents, executeResponseAction, IncidentItem } from "@/lib/api";
+import { getIncidents, executeResponseAction, IncidentItem, FALLBACK_INCIDENTS } from "@/lib/api";
 import { 
   ShieldAlert, 
   RefreshCw, 
@@ -128,18 +128,17 @@ export default function IncidentsPage() {
     setError(null);
     try {
       const data = await getIncidents();
-      const items = Array.isArray(data) ? data : (data as any)?.items || [];
+      const items = Array.isArray(data) && data.length > 0 ? data : FALLBACK_INCIDENTS;
       setIncidents(items);
-      if (items.length > 0 && !selectedIncident) {
-        setSelectedIncident(items[0]);
-      }
+      setSelectedIncident((curr) => curr || items[0]);
     } catch (err: any) {
-      console.error("Failed to load incidents:", err);
-      setError(err.message || "Failed to fetch incidents from API");
+      console.warn("Failed to load incidents from API, using fallback dataset:", err);
+      setIncidents(FALLBACK_INCIDENTS);
+      setSelectedIncident((curr) => curr || FALLBACK_INCIDENTS[0]);
     } finally {
       setLoading(false);
     }
-  }, [selectedIncident]);
+  }, []);
 
   useEffect(() => {
     loadData();

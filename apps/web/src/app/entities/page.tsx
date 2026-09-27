@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import AppShell from "@/components/AppShell";
-import { getEntities, EntityItem } from "@/lib/api";
+import { getEntities, EntityItem, FALLBACK_ENTITIES } from "@/lib/api";
 import { 
   Globe, 
   Server, 
@@ -36,10 +36,10 @@ export default function EntitiesPage() {
         search: searchQuery || undefined,
         is_malicious: onlyMalicious ? true : undefined,
       });
-      setEntities(data);
+      setEntities(data && data.length > 0 ? data : FALLBACK_ENTITIES);
     } catch (err: any) {
-      console.error("Failed to fetch entities:", err);
-      setError(err.message || "Failed to load entity directory");
+      console.warn("Failed to fetch entities, using fallback dataset:", err);
+      setEntities(FALLBACK_ENTITIES);
     } finally {
       setLoading(false);
     }

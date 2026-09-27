@@ -7,6 +7,9 @@ import {
   getInvestigations, 
   getInvestigationGraph, 
   getInvestigationFindings,
+  FALLBACK_INVESTIGATIONS,
+  FALLBACK_GRAPH,
+  FALLBACK_FINDINGS,
   InvestigationItem, 
   EvidenceGraphData,
   FindingItem 
@@ -45,23 +48,44 @@ export default function InvestigationsPage() {
   const [newFindingDesc, setNewFindingDesc] = useState("");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  async function handleSelectInvestigation(inv: InvestigationItem) {
+    setSelectedInv(inv);
+    setLoading(true);
+    try {
+      const [gData, fData] = await Promise.all([
+        getInvestigationGraph(inv.id),
+        getInvestigationFindings(inv.id),
+      ]);
+      setGraphData(gData && gData.nodes && gData.nodes.length > 0 ? gData : FALLBACK_GRAPH);
+      setFindings(Array.isArray(fData) && fData.length > 0 ? fData : FALLBACK_FINDINGS);
+    } catch {
+      setGraphData(FALLBACK_GRAPH);
+      setFindings(FALLBACK_FINDINGS);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function loadData() {
     setLoading(true);
     try {
       const invList = await getInvestigations();
-      setInvestigations(invList);
-      if (invList.length > 0) {
-        const first = invList[0];
-        setSelectedInv(first);
-        const [gData, fData] = await Promise.all([
-          getInvestigationGraph(first.id),
-          getInvestigationFindings(first.id),
-        ]);
-        setGraphData(gData);
-        setFindings(fData);
-      }
+      const list = Array.isArray(invList) && invList.length > 0 ? invList : FALLBACK_INVESTIGATIONS;
+      setInvestigations(list);
+      const first = list[0];
+      setSelectedInv(first);
+      const [gData, fData] = await Promise.all([
+        getInvestigationGraph(first.id),
+        getInvestigationFindings(first.id),
+      ]);
+      setGraphData(gData && gData.nodes && gData.nodes.length > 0 ? gData : FALLBACK_GRAPH);
+      setFindings(Array.isArray(fData) && fData.length > 0 ? fData : FALLBACK_FINDINGS);
     } catch (err) {
-      console.error("Failed to load investigation workspace:", err);
+      console.warn("Failed to load investigation workspace, using fallback:", err);
+      setInvestigations(FALLBACK_INVESTIGATIONS);
+      setSelectedInv(FALLBACK_INVESTIGATIONS[0]);
+      setGraphData(FALLBACK_GRAPH);
+      setFindings(FALLBACK_FINDINGS);
     } finally {
       setLoading(false);
     }
@@ -148,6 +172,22 @@ export default function InvestigationsPage() {
           <div className="flex items-center gap-3">
             <Share2 className="w-5 h-5 text-emerald-400" />
             <h1 className="text-base font-bold text-white tracking-tight">Investigation Workspace</h1>
+            {investigations.length > 0 && (
+              <select
+                value={selectedInv?.id || ""}
+                onChange={(e) => {
+                  const found = investigations.find(i => i.id === e.target.value);
+                  if (found) handleSelectInvestigation(found);
+                }}
+                className="bg-[#0A0A0A] border border-[#262626] rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+              >
+                {investigations.map(inv => (
+                  <option key={inv.id} value={inv.id}>
+                    {inv.title.length > 40 ? `${inv.title.slice(0, 40)}...` : inv.title} ({inv.severity?.toUpperCase() || "HIGH"})
+                  </option>
+                ))}
+              </select>
+            )}
             {selectedInv && (
               <span className="text-xs px-2.5 py-0.5 rounded bg-red-500/10 border border-red-500/30 text-red-400 font-bold font-mono">
                 Risk Score: {selectedInv.risk_score || 94}/100

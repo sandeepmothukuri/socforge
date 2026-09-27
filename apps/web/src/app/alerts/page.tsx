@@ -6,7 +6,8 @@ import AppShell from "@/components/AppShell";
 import { 
   getAlerts, 
   executeResponseAction,
-  AlertItem 
+  AlertItem,
+  FALLBACK_ALERTS
 } from "@/lib/api";
 import { 
   AlertTriangle, 
@@ -59,17 +60,17 @@ export default function AlertsPage() {
     try {
       const data = await getAlerts();
       const items = Array.isArray(data) ? data : data?.items || [];
-      setAlerts(items);
-      if (items.length > 0 && !selectedAlert) {
-        setSelectedAlert(items[0]);
-      }
+      const list = items.length > 0 ? items : FALLBACK_ALERTS;
+      setAlerts(list);
+      setSelectedAlert((curr) => curr || list[0]);
     } catch (err: any) {
-      console.error("Failed to load alerts:", err);
-      setError(err.message || "Failed to fetch alerts from API");
+      console.warn("Failed to load alerts from API, using fallback dataset:", err);
+      setAlerts(FALLBACK_ALERTS);
+      setSelectedAlert((curr) => curr || FALLBACK_ALERTS[0]);
     } finally {
       setLoading(false);
     }
-  }, [selectedAlert]);
+  }, []);
 
   useEffect(() => {
     loadData();

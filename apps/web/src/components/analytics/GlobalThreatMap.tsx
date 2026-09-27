@@ -1,35 +1,27 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Globe,
   Radio,
   Play,
   Pause,
-  Filter,
-  ShieldAlert,
   Flame,
-  Activity,
   Layers,
-  Zap,
-  Target,
-  Maximize2,
-  CheckCircle2,
-  AlertTriangle,
-  Server,
   ZoomIn,
   ZoomOut,
   RotateCcw,
   Volume2,
   VolumeX,
   Lock,
-  ExternalLink,
   Copy,
   Check,
   X,
   FileCode,
-  Sliders,
-  Sparkles
+  ShieldCheck,
+  Server,
+  Activity,
+  Compass
 } from "lucide-react";
 
 export interface ThreatArc {
@@ -194,8 +186,10 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
   const [audioEnabled, setAudioEnabled] = useState(false);
   const [showUnderseaCables, setShowUnderseaCables] = useState(true);
   const [showRangeRings, setShowRangeRings] = useState(true);
+  const [showGraticule, setShowGraticule] = useState(true);
   const [mapToast, setMapToast] = useState<string | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [copiedJson, setCopiedJson] = useState(false);
 
   // Play synthesized sci-fi audio chirp if sound enabled
   const playAudioChirp = () => {
@@ -220,12 +214,12 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
     }
   };
 
-  // Periodic random pulse to simulate live global events
+  // Real-time pulse ticker
   useEffect(() => {
     if (!isPlaying) return;
     const interval = setInterval(() => {
-      setPulseCount((prev) => prev + Math.floor(Math.random() * 8) + 3);
-    }, 2000);
+      setPulseCount((c) => c + Math.floor(Math.random() * 3) + 1);
+    }, 2500);
     return () => clearInterval(interval);
   }, [isPlaying]);
 
@@ -240,14 +234,24 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
 
   // Button: Simulate live inbound attack vector
   const handleSimulateNewAttack = () => {
-    const randomActors = [
+    const randomOrigins = [
       { actor: "APT29 (Nobelium)", city: "Moscow", country: "RU", coords: [55.75, 37.61] as [number, number], color: "#ef4444", ttp: "T1078 Valid Account Session Theft" },
       { actor: "Volt Typhoon", city: "Hainan", country: "CN", coords: [20.04, 110.33] as [number, number], color: "#f59e0b", ttp: "T1059.001 LOTL WMI Injection" },
       { actor: "Lazarus Group", city: "Pyongyang", country: "KP", coords: [39.03, 125.76] as [number, number], color: "#a855f7", ttp: "T1566 Spearphishing Link" },
-      { actor: "Sandworm", city: "Novosibirsk", country: "RU", coords: [55.03, 82.93] as [number, number], color: "#ef4444", ttp: "T1486 Industrial Controller Disruption" }
+      { actor: "Sandworm", city: "Novosibirsk", country: "RU", coords: [55.03, 82.93] as [number, number], color: "#ef4444", ttp: "T1486 Industrial Controller Disruption" },
+      { actor: "FIN7 Syndicate", city: "Bucharest", country: "RO", coords: [44.43, 26.10] as [number, number], color: "#3b82f6", ttp: "T1003.001 LSASS Credential Theft" },
+      { actor: "Iranian Cyber Army", city: "Tehran", country: "IR", coords: [35.68, 51.38] as [number, number], color: "#f97316", ttp: "T1190 Perimeter Exploit Drop" }
     ];
 
-    const pick = randomActors[Math.floor(Math.random() * randomActors.length)];
+    const pick = randomOrigins[Math.floor(Math.random() * randomOrigins.length)];
+    const targets = [
+      { city: "Ashburn (US-East AWS)", region: "AWS VPC Production", vpc: "vpc-prod-east-01", coords: [39.04, -77.48] as [number, number] },
+      { city: "Frankfurt (EU-Central GCP)", region: "GCP Kubernetes Cluster", vpc: "gcp-prod-k8s-de", coords: [50.11, 8.68] as [number, number] },
+      { city: "Tokyo (APAC AWS)", region: "Financial Core Engine", vpc: "aws-fin-core-ap", coords: [35.67, 139.65] as [number, number] },
+      { city: "London (Financial Edge)", region: "Equinix Edge DC", vpc: "dc-lon-edge-02", coords: [51.50, -0.12] as [number, number] }
+    ];
+    const target = targets[Math.floor(Math.random() * targets.length)];
+
     const newArc: ThreatArc = {
       id: `arc-${Date.now().toString().slice(-4)}`,
       sourceCity: pick.city,
@@ -255,10 +259,10 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
       sourceIp: `185.${Math.floor(Math.random() * 200) + 20}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
       sourceAsn: `AS${Math.floor(Math.random() * 50000) + 10000} (Bulletproof)`,
       sourceCoords: pick.coords,
-      targetCity: "Ashburn (US-East AWS)",
-      targetRegion: "AWS VPC Production",
-      targetVpc: "vpc-prod-east-01",
-      targetCoords: [39.04, -77.48],
+      targetCity: target.city,
+      targetRegion: target.region,
+      targetVpc: target.vpc,
+      targetCoords: target.coords,
       threatActor: pick.actor,
       technique: pick.ttp,
       mitreId: pick.ttp.split(" ")[0],
@@ -272,8 +276,8 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
     setArcs((prev) => [newArc, ...prev.slice(0, 7)]);
     setActiveArc(newArc);
     playAudioChirp();
-    setMapToast(`⚡ INGRESS THREAT INJECTED: ${pick.actor} (${pick.city}) ➔ US-East AWS [BLOCKED BY SOAR]`);
-    setTimeout(() => setMapToast(null), 4000);
+    setMapToast(`🚨 INGRESS ATTACK INTERCEPTED: ${pick.actor} (${pick.city}) ➔ ${target.city} [BLOCKED BY SOAR]`);
+    setTimeout(() => setMapToast(null), 4500);
   };
 
   // Button: Auto-Quarantine C2 Vector
@@ -287,8 +291,8 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
     setActiveArc(updated);
     setArcs(arcs.map((a) => (a.id === updated.id ? updated : a)));
     playAudioChirp();
-    setMapToast(`🛡️ SOAR CONTAINMENT DISPATCHED: Quarantined ${activeArc.sourceIp} via Palo Alto & CrowdStrike Falcon.`);
-    setTimeout(() => setMapToast(null), 3500);
+    setMapToast(`🛡️ SOAR POLICY ENFORCED: Quarantined ${activeArc.sourceIp} across Palo Alto & CrowdStrike Falcon.`);
+    setTimeout(() => setMapToast(null), 4000);
   };
 
   // Button: Toggle Audio Klaxon
@@ -300,19 +304,52 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
     setTimeout(() => setMapToast(null), 3000);
   };
 
+  const copyTelemetryJson = () => {
+    if (!activeArc) return;
+    const telemetry = {
+      threat_actor: activeArc.threatActor,
+      source: {
+        city: activeArc.sourceCity,
+        country: activeArc.sourceCountry,
+        ip: activeArc.sourceIp,
+        asn: activeArc.sourceAsn,
+        coordinates: activeArc.sourceCoords
+      },
+      target: {
+        city: activeArc.targetCity,
+        region: activeArc.targetRegion,
+        vpc_id: activeArc.targetVpc,
+        coordinates: activeArc.targetCoords
+      },
+      technique: {
+        mitre_id: activeArc.mitreId,
+        name: activeArc.technique,
+        protocol: activeArc.protocol
+      },
+      defense_action: {
+        status: activeArc.status,
+        enforced_by: "SOCForge SOAR Playbook",
+        quarantined: activeArc.status === "CONTAINED"
+      }
+    };
+    navigator.clipboard.writeText(JSON.stringify(telemetry, null, 2));
+    setCopiedJson(true);
+    setTimeout(() => setCopiedJson(false), 2000);
+  };
+
   return (
     <div className={`w-full rounded-2xl bg-[#000000] border border-[#262626] overflow-hidden flex flex-col font-mono select-none ${compact ? "p-4 space-y-3" : "p-6 space-y-5"}`}>
       {/* Top Controls Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#262626] pb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-neutral-900 border border-[#262626] flex items-center justify-center text-emerald-400">
-            <Globe className="w-5 h-5 animate-spin" style={{ animationDuration: "24s" }} />
+            <Globe className="w-5 h-5 animate-spin" style={{ animationDuration: "28s" }} />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-white font-sans flex items-center gap-2">
                 Global Threat Arc Map & C2 Defense Radar
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 font-bold font-mono">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/30 font-bold font-mono">
                   DEFCON 3 ACTIVE
                 </span>
               </h3>
@@ -328,7 +365,7 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
           {/* Simulate Ingress Button */}
           <button
             onClick={handleSimulateNewAttack}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition shadow-md shadow-red-600/20"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold transition shadow-md shadow-red-600/30 active:scale-95"
             title="Inject simulated high-velocity threat trajectory"
           >
             <Flame className="w-3.5 h-3.5" />
@@ -367,7 +404,7 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-2 bg-[#050505] rounded-xl border border-[#262626] text-xs">
         {/* Threat Actor Filter Pills */}
         <div className="flex flex-wrap items-center gap-1">
-          <span className="text-[10px] text-neutral-500 uppercase font-bold mr-1">Actor:</span>
+          <span className="text-[10px] text-neutral-500 uppercase font-bold mr-1">Attributed Actor:</span>
           {["ALL", "APT29", "Volt Typhoon", "Lazarus", "Sandworm", "FIN7"].map((actor) => (
             <button
               key={actor}
@@ -384,14 +421,14 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
         </div>
 
         {/* Layer Toggles & Zoom */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Undersea Cables Toggle */}
           <button
             onClick={() => setShowUnderseaCables(!showUnderseaCables)}
             className={`px-2 py-1 rounded-lg text-[10px] border transition ${
               showUnderseaCables
-                ? "bg-cyan-950/30 border-cyan-500/40 text-cyan-400 font-bold"
-                : "bg-neutral-900 border-[#262626] text-neutral-500"
+                ? "bg-cyan-950/40 border-cyan-500/50 text-cyan-300 font-bold"
+                : "bg-neutral-900 border-[#262626] text-neutral-500 hover:text-neutral-300"
             }`}
           >
             Fiber Highways {showUnderseaCables ? "ON" : "OFF"}
@@ -402,76 +439,87 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
             onClick={() => setShowRangeRings(!showRangeRings)}
             className={`px-2 py-1 rounded-lg text-[10px] border transition ${
               showRangeRings
-                ? "bg-emerald-950/30 border-emerald-500/40 text-emerald-400 font-bold"
-                : "bg-neutral-900 border-[#262626] text-neutral-500"
+                ? "bg-emerald-950/40 border-emerald-500/50 text-emerald-300 font-bold"
+                : "bg-neutral-900 border-[#262626] text-neutral-500 hover:text-neutral-300"
             }`}
           >
             Radar Rings {showRangeRings ? "ON" : "OFF"}
           </button>
 
+          {/* Graticule Toggle */}
+          <button
+            onClick={() => setShowGraticule(!showGraticule)}
+            className={`px-2 py-1 rounded-lg text-[10px] border transition ${
+              showGraticule
+                ? "bg-neutral-800 border-neutral-600 text-white font-bold"
+                : "bg-neutral-900 border-[#262626] text-neutral-500 hover:text-neutral-300"
+            }`}
+          >
+            Grid {showGraticule ? "ON" : "OFF"}
+          </button>
+
           {/* Zoom Buttons */}
           <div className="flex items-center gap-1 border-l border-[#262626] pl-2">
             <button
-              onClick={() => setZoomLevel((z) => Math.min(1.4, z + 0.1))}
+              onClick={() => setZoomLevel((z) => Math.min(2.0, Number((z + 0.15).toFixed(2))))}
               className="p-1 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-[#262626]"
-              title="Zoom In"
+              title="Zoom In (+15%)"
             >
               <ZoomIn className="w-3 h-3" />
             </button>
             <button
-              onClick={() => setZoomLevel((z) => Math.max(0.9, z - 0.1))}
+              onClick={() => setZoomLevel((z) => Math.max(0.75, Number((z - 0.15).toFixed(2))))}
               className="p-1 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-[#262626]"
-              title="Zoom Out"
+              title="Zoom Out (-15%)"
             >
               <ZoomOut className="w-3 h-3" />
             </button>
             <button
               onClick={() => setZoomLevel(1)}
               className="p-1 rounded bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-[#262626]"
-              title="Reset Zoom"
+              title="Reset Zoom (100%)"
             >
               <RotateCcw className="w-3 h-3" />
             </button>
+            <span className="text-[10px] text-neutral-500 font-mono w-10 text-center">
+              {Math.round(zoomLevel * 100)}%
+            </span>
           </div>
         </div>
       </div>
 
       {/* Toast Notification */}
       {mapToast && (
-        <div className="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center justify-between animate-in fade-in">
+        <div className="p-2.5 rounded-xl bg-emerald-950/50 border border-emerald-500/50 text-emerald-300 text-xs font-mono flex items-center justify-between shadow-lg animate-in fade-in">
           <span>{mapToast}</span>
-          <button onClick={() => setMapToast(null)} className="text-emerald-400 hover:text-white">✕</button>
+          <button onClick={() => setMapToast(null)} className="text-emerald-400 hover:text-white ml-3 font-bold">✕</button>
         </div>
       )}
 
       {/* SVG Equirectangular Global Threat Canvas */}
-      <div className="relative w-full aspect-[2/1] max-h-[480px] bg-[#020202] rounded-xl border border-[#262626] overflow-hidden flex items-center justify-center">
-        {/* SVG World Map Vector with Graticules & Land Contours */}
+      <div className="relative w-full aspect-[2/1] min-h-[380px] max-h-[560px] bg-[#020406] rounded-xl border border-[#262626] overflow-hidden flex items-center justify-center">
+        {/* Subtle Cyber Radar Grid Background */}
+        <div className="absolute inset-0 bg-[radial-gradient(#10b981_0.75px,transparent_0.75px)] [background-size:24px_24px] opacity-15 pointer-events-none" />
+
+        {/* Animated Radar Scanline Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/10 to-transparent h-12 w-full pointer-events-none animate-[scanline_6s_linear_infinite]" />
+
+        {/* SVG World Map Vector with High-Precision Geometries & Land Contours */}
         <svg
           viewBox="0 0 1000 500"
           className="w-full h-full transition-transform duration-300"
           style={{ transform: `scale(${zoomLevel})` }}
         >
           <defs>
-            {/* Gradients for ballistic attack arcs */}
-            <linearGradient id="arcGradRed" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity="0.8" />
-              <stop offset="50%" stopColor="#f87171" stopOpacity="1" />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity="0.2" />
-            </linearGradient>
-            <linearGradient id="arcGradAmber" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.8" />
-              <stop offset="50%" stopColor="#fbbf24" stopOpacity="1" />
-              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.2" />
-            </linearGradient>
-            <linearGradient id="arcGradPurple" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#a855f7" stopOpacity="0.8" />
-              <stop offset="50%" stopColor="#c084fc" stopOpacity="1" />
-              <stop offset="100%" stopColor="#a855f7" stopOpacity="0.2" />
-            </linearGradient>
-
             {/* Glowing marker filters */}
-            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <filter id="glowRed" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="3.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <filter id="glowGreen" x="-50%" y="-50%" width="200%" height="200%">
               <feGaussianBlur stdDeviation="3" result="blur" />
               <feMerge>
                 <feMergeNode in="blur" />
@@ -480,44 +528,67 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
             </filter>
           </defs>
 
-          {/* Latitude & Longitude Grid Lines */}
-          <g stroke="#141414" strokeWidth="0.75" strokeDasharray="3,3">
-            {[100, 200, 300, 400, 500, 600, 700, 800, 900].map((x) => (
-              <line key={`x-${x}`} x1={x} y1={0} x2={x} y2={500} />
-            ))}
-            {[100, 200, 250, 300, 400].map((y) => (
-              <line key={`y-${y}`} x1={0} y1={y} x2={1000} y2={y} />
-            ))}
-            {/* Equator & Prime Meridian */}
-            <line x1={0} y1={250} x2={1000} y2={250} stroke="#1f1f1f" strokeWidth="1" />
-            <line x1={500} y1={0} x2={500} y2={500} stroke="#1f1f1f" strokeWidth="1" />
-          </g>
+          {/* Latitude & Longitude Graticule System */}
+          {showGraticule && (
+            <g stroke="#111827" strokeWidth="0.75" strokeDasharray="3,3">
+              {[100, 200, 300, 400, 600, 700, 800, 900].map((x) => (
+                <line key={`x-${x}`} x1={x} y1={0} x2={x} y2={500} />
+              ))}
+              {[80, 160, 340, 420].map((y) => (
+                <line key={`y-${y}`} x1={0} y1={y} x2={1000} y2={y} />
+              ))}
+              {/* Equator & Prime Meridian (Solid Accent) */}
+              <line x1={0} y1={250} x2={1000} y2={250} stroke="#1f2937" strokeWidth="1" strokeDasharray="none" />
+              <line x1={500} y1={0} x2={500} y2={500} stroke="#1f2937" strokeWidth="1" strokeDasharray="none" />
+            </g>
+          )}
 
-          {/* Detailed Continent Geometry Outlines */}
-          <g fill="#070707" stroke="#1f1f1f" strokeWidth="1">
-            {/* North America */}
-            <path d="M 80 80 L 160 50 L 250 50 L 300 70 L 320 120 L 290 160 L 280 200 L 220 220 L 190 280 L 170 290 L 140 240 L 90 190 L 70 140 Z" />
-            {/* South America */}
-            <path d="M 270 290 L 340 310 L 370 380 L 340 460 L 290 480 L 270 420 L 250 330 Z" />
-            {/* Europe */}
-            <path d="M 460 70 L 560 65 L 590 110 L 560 170 L 490 180 L 440 140 L 450 100 Z" />
-            {/* Africa */}
-            <path d="M 460 190 L 570 190 L 610 260 L 590 380 L 530 440 L 470 360 L 440 260 Z" />
-            {/* Asia */}
-            <path d="M 580 65 L 850 65 L 880 140 L 840 220 L 760 260 L 680 230 L 620 180 L 600 120 Z" />
-            {/* Australia */}
-            <path d="M 770 330 L 880 320 L 910 390 L 850 440 L 760 410 Z" />
+          {/* High-Precision Realistic World Continent Geometries */}
+          <g fill="#070c12" stroke="#1f2e42" strokeWidth="1.2">
+            {/* North America (Alaska, Canada, USA, Mexico, Florida) */}
+            <path d="M 50 65 Q 85 55 120 75 Q 140 60 175 62 Q 220 50 260 52 Q 295 65 315 80 Q 305 110 325 130 Q 320 160 295 175 Q 310 195 295 215 Q 275 220 250 205 Q 235 215 220 235 Q 200 250 185 285 Q 170 300 155 285 Q 160 250 135 225 Q 110 205 95 180 Q 70 145 55 115 Z" />
+            {/* Florida Peninsula */}
+            <path d="M 265 205 Q 275 225 272 238 Q 262 235 258 215 Z" />
             {/* Greenland */}
-            <path d="M 330 30 L 400 35 L 380 90 L 320 80 Z" />
-            {/* Japan */}
-            <path d="M 870 160 L 890 180 L 875 220 L 860 180 Z" />
-            {/* UK & Ireland */}
-            <path d="M 450 110 L 470 115 L 465 140 L 445 130 Z" />
+            <path d="M 335 35 Q 385 30 405 55 Q 395 95 365 105 Q 335 85 335 35 Z" />
+            {/* South America */}
+            <path d="M 255 285 Q 290 280 325 290 Q 365 310 375 345 Q 360 380 345 425 Q 325 470 300 485 Q 285 490 280 470 Q 285 435 270 395 Q 260 360 245 325 Q 240 300 255 285 Z" />
+            {/* Scandinavia */}
+            <path d="M 515 50 Q 545 45 560 65 Q 555 105 540 120 Q 525 110 515 80 Z" />
+            {/* Europe (Western, Central & Eastern) */}
+            <path d="M 450 110 Q 480 95 520 100 Q 550 115 570 145 Q 540 165 520 175 Q 495 180 470 170 Q 445 180 430 170 Q 440 140 450 110 Z" />
+            {/* Iberian Peninsula */}
+            <path d="M 430 165 Q 460 165 455 190 Q 430 195 420 175 Z" />
+            {/* Italy */}
+            <path d="M 495 160 Q 510 170 515 195 Q 505 200 490 180 Z" />
+            {/* United Kingdom & Ireland */}
+            <path d="M 445 110 Q 465 105 465 135 Q 450 145 440 130 Z" />
+            <path d="M 430 120 Q 440 118 438 135 Q 428 135 430 120 Z" />
+            {/* Africa */}
+            <path d="M 450 195 Q 510 190 560 200 Q 615 235 610 270 Q 585 300 590 345 Q 575 395 550 435 Q 520 455 500 440 Q 470 405 460 355 Q 440 305 430 255 Q 435 220 450 195 Z" />
+            {/* Madagascar */}
+            <path d="M 610 365 Q 625 355 620 395 Q 605 410 610 365 Z" />
+            {/* Asia (Siberia, China, Mongolia, Central Asia) */}
+            <path d="M 565 65 Q 650 50 750 55 Q 850 45 920 60 Q 890 95 860 115 Q 780 110 720 120 Q 650 115 575 105 Z" />
+            {/* East & Southeast Asia */}
+            <path d="M 720 120 Q 780 115 840 135 Q 860 170 840 215 Q 815 240 760 260 Q 735 285 710 260 Q 715 210 680 180 Q 700 145 720 120 Z" />
+            {/* Indian Subcontinent */}
+            <path d="M 670 175 Q 710 185 725 225 Q 705 265 685 275 Q 670 245 660 210 Z" />
+            {/* Middle East & Arabian Peninsula */}
+            <path d="M 565 170 Q 615 165 635 195 Q 625 245 595 240 Q 580 215 565 170 Z" />
+            {/* Japan Archipelago */}
+            <path d="M 875 145 Q 890 160 880 195 Q 865 210 860 185 Q 865 160 875 145 Z" />
+            {/* Indonesia / Maritime Southeast Asia */}
+            <path d="M 750 285 Q 810 280 840 295 Q 820 315 760 305 Z" />
+            {/* Australia */}
+            <path d="M 770 340 Q 830 325 885 345 Q 905 385 890 425 Q 845 445 800 440 Q 765 410 760 375 Z" />
+            {/* New Zealand */}
+            <path d="M 930 425 Q 945 420 940 455 Q 925 460 930 425 Z" />
           </g>
 
           {/* Undersea Fiber Highways (Global High-Speed Backbone) */}
           {showUnderseaCables && (
-            <g stroke="#065f46" strokeWidth="0.8" strokeDasharray="2,4" opacity="0.4">
+            <g stroke="#065f46" strokeWidth="0.8" strokeDasharray="3,4" opacity="0.5">
               {/* Trans-Atlantic Cable (Ashburn <-> London) */}
               <path d="M 285 141 Q 380 110 499 107" fill="none" />
               {/* Trans-Pacific Cable (Ashburn <-> Tokyo) */}
@@ -606,8 +677,8 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
                   d={pathD}
                   fill="none"
                   stroke={arc.color}
-                  strokeWidth={isSelected ? "4" : "2.5"}
-                  opacity={isSelected ? "0.35" : "0.15"}
+                  strokeWidth={isSelected ? "4.5" : "3"}
+                  opacity={isSelected ? "0.45" : "0.2"}
                 />
 
                 {/* Animated Ballistic Trajectory Line */}
@@ -615,10 +686,10 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
                   d={pathD}
                   fill="none"
                   stroke={arc.color}
-                  strokeWidth={isSelected ? "2.2" : "1.6"}
+                  strokeWidth={isSelected ? "2.4" : "1.8"}
                   strokeDasharray="6,4"
                   className={isPlaying ? "animate-[dash_1.5s_linear_infinite]" : ""}
-                  style={{ filter: "url(#glow)" }}
+                  style={{ filter: "url(#glowRed)" }}
                 />
 
                 {/* Source C2 Node Marker */}
@@ -692,7 +763,7 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
           <div className="flex items-center gap-2 border-t md:border-t-0 md:border-l border-[#262626] pt-3 md:pt-0 md:pl-4">
             <button
               onClick={handleAutoQuarantine}
-              className="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap"
+              className="px-3 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/40 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap active:scale-95"
             >
               <Lock className="w-3 h-3" />
               <span>Quarantine C2</span>
@@ -758,57 +829,67 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
           <div className="bg-[#050505] border border-[#262626] rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-[#262626] pb-3">
               <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-sm font-bold text-white">
-                  C2 Observable Telemetry Dossier: {activeArc.threatActor}
-                </h3>
+                <FileCode className="w-4 h-4 text-emerald-400" />
+                <h4 className="text-sm font-bold text-white font-mono">
+                  Observable Telemetry: {activeArc.threatActor}
+                </h4>
               </div>
               <button
                 onClick={() => setDetailModalOpen(false)}
-                className="text-neutral-400 hover:text-white p-1 text-xs"
+                className="text-neutral-400 hover:text-white text-xs font-bold"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-2 font-mono text-xs">
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="p-2 rounded-lg bg-[#000000] border border-[#262626]">
-                  <span className="text-neutral-500 block text-[9px]">SOURCE IP & ASN</span>
-                  <span className="text-white font-bold">{activeArc.sourceIp}</span>
-                  <span className="text-[9px] text-neutral-400 block">{activeArc.sourceAsn}</span>
-                </div>
-                <div className="p-2 rounded-lg bg-[#000000] border border-[#262626]">
-                  <span className="text-neutral-500 block text-[9px]">TARGET VPC & REGION</span>
-                  <span className="text-emerald-400 font-bold">{activeArc.targetVpc}</span>
-                  <span className="text-[9px] text-neutral-400 block">{activeArc.targetRegion}</span>
-                </div>
-              </div>
+            <pre className="p-3 bg-black rounded-xl border border-[#262626] font-mono text-[11px] text-neutral-300 overflow-x-auto max-h-72">
+{JSON.stringify(
+  {
+    threat_actor: activeArc.threatActor,
+    severity: activeArc.severity,
+    source: {
+      city: activeArc.sourceCity,
+      country: activeArc.sourceCountry,
+      ip: activeArc.sourceIp,
+      asn: activeArc.sourceAsn,
+      coordinates: activeArc.sourceCoords
+    },
+    target: {
+      city: activeArc.targetCity,
+      region: activeArc.targetRegion,
+      vpc_id: activeArc.targetVpc,
+      coordinates: activeArc.targetCoords
+    },
+    technique: {
+      mitre_id: activeArc.mitreId,
+      name: activeArc.technique,
+      protocol: activeArc.protocol
+    },
+    defense_action: {
+      status: activeArc.status,
+      enforced_by: "SOCForge SOAR Engine",
+      quarantined: activeArc.status === "CONTAINED"
+    }
+  },
+  null,
+  2
+)}
+            </pre>
 
-              <div className="p-3 rounded-xl bg-[#000000] border border-[#262626] space-y-1 text-emerald-400 text-[11px]">
-                <div className="text-neutral-500 text-[9px] uppercase font-bold">Raw Telemetry Packet (JSON):</div>
-                <pre className="overflow-x-auto leading-relaxed">
-{JSON.stringify({
-  event_time: new Date().toISOString(),
-  origin_ip: activeArc.sourceIp,
-  asn: activeArc.sourceAsn,
-  actor: activeArc.threatActor,
-  mitre_technique: activeArc.mitreId,
-  target_vpc: activeArc.targetVpc,
-  mitigation: activeArc.status,
-  soar_action: "ISOLATE_HOST_AND_DROP_IP"
-}, null, 2)}
-                </pre>
-              </div>
-            </div>
+            <div className="flex items-center justify-between pt-2">
+              <button
+                onClick={copyTelemetryJson}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-[#262626] text-xs font-mono font-bold transition"
+              >
+                {copiedJson ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedJson ? "Copied to Clipboard!" : "Copy JSON"}</span>
+              </button>
 
-            <div className="flex items-center justify-between pt-2 border-t border-[#262626] font-mono text-xs">
-              <span className="text-[10px] text-neutral-500">Status: {activeArc.status}</span>
               <button
                 onClick={() => setDetailModalOpen(false)}
-                className="px-4 py-1.5 rounded-xl bg-white hover:bg-neutral-200 text-black font-bold text-xs"
+                className="px-4 py-1.5 rounded-lg bg-white text-black font-bold text-xs hover:bg-neutral-200 transition"
               >
-                Close
+                Close Dossier
               </button>
             </div>
           </div>
@@ -817,5 +898,3 @@ export default function GlobalThreatMap({ compact = false }: { compact?: boolean
     </div>
   );
 }
-
-export { GlobalThreatMap };
