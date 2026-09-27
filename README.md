@@ -141,7 +141,7 @@ socforge/
 
 ---
 
-## 3. Operational Evidence & Platform Screenshot Gallery
+## 3. Operational Evidence & Security Operations Workspaces
 
 All visual assets below represent empirical operational evidence captured directly from the live, production-configured SOCForge stack (PostgreSQL 16, Redis 7, Celery Worker, FastAPI REST backend, Next.js 14 console) running with active security telemetry and **True OLED Pitch-Black (`#000000`)** design system.
 
@@ -178,9 +178,9 @@ Executive launchpad providing direct single-click access to all 9 core SOC studi
 
 ---
 
-### 3.2 Cyber Threat Intelligence & Telemetry Dashboard
-Real-time CTI dashboard featuring interactive D3 world threat visualization, polar rose tactic breakdown, high-velocity telemetry logs, and CVE tracking feeds.
-![SOCForge Dashboard Overview](docs/assets/socforge_dashboard.png)
+### 3.2 Cyber Threat Intelligence & Security Operations Dashboard
+Evidence-driven SOC operations dashboard combining threat intelligence, telemetry analytics, attack-tactic visualization, security events, and vulnerability intelligence.
+![SOCForge Security Operations Dashboard](docs/assets/socforge_dashboard.png)
 
 ---
 
