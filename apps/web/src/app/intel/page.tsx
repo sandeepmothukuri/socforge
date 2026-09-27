@@ -538,42 +538,53 @@ export default function ThreatIntelPage() {
           {/* Main Stage & Workspace */}
           <div className="flex-1 flex flex-col bg-[#000000] overflow-y-auto p-6 space-y-6">
             {/* Threat Group Banner */}
-            <div className="p-6 rounded-2xl bg-[#050505] border border-[#262626] space-y-4 relative overflow-hidden">
-              <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+            <div className="p-6 rounded-2xl bg-[#080808] border border-[#262626] space-y-4 relative flex-shrink-0 shadow-lg">
+              <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+                <div className="space-y-3 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-red-500/20 text-red-400 border border-red-500/30">
                       {selectedActor.threatLevel} THREAT
                     </span>
-                    <span className="text-xs font-mono text-neutral-300">
+                    <span className="text-xs font-mono text-neutral-300 px-2.5 py-1 rounded-lg bg-[#141414] border border-[#262626]">
                       Origin: <strong className="text-white">{selectedActor.origin}</strong>
                     </span>
-                    <span className="text-xs font-mono text-neutral-300">
+                    <span className="text-xs font-mono text-neutral-300 px-2.5 py-1 rounded-lg bg-[#141414] border border-[#262626]">
                       Motivation: <strong className="text-emerald-400">{selectedActor.motivation}</strong>
+                    </span>
+                    <span className="text-xs font-mono text-neutral-400 px-2.5 py-1 rounded-lg bg-[#141414] border border-[#262626]">
+                      Active Since: <strong className="text-neutral-200">{selectedActor.activeSince}</strong>
                     </span>
                   </div>
 
-                  <h2 className="text-xl font-bold text-white tracking-tight">{selectedActor.name}</h2>
-                  <p className="text-xs text-neutral-400 max-w-3xl leading-relaxed">
+                  <h2 className="text-2xl font-bold text-white tracking-tight leading-tight">
+                    {selectedActor.name}
+                  </h2>
+                  <p className="text-sm text-neutral-300 max-w-4xl leading-relaxed">
                     {selectedActor.description}
                   </p>
                 </div>
 
-                <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#262626] font-mono text-xs space-y-1.5 lg:w-72 flex-shrink-0">
-                  <div className="text-neutral-400 uppercase text-[10px]">Target Industry Sectors</div>
-                  <div className="font-bold text-white text-xs leading-snug">
-                    {selectedActor.targetSectors.join(", ")}
+                <div className="p-4 rounded-xl bg-[#0e0e0e] border border-[#262626] font-mono text-xs space-y-2.5 lg:w-80 flex-shrink-0">
+                  <div className="text-neutral-400 uppercase text-[11px] font-bold tracking-wider">Target Industry Sectors</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedActor.targetSectors.map((sector) => (
+                      <span key={sector} className="px-2 py-0.5 rounded bg-[#1a1a1a] text-neutral-200 border border-[#333] text-[11px]">
+                        {sector}
+                      </span>
+                    ))}
                   </div>
-                  <div className="pt-2 border-t border-[#262626] flex items-center justify-between text-[10px]">
-                    <span className="text-neutral-500">Known Aliases:</span>
-                    <span className="text-neutral-300 truncate max-w-[140px]">{selectedActor.aliases.join(", ")}</span>
+                  <div className="pt-2 border-t border-[#262626] flex items-center justify-between text-[11px]">
+                    <span className="text-neutral-400">Known Aliases:</span>
+                    <span className="text-neutral-200 font-bold truncate max-w-[170px]" title={selectedActor.aliases.join(", ")}>
+                      {selectedActor.aliases.join(", ")}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Studio Workspace Sub-Tabs */}
-            <div className="flex items-center gap-3 border-b border-[#262626] pb-1 text-xs font-mono">
+            <div className="flex items-center gap-3 border-b border-[#262626] pb-1 text-xs font-mono flex-shrink-0">
               <button
                 onClick={() => setActiveTab("diamond")}
                 className={`py-2 px-3 rounded-lg flex items-center gap-2 font-semibold transition ${
@@ -625,7 +636,7 @@ export default function ThreatIntelPage() {
 
             {/* TAB 1: INTERACTIVE DIAMOND MODEL */}
             {activeTab === "diamond" && (
-              <div className="space-y-4">
+              <div className="space-y-4 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-400 font-bold flex items-center gap-2">
                     <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
@@ -637,7 +648,7 @@ export default function ThreatIntelPage() {
                 </div>
 
                 {/* Professional Diamond Model Visualizer */}
-                <div className="relative rounded-2xl bg-[#050505] border border-[#262626] shadow-2xl overflow-hidden">
+                <div className="relative rounded-2xl bg-[#050505] border border-[#262626] shadow-2xl overflow-hidden flex-shrink-0">
                   {/* Model Header & Explanatory Legend */}
                   <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 border-b border-[#1f1f1f] bg-[#080808]">
                     <div className="flex items-center gap-3">
@@ -982,7 +993,7 @@ export default function ThreatIntelPage() {
                 </div>
 
                 {/* Vertex Deep Inspector Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs flex-shrink-0">
                   {/* Card 1: Adversary */}
                   <div
                     onClick={() => setSelectedDiamondVertex("adversary")}
@@ -1219,7 +1230,7 @@ export default function ThreatIntelPage() {
             )}
 
             {/* Attributed IOC Feed */}
-            <div className="p-5 rounded-2xl bg-[#050505] border border-[#262626] space-y-4 font-mono text-xs">
+            <div className="p-5 rounded-2xl bg-[#050505] border border-[#262626] space-y-4 font-mono text-xs flex-shrink-0">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-white uppercase tracking-wider flex items-center gap-2">
                   <Flame className="w-4 h-4 text-red-500" />
