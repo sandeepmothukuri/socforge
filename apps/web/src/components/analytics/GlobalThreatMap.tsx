@@ -21,7 +21,12 @@ import {
   Server,
   Crosshair,
   MapPin,
-  Filter
+  Filter,
+  ExternalLink,
+  Activity,
+  ShieldAlert,
+  ChevronRight,
+  Zap
 } from "lucide-react";
 import worldMapData from "./worldMapData.json";
 
@@ -302,6 +307,9 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
   const [quarantinedIps, setQuarantinedIps] = useState<string[]>([]);
   const [showTelemetryModal, setShowTelemetryModal] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [timeWindow, setTimeWindow] = useState<"LIVE" | "15M" | "1H" | "6H" | "24H">("LIVE");
+  const [timelineIndex, setTimelineIndex] = useState<number>(0);
+  const [showOsintDrawer, setShowOsintDrawer] = useState<boolean>(false);
 
   // Layer Toggles
   const [showBorders, setShowBorders] = useState<boolean>(true);
@@ -1096,6 +1104,59 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
         </div>
       </div>
 
+      {/* ── INTERACTIVE TIMELINE REPLAY SCRUBBER ── */}
+      <div className="px-5 py-3 border-t border-[#1e293b] bg-[#050814] flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-xs">
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 transition flex items-center gap-1.5"
+            title={isPlaying ? "Pause Stream" : "Resume Playback"}
+          >
+            {isPlaying ? <Pause className="w-3.5 h-3.5 text-amber-400" /> : <Play className="w-3.5 h-3.5 text-emerald-400" />}
+            <span className="font-bold text-[11px]">{isPlaying ? "Pause" : "Replay"}</span>
+          </button>
+
+          <div className="flex items-center bg-[#030610] p-1 rounded-xl border border-slate-800">
+            {(["LIVE", "15M", "1H", "6H", "24H"] as const).map((tw) => (
+              <button
+                key={tw}
+                onClick={() => setTimeWindow(tw)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition ${
+                  timeWindow === tw
+                    ? "bg-cyan-500 text-black shadow-sm"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                {tw}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Temporal Scrubber Slider */}
+        <div className="flex-1 w-full flex items-center gap-3">
+          <span className="text-[10px] text-slate-500 whitespace-nowrap">T-24h</span>
+          <input
+            type="range"
+            min="0"
+            max={Math.max(1, arcs.length - 1)}
+            value={timelineIndex}
+            onChange={(e) => {
+              const idx = Number(e.target.value);
+              setTimelineIndex(idx);
+              if (arcs[idx]) setSelectedArc(arcs[idx]);
+            }}
+            className="w-full accent-cyan-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
+          />
+          <span className="text-[10px] text-emerald-400 font-bold whitespace-nowrap">NOW</span>
+        </div>
+
+        <div className="flex items-center gap-2 text-[10px] text-slate-400 whitespace-nowrap">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>{arcs.length} Ballistic Vectors Tracked</span>
+        </div>
+      </div>
+
       {/* Selected Threat Actor & Telemetry Inspection Card */}
       {selectedArc && (
         <div className="px-5 py-4 border-t border-[#1e293b] bg-[#070c18] flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1173,6 +1234,14 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
               <FileCode className="w-3.5 h-3.5" style={{ color: selectedArc.color }} />
               <span>C2 Telemetry</span>
             </button>
+
+            <button
+              onClick={() => setShowOsintDrawer(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-cyan-950/40 hover:bg-cyan-900/60 text-cyan-300 hover:text-white border border-cyan-500/40 text-xs font-bold transition shadow-sm"
+            >
+              <Globe className="w-3.5 h-3.5 text-cyan-400" />
+              <span>OSINT Brief</span>
+            </button>
           </div>
         </div>
       )}
@@ -1219,6 +1288,120 @@ export default function GlobalThreatMap({ className = "", compact = false, onSel
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── FULL OSINT INTELLIGENCE DRILLDOWN DRAWER ── */}
+      {showOsintDrawer && selectedArc && (
+        <>
+          <div 
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowOsintDrawer(false)}
+          />
+          <div className="fixed inset-y-0 right-0 z-[51] w-full sm:w-[460px] bg-[#070c18] border-l border-cyan-500/30 shadow-[0_0_80px_rgba(0,0,0,0.95)] flex flex-col animate-in slide-in-from-right duration-200">
+            {/* Drawer Header */}
+            <div className="p-4 bg-[#0a1020] border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white font-mono flex items-center gap-2">
+                    OSINT Dossier: {selectedArc.threatActor}
+                    <span 
+                      className={`px-1.5 py-0.2 rounded text-[9px] font-mono font-bold border ${ALERT_SEVERITY_CONFIG[selectedArc.severity].bgClass} ${ALERT_SEVERITY_CONFIG[selectedArc.severity].borderClass} ${ALERT_SEVERITY_CONFIG[selectedArc.severity].textClass}`}
+                    >
+                      {selectedArc.severity}
+                    </span>
+                  </h3>
+                  <p className="text-[10px] text-slate-400 font-mono">Attribution, BGP Routing & Threat Intelligence</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowOsintDrawer(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Drawer Body */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5 font-mono text-xs text-slate-300">
+              {/* Origin IP & ASN Card */}
+              <div className="p-4 rounded-xl bg-[#040711] border border-slate-800 space-y-2.5">
+                <span className="text-[10px] uppercase text-cyan-400 font-bold tracking-wider">Adversary Infrastructure</span>
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                  <div>
+                    <span className="text-slate-500 block">Source IP:</span>
+                    <span className="font-bold text-white" style={{ color: selectedArc.color }}>{selectedArc.sourceIp}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Location:</span>
+                    <span className="font-bold text-white">{selectedArc.sourceCity}, {selectedArc.sourceCountry}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">ASN / ISP:</span>
+                    <span className="text-slate-200">{selectedArc.sourceAsn}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Reputation:</span>
+                    <span className="text-red-400 font-bold">96/100 (Malicious C2)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* MITRE Technique */}
+              <div className="p-4 rounded-xl bg-[#040711] border border-slate-800 space-y-2.5">
+                <span className="text-[10px] uppercase text-amber-400 font-bold tracking-wider">Observed TTP & MITRE Matrix</span>
+                <div>
+                  <span className="text-slate-500 text-[10px] block">Technique ID:</span>
+                  <span className="text-white font-bold">{selectedArc.mitreId} — {selectedArc.technique}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 text-[10px] block">Target Infrastructure:</span>
+                  <span className="text-emerald-300 font-semibold">{selectedArc.targetCity} ({selectedArc.targetRegion})</span>
+                </div>
+              </div>
+
+              {/* Threat Actor Profile */}
+              <div className="p-4 rounded-xl bg-[#040711] border border-slate-800 space-y-2">
+                <span className="text-[10px] uppercase text-purple-400 font-bold tracking-wider">Threat Actor Profile</span>
+                <p className="text-slate-300 font-sans text-xs leading-relaxed">
+                  State-sponsored threat cluster tracking back to sophisticated cyber-espionage and pre-ransomware staging campaigns. Known for living-off-the-land techniques (PowerShell, WMI) and rapid lateral movement.
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {["Nation-State Sponsored", "Memory Scraping", "C2 Beaconing", "High Impact"].map((t) => (
+                    <span key={t} className="px-2 py-0.5 rounded text-[10px] bg-slate-900 border border-slate-800 text-slate-300">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Rapid Response Actions */}
+              <div className="space-y-2 pt-2 border-t border-slate-800">
+                <span className="text-[10px] uppercase text-slate-400 font-bold">Dual-Gated SOAR Response</span>
+                <button
+                  onClick={handleQuarantineC2}
+                  className="w-full py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-sans font-bold text-xs flex items-center justify-center gap-2 transition shadow-lg shadow-red-950/50"
+                >
+                  <Lock className="w-4 h-4" />
+                  <span>Isolate C2 Ingress ({selectedArc.sourceIp})</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (typeof window !== "undefined") {
+                      window.location.href = `/graph`;
+                    }
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white border border-cyan-500/30 font-sans font-bold text-xs flex items-center justify-center gap-2 transition"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Pivot to Attack Path Graph Visualizer</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

@@ -125,7 +125,7 @@ export default function AppShell({ children }: AppShellProps) {
         e.preventDefault();
         setSearchOpen((prev) => !prev);
       }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "j") {
+      if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === "j" || e.key === "\\" || e.key === "|")) {
         e.preventDefault();
         setCopilotOpen((prev) => !prev);
       }

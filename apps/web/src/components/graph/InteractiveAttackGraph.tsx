@@ -19,7 +19,12 @@ import {
   Clock,
   ExternalLink,
   ShieldCheck,
-  Ban
+  Ban,
+  Pin,
+  Target,
+  Eye,
+  Check,
+  Activity
 } from "lucide-react";
 
 export interface GraphNode {
@@ -143,6 +148,25 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(nodes[1]);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [blastRadiusMode, setBlastRadiusMode] = useState(false);
+  const [pinnedEvidenceIds, setPinnedEvidenceIds] = useState<string[]>([]);
+  const [containedEntities, setContainedEntities] = useState<Record<string, boolean>>({});
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  const blastRadiusNodeIds = useMemo(() => {
+    if (!selectedNode || !blastRadiusMode) return new Set<string>();
+    const direct = new Set<string>([selectedNode.id]);
+    edges.forEach((e) => {
+      if (e.source === selectedNode.id) direct.add(e.target);
+      if (e.target === selectedNode.id) direct.add(e.source);
+    });
+    const twoHop = new Set<string>(direct);
+    edges.forEach((e) => {
+      if (direct.has(e.source)) twoHop.add(e.target);
+      if (direct.has(e.target)) twoHop.add(e.source);
+    });
+    return twoHop;
+  }, [selectedNode, blastRadiusMode, edges]);
 
   // Filter nodes & edges by timeline step & type
   const filteredNodes = useMemo(() => {
@@ -232,6 +256,27 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                 {t}
               </button>
             ))}
+            {/* Blast Radius & Pinning Buttons */}
+            <div className="h-4 w-px bg-neutral-800" />
+            <button
+              onClick={() => setBlastRadiusMode(!blastRadiusMode)}
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-mono transition border ${
+                blastRadiusMode
+                  ? "bg-red-500/20 text-red-400 border-red-500/50 font-bold shadow-sm shadow-red-500/20"
+                  : "bg-neutral-900 text-neutral-400 hover:text-white border-neutral-800"
+              }`}
+              title="Toggle 2-hop contagion blast radius expansion"
+            >
+              <Target className="w-3.5 h-3.5 text-red-400" />
+              <span>Blast Radius {blastRadiusMode ? "Active" : "Off"}</span>
+            </button>
+
+            {pinnedEvidenceIds.length > 0 && (
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/15 border border-cyan-500/30 text-cyan-400">
+                <Pin className="w-3 h-3" />
+                {pinnedEvidenceIds.length} Pinned
+              </span>
+            )}
           </div>
         </div>
 
@@ -374,6 +419,36 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                     />
                   )}
 
+                  {/* Blast Radius Contagion Ring */}
+                  {blastRadiusMode && blastRadiusNodeIds.has(node.id) && (
+                    <circle
+                      r="30"
+                      fill="none"
+                      stroke="#EF4444"
+                      strokeWidth="2"
+                      strokeDasharray="4 3"
+                      className="animate-spin"
+                      style={{ animationDuration: "14s" }}
+                      opacity="0.8"
+                    />
+                  )}
+
+                  {/* Pinned Evidence Badge */}
+                  {pinnedEvidenceIds.includes(node.id) && (
+                    <g transform="translate(12, -18)">
+                      <circle r="7" fill="#06B6D4" stroke="#000000" strokeWidth="1.5" />
+                      <text x="0" y="2.5" textAnchor="middle" fill="#000000" fontSize="7" fontWeight="bold">📌</text>
+                    </g>
+                  )}
+
+                  {/* Quarantined / Contained Badge */}
+                  {containedEntities[node.id] && (
+                    <g transform="translate(-14, -18)">
+                      <circle r="7" fill="#EF4444" stroke="#000000" strokeWidth="1.5" />
+                      <text x="0" y="2.5" textAnchor="middle" fill="#FFFFFF" fontSize="8" fontWeight="bold">✕</text>
+                    </g>
+                  )}
+
                   {/* Main Node Circle */}
                   <circle
                     r="18"
@@ -450,13 +525,57 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                   <h4 className="font-semibold text-xs text-white truncate w-44">{selectedNode.label}</h4>
                 </div>
               </div>
-              <span className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] ${
-                selectedNode.riskScore > 85
-                  ? "bg-[#EF4444]/20 border border-[#EF4444]/40 text-[#EF4444]"
-                  : "bg-[#F59E0B]/20 border border-[#F59E0B]/40 text-[#F59E0B]"
-              }`}>
-                Risk: {selectedNode.riskScore}/100
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setPinnedEvidenceIds((prev) =>
+                      prev.includes(selectedNode.id)
+                        ? prev.filter((id) => id !== selectedNode.id)
+                        : [...prev, selectedNode.id]
+                    );
+                  }}
+                  className={`p-1.5 rounded-lg transition border ${
+                    pinnedEvidenceIds.includes(selectedNode.id)
+                      ? "text-cyan-400 bg-cyan-500/20 border-cyan-500/40"
+                      : "text-neutral-400 hover:text-white border-neutral-800 bg-black"
+                  }`}
+                  title={pinnedEvidenceIds.includes(selectedNode.id) ? "Unpin evidence" : "Pin node to investigation case"}
+                >
+                  <Pin className="w-3.5 h-3.5" />
+                </button>
+                <span className={`px-2 py-0.5 rounded font-mono font-bold text-[10px] ${
+                  selectedNode.riskScore > 85
+                    ? "bg-[#EF4444]/20 border border-[#EF4444]/40 text-[#EF4444]"
+                    : "bg-[#F59E0B]/20 border border-[#F59E0B]/40 text-[#F59E0B]"
+                }`}>
+                  Risk: {selectedNode.riskScore}/100
+                </span>
+              </div>
+            </div>
+
+            {/* Blast Radius Contagion Card */}
+            <div className="p-3 rounded-xl bg-neutral-950 border border-neutral-800 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono uppercase text-neutral-400 font-bold flex items-center gap-1.5">
+                  <Target className="w-3.5 h-3.5 text-red-400" />
+                  Blast Radius Contagion
+                </span>
+                <button
+                  onClick={() => setBlastRadiusMode(!blastRadiusMode)}
+                  className="text-[10px] font-mono text-cyan-400 hover:underline flex items-center gap-1"
+                >
+                  {blastRadiusMode ? "Collapse" : "Calculate (2-Hop)"}
+                </button>
+              </div>
+              <div className="flex items-center justify-between text-[11px] font-mono">
+                <span className="text-neutral-400">Contagion Nodes:</span>
+                <span className="font-bold text-red-400">{blastRadiusMode ? blastRadiusNodeIds.size : 1} Connected Entities</span>
+              </div>
+              {blastRadiusMode && (
+                <div className="text-[10px] font-mono text-neutral-400 pt-1 border-t border-neutral-900 leading-tight">
+                  Adversary lateral traversal potential identified across host and network relations.
+                </div>
+              )}
             </div>
 
             {/* Entity Attributes */}
@@ -473,27 +592,64 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
               </div>
             </div>
 
+            {/* Action notice */}
+            {actionNotice && (
+              <div className="p-2.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-mono animate-in fade-in">
+                {actionNotice}
+              </div>
+            )}
+
             {/* Quick Response Actions */}
             <div className="space-y-2 pt-2 border-t border-neutral-800">
               <span className="text-[10px] font-mono uppercase text-neutral-500">Automated Containment Actions</span>
               <div className="space-y-1.5">
-                {selectedNode.type === "host" && (
-                  <button className="w-full py-1.5 bg-[#EF4444]/20 hover:bg-[#EF4444]/30 border border-[#EF4444]/40 text-[#EF4444] rounded transition font-semibold flex items-center justify-center gap-1.5">
-                    <Ban className="w-3.5 h-3.5" />
-                    Isolate Host ({selectedNode.label})
-                  </button>
-                )}
-                {selectedNode.type === "user" && (
-                  <button className="w-full py-1.5 bg-[#F59E0B]/20 hover:bg-[#F59E0B]/30 border border-[#F59E0B]/40 text-[#F59E0B] rounded transition font-semibold flex items-center justify-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    Revoke User Sessions
-                  </button>
-                )}
-                {(selectedNode.type === "ip" || selectedNode.type === "domain") && (
-                  <button className="w-full py-1.5 bg-[#EF4444]/20 hover:bg-[#EF4444]/30 border border-[#EF4444]/40 text-[#EF4444] rounded transition font-semibold flex items-center justify-center gap-1.5">
-                    <Ban className="w-3.5 h-3.5" />
-                    Block Perimeter Ingress/Egress
-                  </button>
+                {containedEntities[selectedNode.id] ? (
+                  <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono flex items-center justify-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span>Containment Enforced ({selectedNode.label})</span>
+                  </div>
+                ) : (
+                  <>
+                    {selectedNode.type === "host" && (
+                      <button 
+                        onClick={() => {
+                          setContainedEntities(prev => ({ ...prev, [selectedNode.id]: true }));
+                          setActionNotice(`Containment lock enforced on ${selectedNode.label}. CrowdStrike EDR network isolation active.`);
+                          setTimeout(() => setActionNotice(null), 3500);
+                        }}
+                        className="w-full py-2 bg-[#EF4444]/20 hover:bg-[#EF4444]/30 border border-[#EF4444]/40 text-[#EF4444] rounded-lg transition font-semibold flex items-center justify-center gap-1.5"
+                      >
+                        <Ban className="w-3.5 h-3.5" />
+                        Isolate Host ({selectedNode.label})
+                      </button>
+                    )}
+                    {selectedNode.type === "user" && (
+                      <button 
+                        onClick={() => {
+                          setContainedEntities(prev => ({ ...prev, [selectedNode.id]: true }));
+                          setActionNotice(`Active Kerberos tickets & Entra ID OAuth refresh tokens revoked for ${selectedNode.label}.`);
+                          setTimeout(() => setActionNotice(null), 3500);
+                        }}
+                        className="w-full py-2 bg-[#F59E0B]/20 hover:bg-[#F59E0B]/30 border border-[#F59E0B]/40 text-[#F59E0B] rounded-lg transition font-semibold flex items-center justify-center gap-1.5"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Revoke User Sessions
+                      </button>
+                    )}
+                    {(selectedNode.type === "ip" || selectedNode.type === "domain") && (
+                      <button 
+                        onClick={() => {
+                          setContainedEntities(prev => ({ ...prev, [selectedNode.id]: true }));
+                          setActionNotice(`Perimeter BGP blackhole & WAF drop rule dispatched for ${selectedNode.label}.`);
+                          setTimeout(() => setActionNotice(null), 3500);
+                        }}
+                        className="w-full py-2 bg-[#EF4444]/20 hover:bg-[#EF4444]/30 border border-[#EF4444]/40 text-[#EF4444] rounded-lg transition font-semibold flex items-center justify-center gap-1.5"
+                      >
+                        <Ban className="w-3.5 h-3.5" />
+                        Block Perimeter Ingress/Egress
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>

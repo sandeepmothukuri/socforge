@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { usePathname } from "next/navigation";
 import {
   Sparkles,
   X,
@@ -56,7 +57,87 @@ interface AgentTraceStep {
 }
 
 export function SOCCopilotDrawer({ isOpen, onClose }: SOCCopilotDrawerProps) {
+  const pathname = usePathname() || "/";
   const [activeTab, setActiveTab] = useState<"autonomous" | "chat" | "ioc_scanner" | "deobfuscator" | "sigma_gen">("autonomous");
+
+  const pageContext = useMemo(() => {
+    if (pathname.includes("/alerts")) {
+      return {
+        title: "Alert Triage Queue",
+        tag: "ALERTS",
+        tagColor: "text-amber-400 border-amber-500/30 bg-amber-500/10",
+        summary: "Ingested EDR, Cloud, and Network alert streams ready for multi-step automated correlation.",
+        quickPrompts: [
+          "Triage critical unassigned alerts",
+          "Correlate PowerShell execution to MITRE ATT&CK",
+          "Recommend 4-eyes containment playbook"
+        ]
+      };
+    }
+    if (pathname.includes("/graph")) {
+      return {
+        title: "Attack Path & Evidence Visualizer",
+        tag: "GRAPH",
+        tagColor: "text-cyan-400 border-cyan-500/30 bg-cyan-500/10",
+        summary: "Multi-hop entity graph with process-parent ancestry and lateral movement topology.",
+        quickPrompts: [
+          "Reconstruct root cause attack chain",
+          "Compute blast radius for compromised domain controller",
+          "Recommend dual-auth host isolation"
+        ]
+      };
+    }
+    if (pathname.includes("/detections")) {
+      return {
+        title: "Detection Engineering Catalog",
+        tag: "RULES",
+        tagColor: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10",
+        summary: "Authoritative Sigma, SPL, and KQL rules catalog with automated syntax validation.",
+        quickPrompts: [
+          "Convert Sigma rule to Splunk SPL",
+          "Lint Sigma YAML AST against schema",
+          "Identify MITRE ATT&CK coverage gaps"
+        ]
+      };
+    }
+    if (pathname.includes("/incidents")) {
+      return {
+        title: "Incident Command War Room",
+        tag: "INCIDENTS",
+        tagColor: "text-red-400 border-red-500/30 bg-red-500/10",
+        summary: "Active P1/P2 cyber incident command center with cryptographic containment logs.",
+        quickPrompts: [
+          "Draft CISO executive incident briefing memo",
+          "Verify containment authorization status",
+          "Calculate FAIR financial exposure"
+        ]
+      };
+    }
+    if (pathname.includes("/hunts")) {
+      return {
+        title: "Threat Hunting Studio",
+        tag: "HUNTS",
+        tagColor: "text-purple-400 border-purple-500/30 bg-purple-500/10",
+        summary: "Hypothesis-driven threat hunting workspace with live telemetry queries.",
+        quickPrompts: [
+          "Formulate LOLBAS hunting query for certutil.exe",
+          "Query unusual Kerberos TGS ticket requests",
+          "Promote hunt observation to confirmed finding"
+        ]
+      };
+    }
+    return {
+      title: "SOCForge Global Command",
+      tag: "GLOBAL",
+      tagColor: "text-blue-400 border-blue-500/30 bg-blue-500/10",
+      summary: "Autonomous SecOps agent monitoring cross-connector telemetry and IOC feeds.",
+      quickPrompts: [
+        "Summarize active C2 beaconing alerts",
+        "Scan IP address 185.220.101.5",
+        "Generate Sigma rule for LSASS dump"
+      ]
+    };
+  }, [pathname]);
   
   // Autonomous Agent State
   const [selectedIncident, setSelectedIncident] = useState("INC-2026-8812");
@@ -399,6 +480,33 @@ tags:
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Active Context Awareness Banner */}
+        <div className="px-5 py-2.5 bg-[#080808] border-b border-[#222] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-bold border ${pageContext.tagColor}`}>
+              {pageContext.tag} CONTEXT
+            </span>
+            <span className="font-semibold text-white">{pageContext.title}</span>
+            <span className="text-[10px] text-neutral-500 font-mono hidden md:inline">({pathname})</span>
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {pageContext.quickPrompts.map((p, idx) => (
+              <button
+                key={idx}
+                onClick={() => {
+                  setActiveTab("chat");
+                  handleSendMessage(p);
+                }}
+                className="px-2 py-0.5 rounded-md bg-neutral-900 hover:bg-neutral-800 text-[10px] text-neutral-300 hover:text-white border border-neutral-800 transition flex items-center gap-1"
+                title={`Ask Copilot: "${p}"`}
+              >
+                <Zap className="w-2.5 h-2.5 text-emerald-400" />
+                <span className="truncate max-w-[140px]">{p}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Mode Navigation Tabs */}
