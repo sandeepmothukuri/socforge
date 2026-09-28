@@ -7,6 +7,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-socforge}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-socforge}
       POSTGRES_DB: ${POSTGRES_DB:-socforge}
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,6 +21,8 @@ services:
     image: redis:7-alpine
     container_name: socforge-redis
     restart: unless-stopped
+    ports:
+      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:

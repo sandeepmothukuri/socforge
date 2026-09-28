@@ -89,12 +89,14 @@ level: high`
       name: newRuleName.trim(),
       severity: newRuleSeverity,
       status: "approved",
+      validation_state: "validated",
       rule_language: "sigma",
       description: `Analyst-authored Sigma rule for ${newRuleTactic} / ${newRuleTechnique}`,
       content: newRuleContent,
+      rule_content: newRuleContent,
       mitre_techniques: [newRuleTechnique],
+      mitre_tactics: [newRuleTactic],
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
     };
 
     setDetections((prev) => [newRule, ...prev]);
@@ -526,7 +528,7 @@ level: high`
                               <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">OPTIMIZED</span>
                             </div>
                             <p className="text-[11px] text-neutral-400">
-                              Replaced unindexed leading substring scans with tokenized lookups and exact process hierarchy paths (<code className="text-white bg-black px-1 py-0.5 rounded">ProcessName == "lsass.exe"</code>).
+                              Replaced unindexed leading substring scans with tokenized lookups and exact process hierarchy paths (<code className="text-white bg-black px-1 py-0.5 rounded">ProcessName == &quot;lsass.exe&quot;</code>).
                             </p>
                           </div>
 

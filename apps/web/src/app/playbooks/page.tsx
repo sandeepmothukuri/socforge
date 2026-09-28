@@ -585,7 +585,7 @@ audit:
                   ))
                 ) : (
                   <div className="text-neutral-600">
-                    Click 'Dry-Run Playbook' above to simulate live Celery automation worker execution.
+                    Click &apos;Dry-Run Playbook&apos; above to simulate live Celery automation worker execution.
                   </div>
                 )}
               </div>

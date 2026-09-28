@@ -144,7 +144,10 @@ export default function HuntsPage() {
       hypothesis: newHuntHypothesis.trim() || "Empirical adversary detection hypothesis.",
       status: "active",
       created_at: new Date().toISOString(),
-      mitre_techniques: [newHuntTechnique]
+      data_sources: ["EDR Telemetry", "Windows Security Logs"],
+      mitre_techniques: [newHuntTechnique],
+      queries: [],
+      observations: []
     };
 
     setHunts((prev) => [newHunt, ...prev]);

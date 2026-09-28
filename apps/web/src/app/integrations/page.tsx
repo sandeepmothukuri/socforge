@@ -772,7 +772,7 @@ export interface SecurityExtension {
   rating: number;
 }
 
-export const DEFAULT_EXTENSIONS: SecurityExtension[] = [
+const DEFAULT_EXTENSIONS: SecurityExtension[] = [
   {
     id: "ext_volt_typhoon",
     name: "Volt Typhoon Critical Infrastructure Detection Pack",

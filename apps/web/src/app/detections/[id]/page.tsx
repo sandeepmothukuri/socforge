@@ -224,10 +224,10 @@ export default function DetectionDetailPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider font-mono">Rule Content</h2>
-                  <CopyButton text={detection.rule_content} />
+                  <CopyButton text={detection.rule_content || detection.content || ""} />
                 </div>
                 <pre className="p-4 rounded-xl bg-[#050505] border border-[#262626] text-xs text-neutral-200 font-mono overflow-x-auto whitespace-pre leading-relaxed">
-                  {detection.rule_content}
+                  {detection.rule_content || detection.content || ""}
                 </pre>
               </div>
 

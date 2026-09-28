@@ -45,7 +45,7 @@ export interface MitreTechnique {
   sigmaDraft?: string;
 }
 
-export const ENTERPRISE_14_TACTICS = [
+const ENTERPRISE_14_TACTICS = [
   { id: "TA0043", name: "Reconnaissance", icon: "🌐" },
   { id: "TA0042", name: "Resource Development", icon: "🛠️" },
   { id: "TA0001", name: "Initial Access", icon: "🚪" },
@@ -62,7 +62,7 @@ export const ENTERPRISE_14_TACTICS = [
   { id: "TA0040", name: "Impact", icon: "💥" }
 ];
 
-export const MITRE_ENTERPRISE_TECHNIQUES: MitreTechnique[] = [
+const MITRE_ENTERPRISE_TECHNIQUES: MitreTechnique[] = [
   // Reconnaissance
   { id: "T1595", name: "Active Scanning", tacticId: "TA0043", tacticName: "Reconnaissance", status: "ACTIVE_RULE", rulesCount: 3, confidence: 94, dataSources: ["Zeek Conn", "Suricata EVE", "WAF Logs"], threatActors: ["APT29", "Volt Typhoon"], description: "Adversaries execute port sweeps and vulnerability scanning against external perimeter." },
   { id: "T1589", name: "Gather Victim Identity", tacticId: "TA0043", tacticName: "Reconnaissance", status: "TELEMETRY_ONLY", rulesCount: 0, confidence: 60, dataSources: ["Okta Logs", "Entra ID"], threatActors: ["Lazarus"], description: "Adversaries harvest employee credentials, email structures, and administrative usernames from public sources." },

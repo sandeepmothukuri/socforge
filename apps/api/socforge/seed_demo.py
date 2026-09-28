@@ -5,16 +5,19 @@ Populates PostgreSQL with realistic Alerts, Incidents, Entities, Investigations,
 from __future__ import annotations
 
 import asyncio
-import uuid
 from datetime import UTC, datetime, timedelta
 
 import structlog
 from sqlalchemy import select
 
 from socforge.database import AsyncSessionLocal
-from socforge.models.alert import Alert, AlertSeverity, AlertStatus, Entity, EntityType
-from socforge.models.detection import Detection, RuleLanguage, ValidationState
-from socforge.models.investigation import Finding, FindingConfidence, Investigation, InvestigationStatus
+from socforge.models.alert import Entity, EntityType
+from socforge.models.investigation import (
+    Finding,
+    FindingConfidence,
+    Investigation,
+    InvestigationStatus,
+)
 from socforge.models.operations import Incident, IncidentSeverity, IncidentStatus, Workspace
 
 logger = structlog.get_logger(__name__)
@@ -93,7 +96,7 @@ async def seed_full_demo():
                 "affected_systems": ["NAS-STOR-01", "SRV-DATA-POOL"],
                 "affected_users": ["corp\\backup_operator"],
                 "mitre_techniques": ["T1490", "T1486", "T1083"],
-            }
+            },
         ]
 
         for inc in incidents_data:
@@ -117,27 +120,153 @@ async def seed_full_demo():
 
         # ── 2. Seed Entities & Assets ────────────────────────────────────────────────
         entities_data = [
-            (EntityType.host, "SRV-DC01.corp.internal", "Primary Active Directory Domain Controller", 88.5, True, 420),
-            (EntityType.host, "SRV-DC02.corp.internal", "Secondary Replica Domain Controller", 25.0, False, 180),
-            (EntityType.host, "WKSTN-FIN-04.corp.internal", "Finance Executive Workstation", 94.0, True, 340),
-            (EntityType.host, "FW-EDGE-01.dmz.internal", "Perimeter Edge Palo Alto Firewall", 72.0, False, 890),
-            (EntityType.host, "SRV-K8S-INGRESS.prod.internal", "Kubernetes Production Ingress Controller", 45.0, False, 2100),
+            (
+                EntityType.host,
+                "SRV-DC01.corp.internal",
+                "Primary Active Directory Domain Controller",
+                88.5,
+                True,
+                420,
+            ),
+            (
+                EntityType.host,
+                "SRV-DC02.corp.internal",
+                "Secondary Replica Domain Controller",
+                25.0,
+                False,
+                180,
+            ),
+            (
+                EntityType.host,
+                "WKSTN-FIN-04.corp.internal",
+                "Finance Executive Workstation",
+                94.0,
+                True,
+                340,
+            ),
+            (
+                EntityType.host,
+                "FW-EDGE-01.dmz.internal",
+                "Perimeter Edge Palo Alto Firewall",
+                72.0,
+                False,
+                890,
+            ),
+            (
+                EntityType.host,
+                "SRV-K8S-INGRESS.prod.internal",
+                "Kubernetes Production Ingress Controller",
+                45.0,
+                False,
+                2100,
+            ),
             (EntityType.user, "corp\\admin", "Enterprise Domain Administrator", 92.0, True, 680),
-            (EntityType.user, "corp\\jdoe", "Finance Department Lead (Compromised User)", 84.0, True, 195),
+            (
+                EntityType.user,
+                "corp\\jdoe",
+                "Finance Department Lead (Compromised User)",
+                84.0,
+                True,
+                195,
+            ),
             (EntityType.user, "corp\\asmith", "Corporate Controller Account", 65.0, False, 95),
             (EntityType.user, "aws:root", "AWS Master Organization Root Identity", 98.0, True, 14),
-            (EntityType.ip_address, "185.220.101.45", "Tor Exit Relay / C2 Bulletproof Proxy", 96.0, True, 1850),
-            (EntityType.ip_address, "112.90.44.18", "Volt Typhoon Edge Infrastructure Scanner", 91.0, True, 740),
-            (EntityType.ip_address, "175.45.176.8", "Pyongyang Lazarus Group Fast-Flux C2", 99.0, True, 310),
-            (EntityType.ip_address, "194.26.29.112", "Sandworm St. Petersburg Pivot VPS", 95.0, True, 520),
-            (EntityType.ip_address, "10.0.1.10", "Internal Active Directory Subnet Gateway", 15.0, False, 8400),
-            (EntityType.ip_address, "10.0.4.45", "Internal Corporate Workstation IP (DHCP)", 30.0, False, 920),
-            (EntityType.domain, "update-auth-telemetry.com", "Cobalt Strike Malleable C2 Domain", 97.0, True, 2400),
-            (EntityType.domain, "cdn-fastly-sync.net", "Phishing Landing Page Infrastructure", 89.0, True, 1100),
-            (EntityType.domain, "corp.internal", "Authoritative Corporate Active Directory DNS", 10.0, False, 34500),
-            (EntityType.hash, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "Mimikatz.x64.standalone.exe (SHA-256)", 99.0, True, 38),
-            (EntityType.hash, "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a", "CobaltStrike.Beacon.DLL (SHA-256)", 98.0, True, 85),
-            (EntityType.hash, "c2f42a9b3a6e87f8f115bc56d98124efb54637b8b201a4e5f7267104868205b3", "Sysinternals ProcDump Signed Binary", 45.0, False, 12),
+            (
+                EntityType.ip_address,
+                "185.220.101.45",
+                "Tor Exit Relay / C2 Bulletproof Proxy",
+                96.0,
+                True,
+                1850,
+            ),
+            (
+                EntityType.ip_address,
+                "112.90.44.18",
+                "Volt Typhoon Edge Infrastructure Scanner",
+                91.0,
+                True,
+                740,
+            ),
+            (
+                EntityType.ip_address,
+                "175.45.176.8",
+                "Pyongyang Lazarus Group Fast-Flux C2",
+                99.0,
+                True,
+                310,
+            ),
+            (
+                EntityType.ip_address,
+                "194.26.29.112",
+                "Sandworm St. Petersburg Pivot VPS",
+                95.0,
+                True,
+                520,
+            ),
+            (
+                EntityType.ip_address,
+                "10.0.1.10",
+                "Internal Active Directory Subnet Gateway",
+                15.0,
+                False,
+                8400,
+            ),
+            (
+                EntityType.ip_address,
+                "10.0.4.45",
+                "Internal Corporate Workstation IP (DHCP)",
+                30.0,
+                False,
+                920,
+            ),
+            (
+                EntityType.domain,
+                "update-auth-telemetry.com",
+                "Cobalt Strike Malleable C2 Domain",
+                97.0,
+                True,
+                2400,
+            ),
+            (
+                EntityType.domain,
+                "cdn-fastly-sync.net",
+                "Phishing Landing Page Infrastructure",
+                89.0,
+                True,
+                1100,
+            ),
+            (
+                EntityType.domain,
+                "corp.internal",
+                "Authoritative Corporate Active Directory DNS",
+                10.0,
+                False,
+                34500,
+            ),
+            (
+                EntityType.hash,
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                "Mimikatz.x64.standalone.exe (SHA-256)",
+                99.0,
+                True,
+                38,
+            ),
+            (
+                EntityType.hash,
+                "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a",
+                "CobaltStrike.Beacon.DLL (SHA-256)",
+                98.0,
+                True,
+                85,
+            ),
+            (
+                EntityType.hash,
+                "c2f42a9b3a6e87f8f115bc56d98124efb54637b8b201a4e5f7267104868205b3",
+                "Sysinternals ProcDump Signed Binary",
+                45.0,
+                False,
+                12,
+            ),
         ]
 
         for etype, val, dname, rscore, is_mal, ecount in entities_data:
@@ -158,7 +287,9 @@ async def seed_full_demo():
                         enrichment={
                             "virustotal_positives": 48 if is_mal else 0,
                             "abuse_ipdb_score": 95 if is_mal else 0,
-                            "threat_actor": "APT29 / Volt Typhoon" if is_mal else "Corporate Internal",
+                            "threat_actor": "APT29 / Volt Typhoon"
+                            if is_mal
+                            else "Corporate Internal",
                         },
                     )
                 )
@@ -220,7 +351,9 @@ async def seed_full_demo():
                         mitre_techniques=f_tech,
                         mitre_tactics=f_tact,
                         response_recommendations=f_recs,
-                        extra_metadata={"justification": "Evidence verified from kernel ETW telemetry, network flow PCAP, and Windows event log 4688."},
+                        extra_metadata={
+                            "justification": "Evidence verified from kernel ETW telemetry, network flow PCAP, and Windows event log 4688."
+                        },
                     )
                 )
 

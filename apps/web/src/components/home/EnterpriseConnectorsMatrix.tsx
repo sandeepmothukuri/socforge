@@ -958,7 +958,7 @@ export default function EnterpriseConnectorsMatrix() {
         {/* Empty State */}
         {filtered.length === 0 && (
           <div className="text-center py-12 border border-[#262626] rounded-2xl bg-[#050505]">
-            <p className="text-xs text-neutral-400 font-mono">No connectors match "{searchQuery}"</p>
+            <p className="text-xs text-neutral-400 font-mono">No connectors match &quot;{searchQuery}&quot;</p>
           </div>
         )}
       </div>

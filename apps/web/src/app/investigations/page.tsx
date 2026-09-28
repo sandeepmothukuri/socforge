@@ -153,6 +153,12 @@ export default function InvestigationsPage() {
       title: newFindingTitle.trim(),
       description: newFindingDesc.trim() || "Empirical observable correlation verified by lead analyst.",
       confidence: newFindingConfidence,
+      mitre_techniques: [],
+      mitre_tactics: [],
+      supporting_event_ids: [],
+      supporting_entity_ids: [],
+      response_recommendations: [],
+      has_detection_hypothesis: false,
       created_at: new Date().toISOString()
     };
 

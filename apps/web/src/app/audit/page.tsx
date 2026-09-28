@@ -41,7 +41,7 @@ export interface ComplianceControl {
   description: string;
 }
 
-export const REGULATORY_CONTROLS: ComplianceControl[] = [
+const REGULATORY_CONTROLS: ComplianceControl[] = [
   {
     id: "ctrl-01",
     framework: "SOC 2 Type II",
@@ -183,9 +183,9 @@ export default function AuditPage() {
     });
   }, [selectedFramework, controlSearch]);
 
-  const logList = Array.isArray(logs) ? logs : (logs as any)?.items || [];
+  const logList: AuditItem[] = Array.isArray(logs) ? logs : (logs as any)?.items || [];
 
-  const filteredLogs = logList.filter((log) => {
+  const filteredLogs: AuditItem[] = logList.filter((log: AuditItem) => {
     const matchesSearch = 
       (log.actor_email && log.actor_email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (log.action && log.action.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -261,14 +261,14 @@ Lead Architect: Sandeep Mothukuri
   const handleExportCSV = () => {
     if (filteredLogs.length === 0) return;
     const headers = ["ID", "Timestamp", "Actor", "Action", "Target Type"];
-    const rows = filteredLogs.map((l) => [
+    const rows = filteredLogs.map((l: AuditItem) => [
       `"${l.id}"`,
       `"${l.occurred_at}"`,
       `"${l.actor_email || "System"}"`,
       `"${l.action}"`,
       `"${l.target_type || "Platform"}"`
     ]);
-    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const csvContent = [headers.join(","), ...rows.map((r: string[]) => r.join(","))].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -625,7 +625,7 @@ Lead Architect: Sandeep Mothukuri
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#1f1f1f]">
-                    {filteredLogs.map((log) => (
+                    {filteredLogs.map((log: AuditItem) => (
                       <tr key={log.id} className="hover:bg-[#080808] transition">
                         <td className="py-2.5 pr-4 whitespace-nowrap text-neutral-400">
                           {log.occurred_at ? new Date(log.occurred_at).toUTCString().slice(5, 25) : "Just now"}

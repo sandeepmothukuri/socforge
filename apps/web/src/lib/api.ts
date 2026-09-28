@@ -875,6 +875,7 @@ export interface HuntItem {
   title: string;
   hypothesis: string;
   status: string;
+  created_at?: string;
   data_sources: string[];
   mitre_techniques: string[];
   queries: Array<{
