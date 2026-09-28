@@ -33,7 +33,14 @@ import {
   Zap,
   Check,
   Info,
-  ChevronRight
+  ChevronRight,
+  Calendar,
+  FileSpreadsheet,
+  Printer,
+  FileText,
+  CheckSquare,
+  Square,
+  PlayCircle
 } from "lucide-react";
 import {
   getAlerts,
@@ -71,18 +78,112 @@ const LIVE_ASSET_REGISTRY: AssetRecord[] = [
   { id: "WKSTN-EXEC-01", name: "Executive Suite Desktop", custodian: "C-Level Boardroom", ip: "10.0.4.12", os: "Windows 11 Enterprise", vulnCount: 9, alertCount: 160, riskScore: 65, agentStatus: "inactive", adStatus: "stale", topCve: "CVE-2024-21413 (CVSS 9.8)" },
 ];
 
-const CIS_SAFEGUARDS = [
-  { id: "CIS-1", name: "Inventory and Control of Enterprise Assets", score: "92%", status: "Passing", ig: "IG1" },
-  { id: "CIS-2", name: "Inventory and Control of Software Assets", score: "88%", status: "Passing", ig: "IG1" },
-  { id: "CIS-3", name: "Data Protection & At-Rest Encryption", score: "75%", status: "Review", ig: "IG1" },
-  { id: "CIS-4", name: "Secure Configuration of Assets & Software", score: "82%", status: "Passing", ig: "IG1" },
-  { id: "CIS-5", name: "Account Management & Privileged Access", score: "94%", status: "Passing", ig: "IG1" },
-  { id: "CIS-6", name: "Access Control Management & MFA", score: "86%", status: "Passing", ig: "IG1" },
-  { id: "CIS-7", name: "Continuous Vulnerability Management", score: "50%", status: "Remediation Required", ig: "IG1" },
-  { id: "CIS-8", name: "Audit Log Management & SIEM Ingestion", score: "95%", status: "Passing", ig: "IG1" },
-  { id: "CIS-9", name: "Email and Web Browser Protections", score: "79%", status: "Passing", ig: "IG1" },
-  { id: "CIS-10", name: "Malware Defenses & EDR Coverage", score: "90%", status: "Passing", ig: "IG1" },
-];
+interface ComplianceControl {
+  id: string;
+  name: string;
+  score: string;
+  status: "Passing" | "Review" | "Remediation Required";
+  level: string;
+}
+
+interface FrameworkConfig {
+  id: "cis" | "nist" | "iso" | "pci";
+  name: string;
+  shortName: string;
+  score: number;
+  benchmark: string;
+  color: string;
+  passingCount: number;
+  reviewCount: number;
+  remediationCount: number;
+  controls: ComplianceControl[];
+}
+
+const COMPLIANCE_FRAMEWORKS: Record<string, FrameworkConfig> = {
+  cis: {
+    id: "cis",
+    name: "CIS Controls v8.1",
+    shortName: "CIS v8",
+    score: 78,
+    benchmark: "Implementation Group 1 & 2 (IG1/IG2 Cyber Baseline)",
+    color: "#F59E0B",
+    passingCount: 8,
+    reviewCount: 1,
+    remediationCount: 1,
+    controls: [
+      { id: "CIS-1", name: "Inventory and Control of Enterprise Assets", score: "92%", status: "Passing", level: "IG1" },
+      { id: "CIS-2", name: "Inventory and Control of Software Assets", score: "88%", status: "Passing", level: "IG1" },
+      { id: "CIS-3", name: "Data Protection & At-Rest Encryption", score: "75%", status: "Review", level: "IG1" },
+      { id: "CIS-4", name: "Secure Configuration of Assets & Software", score: "82%", status: "Passing", level: "IG1" },
+      { id: "CIS-5", name: "Account Management & Privileged Access", score: "94%", status: "Passing", level: "IG1" },
+      { id: "CIS-6", name: "Access Control Management & MFA", score: "86%", status: "Passing", level: "IG1" },
+      { id: "CIS-7", name: "Continuous Vulnerability Management", score: "50%", status: "Remediation Required", level: "IG1" },
+      { id: "CIS-8", name: "Audit Log Management & SIEM Ingestion", score: "95%", status: "Passing", level: "IG1" },
+      { id: "CIS-9", name: "Email and Web Browser Protections", score: "79%", status: "Passing", level: "IG1" },
+      { id: "CIS-10", name: "Malware Defenses & EDR Coverage", score: "90%", status: "Passing", level: "IG1" },
+    ]
+  },
+  nist: {
+    id: "nist",
+    name: "NIST CSF 2.0",
+    shortName: "NIST CSF",
+    score: 84,
+    benchmark: "Govern, Identify, Protect, Detect, Respond, Recover (CSF 2.0)",
+    color: "#10B981",
+    passingCount: 5,
+    reviewCount: 1,
+    remediationCount: 1,
+    controls: [
+      { id: "GV.OC", name: "Organizational Context & Governance", score: "90%", status: "Passing", level: "Govern" },
+      { id: "ID.AM", name: "Asset Management & Attack Surface", score: "86%", status: "Passing", level: "Identify" },
+      { id: "PR.AC", name: "Identity & Access Control Management", score: "88%", status: "Passing", level: "Protect" },
+      { id: "DE.AE", name: "Anomalies and Security Event Detection", score: "94%", status: "Passing", level: "Detect" },
+      { id: "DE.CM", name: "Continuous Security Monitoring", score: "80%", status: "Passing", level: "Detect" },
+      { id: "RS.MA", name: "Incident Mitigation & Containment", score: "78%", status: "Review", level: "Respond" },
+      { id: "RC.RP", name: "Recovery Planning & Business Resilience", score: "72%", status: "Remediation Required", level: "Recover" },
+    ]
+  },
+  iso: {
+    id: "iso",
+    name: "ISO/IEC 27001:2022",
+    shortName: "ISO 27001",
+    score: 81,
+    benchmark: "Annex A Information Security, Cybersecurity & Privacy Controls",
+    color: "#06B6D4",
+    passingCount: 6,
+    reviewCount: 0,
+    remediationCount: 1,
+    controls: [
+      { id: "A.5.15", name: "Access Control Management & Least Privilege", score: "85%", status: "Passing", level: "Organizational" },
+      { id: "A.6.3", name: "Information Security Awareness & Training", score: "79%", status: "Passing", level: "People" },
+      { id: "A.7.4", name: "Physical Security & Secure Work Areas", score: "88%", status: "Passing", level: "Physical" },
+      { id: "A.8.7", name: "Protection Against Malware & Endpoint Defenses", score: "92%", status: "Passing", level: "Technological" },
+      { id: "A.8.8", name: "Management of Technical Vulnerabilities", score: "64%", status: "Remediation Required", level: "Technological" },
+      { id: "A.8.12", name: "Data Leakage Prevention & Cryptography", score: "82%", status: "Passing", level: "Technological" },
+      { id: "A.8.16", name: "Monitoring Activities & Telemetry Ingestion", score: "90%", status: "Passing", level: "Technological" },
+    ]
+  },
+  pci: {
+    id: "pci",
+    name: "PCI-DSS v4.0",
+    shortName: "PCI-DSS",
+    score: 92,
+    benchmark: "Payment Card Industry Data Security Standard (Level 1 Merchant)",
+    color: "#8B5CF6",
+    passingCount: 7,
+    reviewCount: 0,
+    remediationCount: 0,
+    controls: [
+      { id: "Req 1", name: "Install & Maintain Network Security Controls", score: "96%", status: "Passing", level: "Network" },
+      { id: "Req 3", name: "Protect Stored Account Data & Strong Crypto", score: "95%", status: "Passing", level: "Data" },
+      { id: "Req 5", name: "Protect All Systems from Malicious Software", score: "92%", status: "Passing", level: "Malware" },
+      { id: "Req 6", name: "Develop & Maintain Secure Systems & Software", score: "88%", status: "Passing", level: "DevSecOps" },
+      { id: "Req 7", name: "Restrict Access to System Components & CDE", score: "94%", status: "Passing", level: "Access" },
+      { id: "Req 10", name: "Log & Monitor All Access to System Components", score: "90%", status: "Passing", level: "Logging" },
+      { id: "Req 11", name: "Test Security of Systems & Networks Regularly", score: "84%", status: "Passing", level: "Testing" },
+    ]
+  }
+};
 
 export function EnterpriseSocHubDashboard() {
   // Live Backend Data States
@@ -95,6 +196,24 @@ export function EnterpriseSocHubDashboard() {
   const [apiLatency, setApiLatency] = useState<number>(18);
   const [lastUpdated, setLastUpdated] = useState<string>("Just now");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Auto-Refresh & Date Presets
+  const [autoRefreshInterval, setAutoRefreshInterval] = useState<"off" | "10s" | "30s" | "1m" | "5m">("30s");
+  const [countdownSeconds, setCountdownSeconds] = useState<number>(30);
+  const [dateRangePreset, setDateRangePreset] = useState<"1h" | "24h" | "7d" | "30d" | "custom">("24h");
+  const [customStartDate, setCustomStartDate] = useState<string>("2026-09-28T00:00");
+  const [customEndDate, setCustomEndDate] = useState<string>("2026-09-29T23:59");
+  const [datePickerOpen, setDatePickerOpen] = useState<boolean>(false);
+  const [exportMenuOpen, setExportMenuOpen] = useState<boolean>(false);
+
+  // Multi-Framework Compliance Standard
+  const [complianceFramework, setComplianceFramework] = useState<"cis" | "nist" | "iso" | "pci">("cis");
+
+  // Bulk Assets Selection & Tactical Playbooks
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const [selectedPlaybook, setSelectedPlaybook] = useState<string>("contain-ransomware");
+  const [drawerPlaybook, setDrawerPlaybook] = useState<string>("contain-ransomware");
+  const [playbookExecuting, setPlaybookExecuting] = useState<boolean>(false);
 
   // Global Filters & Toggles
   const [alertTrendTime, setAlertTrendTime] = useState<"day" | "week" | "month">("day");
@@ -148,11 +267,35 @@ export function EnterpriseSocHubDashboard() {
     }
   }, []);
 
+  // Auto-Refresh Timer Hook
   useEffect(() => {
     loadTelemetry();
-    const interval = setInterval(loadTelemetry, 45000);
-    return () => clearInterval(interval);
   }, [loadTelemetry]);
+
+  useEffect(() => {
+    if (autoRefreshInterval === "off") return;
+    
+    const intervalMap: Record<string, number> = {
+      "10s": 10,
+      "30s": 30,
+      "1m": 60,
+      "5m": 300,
+    };
+    const maxSecs = intervalMap[autoRefreshInterval] || 30;
+    setCountdownSeconds(maxSecs);
+
+    const timer = setInterval(() => {
+      setCountdownSeconds((prev) => {
+        if (prev <= 1) {
+          loadTelemetry();
+          return maxSecs;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [autoRefreshInterval, loadTelemetry]);
 
   // Dynamic Metrics Derived from Live Backend
   const computedMetrics = useMemo(() => {
@@ -195,7 +338,9 @@ export function EnterpriseSocHubDashboard() {
         vulnSeverityTab,
         mitreTab,
         rulesFileTypeTab,
-        ruleSeverityTab
+        ruleSeverityTab,
+        complianceFramework,
+        dateRangePreset
       },
       liveAlertsSnapshot: alerts.slice(0, 10),
       liveRulesSnapshot: detections.slice(0, 10),
@@ -215,10 +360,131 @@ export function EnterpriseSocHubDashboard() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  // Export Vulnerabilities Registry as CSV
+  const handleExportVulnerabilitiesCsv = () => {
+    const headers = ["CVE_ID", "Severity", "CVSS_Score", "Affected_Asset", "Host_IP", "Remediation_SLA", "Status", "Disclosed_Date"];
+    const rows = [
+      ["CVE-2024-3400", "Critical", "10.0", "FW-EDGE-01", "192.168.1.1", "24 Hours (Breached)", "Active Exploit", "2026-09-12"],
+      ["CVE-2024-1709", "Critical", "9.8", "SRV-DC01", "10.0.1.10", "48 Hours (At Risk)", "PoC Available", "2026-09-18"],
+      ["CVE-2024-21413", "Critical", "9.8", "WKSTN-EXEC-01", "10.0.4.12", "72 Hours", "Under Analysis", "2026-09-22"],
+      ["CVE-2023-4863", "High", "8.8", "WKSTN-FIN-04", "10.0.4.45", "7 Days", "Patch Available", "2026-08-30"],
+      ["CVE-2023-38831", "High", "8.8", "NAS-STOR-01", "10.0.1.50", "7 Days", "Patch Available", "2026-09-02"],
+      ["CVE-2023-36884", "High", "8.3", "SRV-DC02", "10.0.1.11", "14 Days", "Mitigated", "2026-08-15"],
+      ["CVE-2023-44487", "Medium", "7.5", "SRV-APP-02", "10.0.2.14", "30 Days", "Patch Scheduled", "2026-09-05"],
+    ];
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `socforge-vulnerabilities-${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setToastMessage("Vulnerability registry exported to CSV.");
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Export Assets Inventory as CSV
+  const handleExportAssetsCsv = () => {
+    const headers = ["Asset_ID", "Asset_Name", "Custodian", "IP_Address", "OS", "Risk_Score", "Vulnerability_Count", "Alert_Count", "Agent_Status", "AD_Sync"];
+    const rows = LIVE_ASSET_REGISTRY.map(a => [
+      a.id,
+      `"${a.name.replace(/"/g, '""')}"`,
+      `"${a.custodian.replace(/"/g, '""')}"`,
+      a.ip,
+      `"${a.os.replace(/"/g, '""')}"`,
+      a.riskScore,
+      a.vulnCount,
+      a.alertCount,
+      a.agentStatus,
+      a.adStatus
+    ]);
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `socforge-assets-${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setToastMessage("Asset inventory exported to CSV.");
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Print Executive Board PDF
+  const handlePrintExecutiveReport = () => {
+    setToastMessage("Opening Executive Security Posture print preview...");
+    setTimeout(() => {
+      window.print();
+      setToastMessage(null);
+    }, 400);
+  };
+
   // Asset isolation handler
   const handleIsolateAsset = (assetId: string) => {
     setActionSuccess(`Host ${assetId} network interface placed into tactical quarantine via EDR.`);
     setTimeout(() => setActionSuccess(null), 4000);
+  };
+
+  // Bulk Assets Handlers
+  const handleSelectAllAssets = () => {
+    if (selectedAssetIds.length === LIVE_ASSET_REGISTRY.length) {
+      setSelectedAssetIds([]);
+    } else {
+      setSelectedAssetIds(LIVE_ASSET_REGISTRY.map((a) => a.id));
+    }
+  };
+
+  const handleToggleAsset = (id: string) => {
+    setSelectedAssetIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkQuarantine = () => {
+    if (selectedAssetIds.length === 0) return;
+    setActionSuccess(`Quarantined ${selectedAssetIds.length} host(s): [${selectedAssetIds.join(", ")}] via EDR API.`);
+    setToastMessage(`Network containment applied to ${selectedAssetIds.length} endpoint(s).`);
+    setTimeout(() => {
+      setActionSuccess(null);
+      setToastMessage(null);
+    }, 4500);
+  };
+
+  const handleBulkVulnScan = () => {
+    if (selectedAssetIds.length === 0) return;
+    setActionSuccess(`Queued deep vulnerability audits for ${selectedAssetIds.length} host(s): [${selectedAssetIds.join(", ")}].`);
+    setToastMessage(`Vulnerability scanner dispatched against selected endpoints.`);
+    setTimeout(() => {
+      setActionSuccess(null);
+      setToastMessage(null);
+    }, 4500);
+  };
+
+  const handleExecutePlaybook = (assetIds: string[], playbookId: string) => {
+    if (assetIds.length === 0) return;
+    setPlaybookExecuting(true);
+    const playbookTitles: Record<string, string> = {
+      "contain-ransomware": "Contain Ransomware Spreader & Kill Process Tree",
+      "revoke-kerberos": "Revoke AD Kerberos Tickets & Reset Passwords",
+      "collect-memory": "Collect Live Forensic Memory Dump",
+      "deploy-edr-deepscan": "Deploy EDR Sentinel Deep Inspection & IOC Sweeper",
+    };
+    const title = playbookTitles[playbookId] || playbookId;
+
+    setTimeout(() => {
+      setPlaybookExecuting(false);
+      setActionSuccess(`✔ Successfully executed "${title}" across ${assetIds.length} endpoint(s).`);
+      setToastMessage(`SOAR Playbook "${title}" triggered with dual-control authorization.`);
+      setTimeout(() => {
+        setActionSuccess(null);
+        setToastMessage(null);
+      }, 5000);
+    }, 1200);
   };
 
   // Render Dynamic Spline Graph Based on Alert Time Filter
@@ -301,28 +567,134 @@ export function EnterpriseSocHubDashboard() {
           LIVE TELEMETRY PULSE & ACTIONS BAR
          ───────────────────────────────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-[#090D14] border border-[#1E293B]">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
             <span className="font-semibold">Live Telemetry Synchronized</span>
             <span className="text-neutral-400">({apiLatency}ms latency)</span>
           </div>
 
-          <span className="text-[11px] font-mono text-neutral-400 hidden sm:inline">
-            FastAPI Backend: <strong className="text-white">http://localhost:8000</strong>
-          </span>
+          {/* Auto-Refresh Countdown & Selector */}
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#04060A] border border-[#1E293B] text-[11px] font-mono text-neutral-300">
+            <Clock className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-neutral-400">Auto-Sync:</span>
+            <select
+              value={autoRefreshInterval}
+              onChange={(e) => {
+                const val = e.target.value as any;
+                setAutoRefreshInterval(val);
+                setToastMessage(`Auto-sync interval set to ${val === "off" ? "Manual Only" : val}.`);
+                setTimeout(() => setToastMessage(null), 3000);
+              }}
+              className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"
+            >
+              <option value="off" className="bg-[#090D14] text-white">Off</option>
+              <option value="10s" className="bg-[#090D14] text-white">10s</option>
+              <option value="30s" className="bg-[#090D14] text-white">30s</option>
+              <option value="1m" className="bg-[#090D14] text-white">1m</option>
+              <option value="5m" className="bg-[#090D14] text-white">5m</option>
+            </select>
+            {autoRefreshInterval !== "off" && (
+              <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold text-[10px] animate-pulse">
+                {countdownSeconds}s
+              </span>
+            )}
+          </div>
+
+          {/* Date Range Preset Selector & Custom Window */}
+          <div className="relative">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#04060A] border border-[#1E293B] text-[11px] font-mono text-neutral-300">
+              <Calendar className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-neutral-400">Window:</span>
+              <select
+                value={dateRangePreset}
+                onChange={(e) => {
+                  const val = e.target.value as any;
+                  setDateRangePreset(val);
+                  if (val !== "custom") {
+                    setToastMessage(`Timeline window updated to: ${val === "1h" ? "Last 1 Hour" : val === "24h" ? "Last 24 Hours" : val === "7d" ? "Last 7 Days" : "Last 30 Days"}`);
+                    setTimeout(() => setToastMessage(null), 3000);
+                    loadTelemetry();
+                  } else {
+                    setDatePickerOpen(true);
+                  }
+                }}
+                className="bg-transparent text-white font-semibold focus:outline-none cursor-pointer"
+              >
+                <option value="1h" className="bg-[#090D14] text-white">Last 1 Hour</option>
+                <option value="24h" className="bg-[#090D14] text-white">Last 24 Hours</option>
+                <option value="7d" className="bg-[#090D14] text-white">Last 7 Days</option>
+                <option value="30d" className="bg-[#090D14] text-white">Last 30 Days</option>
+                <option value="custom" className="bg-[#090D14] text-white">Custom Range...</option>
+              </select>
+            </div>
+
+            {datePickerOpen && (
+              <div className="absolute left-0 mt-2 w-72 bg-[#090D14] border border-[#1E293B] rounded-xl shadow-2xl p-3.5 z-40 font-mono text-xs space-y-3 animate-in fade-in zoom-in-95">
+                <div className="flex items-center justify-between pb-2 border-b border-[#1E293B]">
+                  <span className="font-bold text-white text-[11px] flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-amber-400" /> Custom Telemetry Window
+                  </span>
+                  <button onClick={() => setDatePickerOpen(false)} className="text-neutral-400 hover:text-white">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-[10px] text-neutral-400 block mb-0.5">Start Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={customStartDate}
+                      onChange={(e) => setCustomStartDate(e.target.value)}
+                      className="w-full px-2 py-1.5 bg-[#04060A] border border-[#1E293B] rounded-lg text-white text-[11px] focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-neutral-400 block mb-0.5">End Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={customEndDate}
+                      onChange={(e) => setCustomEndDate(e.target.value)}
+                      className="w-full px-2 py-1.5 bg-[#04060A] border border-[#1E293B] rounded-lg text-white text-[11px] focus:outline-none focus:border-amber-400"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1 border-t border-[#1E293B]">
+                  <button
+                    onClick={() => setDatePickerOpen(false)}
+                    className="px-3 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[10px]"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDatePickerOpen(false);
+                      setToastMessage(`Custom window applied: ${customStartDate.replace("T", " ")} to ${customEndDate.replace("T", " ")}`);
+                      setTimeout(() => setToastMessage(null), 3500);
+                      loadTelemetry();
+                    }}
+                    className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold text-[10px]"
+                  >
+                    Apply Filter
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="text-neutral-500 text-[11px]">Synced: {lastUpdated}</span>
+          <span className="text-neutral-500 text-[11px] hidden sm:inline">Synced: {lastUpdated}</span>
 
           <button
             onClick={() => setCisAuditModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 text-amber-300 transition font-semibold"
-            title="Inspect CIS Controls v8.1 compliance safeguards"
+            title={`Inspect ${COMPLIANCE_FRAMEWORKS[complianceFramework]?.name} safeguards`}
           >
             <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-            <span>CIS Controls Audit</span>
+            <span>Compliance Audit</span>
           </button>
 
           <button
@@ -334,14 +706,78 @@ export function EnterpriseSocHubDashboard() {
             <span>{loading ? "Polling..." : "Refresh"}</span>
           </button>
 
-          <button
-            onClick={handleExportData}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 transition font-semibold"
-            title="Export genuine telemetry snapshot as JSON"
-          >
-            <Download className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Export Snapshot</span>
-          </button>
+          {/* Export Center Dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setExportMenuOpen(!exportMenuOpen)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 border border-cyan-500/40 text-cyan-300 transition font-semibold"
+              title="Export telemetry, executive PDF reports, or CSV spreadsheets"
+            >
+              <Download className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Export Center</span>
+              <ChevronDown className={`w-3 h-3 text-cyan-400 transition-transform ${exportMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            {exportMenuOpen && (
+              <div className="absolute right-0 mt-2 w-64 bg-[#090D14] border border-[#1E293B] rounded-xl shadow-2xl p-1.5 z-40 font-mono text-xs space-y-1 animate-in fade-in zoom-in-95">
+                <button
+                  onClick={() => {
+                    handleExportData();
+                    setExportMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-neutral-800 text-left text-neutral-200 hover:text-white transition"
+                >
+                  <FileCode className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                  <div>
+                    <div className="font-semibold text-white">JSON Telemetry Snapshot</div>
+                    <div className="text-[10px] text-neutral-400">Full telemetry state & metrics</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    handlePrintExecutiveReport();
+                    setExportMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-neutral-800 text-left text-neutral-200 hover:text-white transition"
+                >
+                  <Printer className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <div>
+                    <div className="font-semibold text-white">Executive PDF Briefing</div>
+                    <div className="text-[10px] text-neutral-400">Board-ready printable document</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleExportVulnerabilitiesCsv();
+                    setExportMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-neutral-800 text-left text-neutral-200 hover:text-white transition"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <div>
+                    <div className="font-semibold text-white">CSV Vulnerabilities Table</div>
+                    <div className="text-[10px] text-neutral-400">CVEs, CVSS & remediation SLAs</div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleExportAssetsCsv();
+                    setExportMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-neutral-800 text-left text-neutral-200 hover:text-white transition"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <div>
+                    <div className="font-semibold text-white">CSV Asset Inventory</div>
+                    <div className="text-[10px] text-neutral-400">Hostnames, IPs & EDR states</div>
+                  </div>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -810,41 +1246,118 @@ export function EnterpriseSocHubDashboard() {
             </div>
           </div>
 
+          {/* Bulk Tactical Actions Ribbon */}
+          {selectedAssetIds.length > 0 && (
+            <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 flex flex-wrap items-center justify-between gap-2 mt-2 mb-1 font-mono text-[11px] animate-fadeIn">
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 rounded bg-amber-500 text-black font-bold text-[10px]">
+                  {selectedAssetIds.length} Selected
+                </span>
+                <span className="text-amber-300 font-semibold text-[10px] hidden sm:inline">Tactical SOAR:</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  onClick={handleBulkQuarantine}
+                  className="px-2 py-1 rounded bg-red-600/80 hover:bg-red-500 text-white font-bold text-[10px] flex items-center gap-1 transition"
+                  title="Isolate selected hosts from network"
+                >
+                  <ShieldAlert className="w-3 h-3" />
+                  <span>Quarantine</span>
+                </button>
+                <button
+                  onClick={handleBulkVulnScan}
+                  className="px-2 py-1 rounded bg-cyan-600/80 hover:bg-cyan-500 text-white font-bold text-[10px] flex items-center gap-1 transition"
+                  title="Trigger deep vulnerability scan"
+                >
+                  <Search className="w-3 h-3" />
+                  <span>Rescan</span>
+                </button>
+                <select
+                  value={selectedPlaybook}
+                  onChange={(e) => setSelectedPlaybook(e.target.value)}
+                  className="bg-[#04060A] border border-[#1E293B] text-neutral-200 px-1.5 py-1 rounded text-[10px] focus:outline-none"
+                >
+                  <option value="contain-ransomware">Contain Ransomware</option>
+                  <option value="revoke-kerberos">Revoke AD Kerberos</option>
+                  <option value="collect-memory">Dump Live Memory</option>
+                  <option value="deploy-edr-deepscan">EDR Deep Scan</option>
+                </select>
+                <button
+                  onClick={() => handleExecutePlaybook(selectedAssetIds, selectedPlaybook)}
+                  disabled={playbookExecuting}
+                  className="px-2 py-1 rounded bg-amber-500 hover:bg-amber-400 text-black font-bold text-[10px] flex items-center gap-1 transition disabled:opacity-50"
+                >
+                  <Zap className={`w-3 h-3 ${playbookExecuting ? "animate-spin" : ""}`} />
+                  <span>{playbookExecuting ? "Running..." : "Run"}</span>
+                </button>
+                <button
+                  onClick={() => setSelectedAssetIds([])}
+                  className="p-1 rounded hover:bg-neutral-800 text-neutral-400 hover:text-white"
+                  title="Clear selection"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="mt-2 space-y-1 font-mono text-[11px]">
-            <div className="grid grid-cols-12 text-[10px] text-neutral-500 pb-1 border-b border-[#1E293B]/40">
+            <div className="grid grid-cols-12 text-[10px] text-neutral-500 pb-1 border-b border-[#1E293B]/40 items-center">
+              <div className="col-span-1 flex items-center">
+                <input
+                  type="checkbox"
+                  checked={selectedAssetIds.length === LIVE_ASSET_REGISTRY.length}
+                  onChange={handleSelectAllAssets}
+                  className="rounded border-[#1E293B] bg-black text-amber-500 focus:ring-0 cursor-pointer w-3.5 h-3.5"
+                  title="Select / Deselect all assets"
+                />
+              </div>
               <span className="col-span-4">Asset Id</span>
-              <span className="col-span-5">Custodian</span>
+              <span className="col-span-4">Custodian</span>
               <span className="col-span-3 text-right">
                 {assetTab === "vulnerabilities" ? "CVEs" : "Alerts"}
               </span>
             </div>
 
-            {LIVE_ASSET_REGISTRY.map((item) => (
-              <div
-                key={item.id}
-                onClick={() => setInspectingAsset(item)}
-                className="grid grid-cols-12 py-1.5 items-center hover:bg-neutral-800/60 rounded px-1.5 transition cursor-pointer group"
-                title={`Click to inspect details and containment actions for ${item.id}`}
-              >
-                <span className="col-span-4 text-orange-400 font-semibold flex items-center gap-1.5 truncate group-hover:text-white">
-                  <span className={`w-1.5 h-1.5 rounded-full ${item.riskScore > 85 ? "bg-red-400" : "bg-amber-400"}`} />
-                  {item.id}
-                </span>
-                <span className="col-span-5 text-neutral-300 truncate text-[10px]">{item.custodian}</span>
-                <span className="col-span-3 text-right font-bold flex items-center justify-end gap-1">
-                  {assetTab === "vulnerabilities" ? (
-                    <span className="px-1.5 py-0.2 rounded bg-red-500/20 text-red-300 text-[10px] border border-red-500/30">
-                      {item.vulnCount}
-                    </span>
-                  ) : (
-                    <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] border border-amber-500/30">
-                      {item.alertCount}
-                    </span>
-                  )}
-                  <ArrowUpRight className="w-3 h-3 text-neutral-500 group-hover:text-cyan-400 transition" />
-                </span>
-              </div>
-            ))}
+            {LIVE_ASSET_REGISTRY.map((item) => {
+              const isSelected = selectedAssetIds.includes(item.id);
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => setInspectingAsset(item)}
+                  className={`grid grid-cols-12 py-1.5 items-center rounded px-1.5 transition cursor-pointer group ${
+                    isSelected ? "bg-amber-500/10 border border-amber-500/30" : "hover:bg-neutral-800/60"
+                  }`}
+                  title={`Click to inspect details and containment actions for ${item.id}`}
+                >
+                  <div className="col-span-1 flex items-center" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleToggleAsset(item.id)}
+                      className="rounded border-[#1E293B] bg-black text-amber-500 focus:ring-0 cursor-pointer w-3.5 h-3.5"
+                    />
+                  </div>
+                  <span className="col-span-4 text-orange-400 font-semibold flex items-center gap-1.5 truncate group-hover:text-white">
+                    <span className={`w-1.5 h-1.5 rounded-full ${item.riskScore > 85 ? "bg-red-400" : "bg-amber-400"}`} />
+                    {item.id}
+                  </span>
+                  <span className="col-span-4 text-neutral-300 truncate text-[10px]">{item.custodian}</span>
+                  <span className="col-span-3 text-right font-bold flex items-center justify-end gap-1">
+                    {assetTab === "vulnerabilities" ? (
+                      <span className="px-1.5 py-0.2 rounded bg-red-500/20 text-red-300 text-[10px] border border-red-500/30">
+                        {item.vulnCount}
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] border border-amber-500/30">
+                        {item.alertCount}
+                      </span>
+                    )}
+                    <ArrowUpRight className="w-3 h-3 text-neutral-500 group-hover:text-cyan-400 transition" />
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -1427,15 +1940,15 @@ export function EnterpriseSocHubDashboard() {
          ───────────────────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
         
-        {/* Average CIS Score Gauge (4 Cols) */}
+        {/* Multi-Framework Compliance Score Gauge (4 Cols) */}
         <div className="lg:col-span-4 p-4 rounded-xl bg-[#090D14] border border-[#1E293B] flex flex-col items-center justify-between">
           <div className="w-full flex items-center justify-between pb-2 border-b border-[#1E293B]">
             <div>
               <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
                 <Cpu className="w-3.5 h-3.5 text-amber-400" />
-                Average CIS Score
+                Compliance Posture
               </h3>
-              <p className="text-[10px] text-neutral-400">Compliance baseline & posture hygiene</p>
+              <p className="text-[10px] text-neutral-400">Multi-standard baseline & posture hygiene</p>
             </div>
             <button
               onClick={() => setCisAuditModalOpen(true)}
@@ -1445,63 +1958,100 @@ export function EnterpriseSocHubDashboard() {
             </button>
           </div>
 
-          {/* Semi-circular Speedometer Gauge */}
-          <div
-            onClick={() => setCisAuditModalOpen(true)}
-            className="relative w-56 h-32 my-auto mt-4 cursor-pointer group"
-            title="Click to view full CIS audit report"
-          >
-            <svg viewBox="0 0 200 120" className="w-full h-full overflow-visible">
-              <defs>
-                <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#EF4444" />
-                  <stop offset="50%" stopColor="#F59E0B" />
-                  <stop offset="100%" stopColor="#10B981" />
-                </linearGradient>
-              </defs>
-
-              {/* Background Arc */}
-              <path
-                d="M 20 100 A 80 80 0 0 1 180 100"
-                fill="none"
-                stroke="#1E293B"
-                strokeWidth="16"
-                strokeLinecap="round"
-              />
-
-              {/* 50% Active Glowing Arc */}
-              <path
-                d="M 20 100 A 80 80 0 0 1 100 20"
-                fill="none"
-                stroke="#F97316"
-                strokeWidth="16"
-                strokeLinecap="round"
-                className="drop-shadow-[0_0_8px_rgba(249,115,22,0.6)] group-hover:stroke-amber-400 transition"
-              />
-
-              {/* Tick Marks & Labels */}
-              <text x="18" y="118" fill="#64748B" fontSize="9" fontFamily="monospace">0%</text>
-              <text x="38" y="60" fill="#64748B" fontSize="9" fontFamily="monospace">20%</text>
-              <text x="56" y="22" fill="#64748B" fontSize="9" fontFamily="monospace">40%</text>
-              <text x="135" y="22" fill="#64748B" fontSize="9" fontFamily="monospace">60%</text>
-              <text x="156" y="60" fill="#64748B" fontSize="9" fontFamily="monospace">80%</text>
-              <text x="175" y="118" fill="#64748B" fontSize="9" fontFamily="monospace">100%</text>
-
-              {/* Needle Line */}
-              <line x1="100" y1="100" x2="100" y2="28" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
-              <circle cx="100" cy="100" r="7" fill="#F97316" />
-              <circle cx="100" cy="100" r="3" fill="#FFFFFF" />
-            </svg>
-
-            {/* Score in Center */}
-            <div className="absolute inset-x-0 bottom-0 text-center">
-              <div className="text-2xl font-bold font-mono text-orange-400 group-hover:text-amber-300 transition">50%</div>
-              <span className="text-[10px] font-mono text-neutral-400">Average CIS Score</span>
-            </div>
+          {/* Framework Switcher Tabs */}
+          <div className="w-full flex bg-[#04060A] p-0.5 rounded border border-[#1E293B] text-[10px] font-mono mt-2">
+            {(["cis", "nist", "iso", "pci"] as const).map((fwKey) => {
+              const fw = COMPLIANCE_FRAMEWORKS[fwKey];
+              return (
+                <button
+                  key={fwKey}
+                  onClick={() => setComplianceFramework(fwKey)}
+                  className={`flex-1 py-1 rounded text-center transition ${
+                    complianceFramework === fwKey
+                      ? "bg-amber-500 text-black font-bold shadow-sm"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  {fw.shortName}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="w-full pt-2 border-t border-[#1E293B] text-[10px] font-mono text-neutral-400 text-center">
-            Benchmark: CIS Controls v8.1 (IG1 Implementation Group)
+          {/* Dynamic Speedometer Gauge */}
+          {(() => {
+            const activeFw = COMPLIANCE_FRAMEWORKS[complianceFramework] || COMPLIANCE_FRAMEWORKS.cis;
+            const angle = 180 * (1 - activeFw.score / 100);
+            const rad = (angle * Math.PI) / 180;
+            const endX = 100 + 80 * Math.cos(rad);
+            const endY = 100 - 80 * Math.sin(rad);
+            const needleX = 100 + 72 * Math.cos(rad);
+            const needleY = 100 - 72 * Math.sin(rad);
+
+            return (
+              <div
+                onClick={() => setCisAuditModalOpen(true)}
+                className="relative w-56 h-32 my-auto mt-3 cursor-pointer group"
+                title={`Click to view full ${activeFw.name} audit report`}
+              >
+                <svg viewBox="0 0 200 120" className="w-full h-full overflow-visible">
+                  {/* Background Arc */}
+                  <path
+                    d="M 20 100 A 80 80 0 0 1 180 100"
+                    fill="none"
+                    stroke="#1E293B"
+                    strokeWidth="16"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Active Glowing Arc */}
+                  <path
+                    d={`M 20 100 A 80 80 0 0 1 ${endX.toFixed(1)} ${endY.toFixed(1)}`}
+                    fill="none"
+                    stroke={activeFw.color}
+                    strokeWidth="16"
+                    strokeLinecap="round"
+                    className="drop-shadow-[0_0_8px_rgba(245,158,11,0.5)] transition-all duration-500"
+                  />
+
+                  {/* Tick Marks & Labels */}
+                  <text x="18" y="118" fill="#64748B" fontSize="9" fontFamily="monospace">0%</text>
+                  <text x="38" y="60" fill="#64748B" fontSize="9" fontFamily="monospace">20%</text>
+                  <text x="56" y="22" fill="#64748B" fontSize="9" fontFamily="monospace">40%</text>
+                  <text x="135" y="22" fill="#64748B" fontSize="9" fontFamily="monospace">60%</text>
+                  <text x="156" y="60" fill="#64748B" fontSize="9" fontFamily="monospace">80%</text>
+                  <text x="175" y="118" fill="#64748B" fontSize="9" fontFamily="monospace">100%</text>
+
+                  {/* Needle Line */}
+                  <line
+                    x1="100"
+                    y1="100"
+                    x2={needleX.toFixed(1)}
+                    y2={needleY.toFixed(1)}
+                    stroke="#FFFFFF"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    className="transition-all duration-500"
+                  />
+                  <circle cx="100" cy="100" r="7" fill={activeFw.color} />
+                  <circle cx="100" cy="100" r="3" fill="#FFFFFF" />
+                </svg>
+
+                {/* Score in Center */}
+                <div className="absolute inset-x-0 bottom-0 text-center">
+                  <div className="text-2xl font-bold font-mono text-white group-hover:scale-105 transition">
+                    {activeFw.score}%
+                  </div>
+                  <span className="text-[10px] font-mono font-semibold" style={{ color: activeFw.color }}>
+                    {activeFw.name}
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
+
+          <div className="w-full pt-2 border-t border-[#1E293B] text-[10px] font-mono text-neutral-400 text-center truncate">
+            Benchmark: {COMPLIANCE_FRAMEWORKS[complianceFramework]?.benchmark}
           </div>
         </div>
 
@@ -1698,6 +2248,31 @@ export function EnterpriseSocHubDashboard() {
               </div>
             </div>
 
+            {/* 1-Click Automated SOAR Playbook Execution */}
+            <div className="space-y-2 pt-2 border-t border-[#1E293B]">
+              <span className="text-neutral-400 text-[10px] uppercase font-semibold">1-Click Automated SOAR Playbook</span>
+              <div className="flex gap-2">
+                <select
+                  value={drawerPlaybook}
+                  onChange={(e) => setDrawerPlaybook(e.target.value)}
+                  className="flex-1 bg-[#04060A] border border-[#1E293B] text-white px-2.5 py-1.5 rounded-xl text-xs focus:outline-none"
+                >
+                  <option value="contain-ransomware">Playbook #1: Contain Ransomware Spreader</option>
+                  <option value="revoke-kerberos">Playbook #2: Revoke AD Kerberos & Reset Passwords</option>
+                  <option value="collect-memory">Playbook #3: Collect Live Forensic Memory Dump</option>
+                  <option value="deploy-edr-deepscan">Playbook #4: Deploy EDR Sentinel Deep Inspection</option>
+                </select>
+                <button
+                  onClick={() => handleExecutePlaybook([inspectingAsset.id], drawerPlaybook)}
+                  disabled={playbookExecuting}
+                  className="px-4 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs transition flex items-center gap-1.5 disabled:opacity-50"
+                >
+                  <Zap className={`w-3.5 h-3.5 ${playbookExecuting ? "animate-spin" : ""}`} />
+                  <span>{playbookExecuting ? "Dispatching..." : "Run SOAR"}</span>
+                </button>
+              </div>
+            </div>
+
             <div className="flex justify-end pt-2 border-t border-[#1E293B]">
               <button
                 onClick={() => setInspectingAsset(null)}
@@ -1711,7 +2286,7 @@ export function EnterpriseSocHubDashboard() {
       )}
 
       {/* ─────────────────────────────────────────────────────────────────────────
-          MODAL 2: CIS CONTROLS V8.1 AUDIT BREAKDOWN MODAL
+          MODAL 2: MULTI-FRAMEWORK COMPLIANCE CONTROLS AUDIT MODAL
          ───────────────────────────────────────────────────────────────────────── */}
       {cisAuditModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1723,13 +2298,13 @@ export function EnterpriseSocHubDashboard() {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    CIS Controls v8.1 Safeguards Audit
+                    {COMPLIANCE_FRAMEWORKS[complianceFramework]?.name} Safeguards Audit
                     <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                      Overall Score: 50%
+                      Overall Score: {COMPLIANCE_FRAMEWORKS[complianceFramework]?.score}%
                     </span>
                   </h3>
                   <span className="text-[11px] text-neutral-400 font-mono">
-                    Benchmark: Implementation Group 1 (IG1 Cyber Hygiene Baseline)
+                    Benchmark: {COMPLIANCE_FRAMEWORKS[complianceFramework]?.benchmark}
                   </span>
                 </div>
               </div>
@@ -1741,19 +2316,43 @@ export function EnterpriseSocHubDashboard() {
               </button>
             </div>
 
+            {/* In-Modal Framework Switcher */}
+            <div className="flex bg-[#04060A] p-0.5 rounded-xl border border-[#1E293B] text-[11px] font-mono">
+              {(["cis", "nist", "iso", "pci"] as const).map((fwKey) => {
+                const fw = COMPLIANCE_FRAMEWORKS[fwKey];
+                return (
+                  <button
+                    key={fwKey}
+                    onClick={() => setComplianceFramework(fwKey)}
+                    className={`flex-1 py-1.5 rounded-lg text-center transition ${
+                      complianceFramework === fwKey
+                        ? "bg-white text-black font-bold shadow-sm"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    {fw.name} ({fw.score}%)
+                  </button>
+                );
+              })}
+            </div>
+
             <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
-              {CIS_SAFEGUARDS.map((s) => (
+              {COMPLIANCE_FRAMEWORKS[complianceFramework]?.controls.map((s) => (
                 <div key={s.id} className="p-2.5 rounded-xl bg-[#04060A] border border-[#1E293B] flex items-center justify-between">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-amber-400">{s.id}</span>
                       <span className="text-white font-medium">{s.name}</span>
                     </div>
-                    <span className="text-[10px] text-neutral-500">Target Level: {s.ig}</span>
+                    <span className="text-[10px] text-neutral-500">Classification Level: {s.level}</span>
                   </div>
                   <div className="text-right space-y-0.5">
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      s.status === "Passing" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-red-500/15 text-red-400 border border-red-500/30"
+                      s.status === "Passing"
+                        ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                        : s.status === "Review"
+                        ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                        : "bg-red-500/15 text-red-400 border border-red-500/30"
                     }`}>
                       {s.status} ({s.score})
                     </span>
@@ -1764,7 +2363,9 @@ export function EnterpriseSocHubDashboard() {
 
             <div className="flex items-center justify-between pt-3 border-t border-[#1E293B]">
               <span className="text-[11px] text-neutral-400">
-                18 Safeguards Evaluated: 8 Passing, 2 Pending Remediation
+                {COMPLIANCE_FRAMEWORKS[complianceFramework]?.controls.length} Safeguards Evaluated:{" "}
+                <strong className="text-emerald-400">{COMPLIANCE_FRAMEWORKS[complianceFramework]?.passingCount} Passing</strong>,{" "}
+                <strong className="text-red-400">{COMPLIANCE_FRAMEWORKS[complianceFramework]?.remediationCount} Remediation Required</strong>
               </span>
               <button
                 onClick={() => setCisAuditModalOpen(false)}
