@@ -40,6 +40,7 @@ import {
   Boxes,
   Compass,
   Eye,
+  LayoutDashboard,
   X
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
@@ -157,6 +158,7 @@ export default function AppShell({ children }: AppShellProps) {
     {
       title: "CTI & ANALYSES",
       items: [
+        { href: "/soc-hub", label: "Enterprise SOC Hub", icon: LayoutDashboard },
         { href: "/dashboard", label: "CTI Overview", icon: Home },
         { href: "/intel", label: "Threat Actor Matrix", icon: Globe },
         { href: "/analytics", label: "Analytics & MITRE", icon: BarChart3 },

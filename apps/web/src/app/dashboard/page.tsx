@@ -59,6 +59,7 @@ import { RelationshipTimelineChart } from "@/components/dashboard/RelationshipTi
 import { TopVulnerabilitiesCard } from "@/components/dashboard/TopVulnerabilitiesCard";
 import { ThreatReportsTable } from "@/components/dashboard/ThreatReportsTable";
 import { EvidenceGraphVisualizer } from "@/components/dashboard/EvidenceGraphVisualizer";
+import { EnterpriseSocHubDashboard } from "@/components/dashboard/EnterpriseSocHubDashboard";
 
 // Mock data matching OpenCTI reference UI
 const MOST_ACTIVE_THREATS: HorizontalBarItem[] = [
@@ -93,8 +94,8 @@ export default function DashboardPage() {
   const [detections, setDetections] = useState<DetectionItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Active View Mode: OpenCTI Threat Intel Grid vs Investigation Workbench
-  const [activeDashboardTab, setActiveDashboardTab] = useState<"overview" | "investigations" | "mitre">("overview");
+  // Active View Mode: Enterprise SOC Hub vs OpenCTI Threat Intel Grid vs Investigation Workbench
+  const [activeDashboardTab, setActiveDashboardTab] = useState<"soc-hub" | "overview" | "investigations" | "mitre">("soc-hub");
 
   // Selected Investigation & Graph
   const [selectedInvestigationId, setSelectedInvestigationId] = useState<string | null>(null);
@@ -280,12 +281,20 @@ export default function DashboardPage() {
             {/* View Switcher */}
             <div className="flex items-center gap-1 bg-[#0A0A0A] p-1 rounded-lg border border-neutral-800">
               <button
+                onClick={() => setActiveDashboardTab("soc-hub")}
+                className={`px-3 py-1 rounded-md font-medium text-xs transition ${
+                  activeDashboardTab === "soc-hub" ? "bg-white text-black font-semibold shadow-sm" : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                Enterprise SOC Hub
+              </button>
+              <button
                 onClick={() => setActiveDashboardTab("overview")}
                 className={`px-3 py-1 rounded-md font-medium text-xs transition ${
                   activeDashboardTab === "overview" ? "bg-white text-black font-semibold shadow-sm" : "text-neutral-400 hover:text-white"
                 }`}
               >
-                CTI Overview
+                CTI Threat Intel
               </button>
               <button
                 onClick={() => setActiveDashboardTab("investigations")}
@@ -322,6 +331,10 @@ export default function DashboardPage() {
 
         {/* Main Dashboard Body */}
         <div className="p-6 space-y-6 flex-1 bg-[#000000]">
+          {activeDashboardTab === "soc-hub" && (
+            <EnterpriseSocHubDashboard />
+          )}
+
           {activeDashboardTab === "overview" && (
             <div className="space-y-6">
               {/* Dynamic Persona Action Strip */}
