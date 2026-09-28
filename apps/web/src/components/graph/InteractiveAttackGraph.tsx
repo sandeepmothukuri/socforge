@@ -24,8 +24,10 @@ import {
   Target,
   Eye,
   Check,
-  Activity
+  Activity,
+  Lock
 } from "lucide-react";
+import { DualAuthContainmentModal, DualAuthRequest } from "@/components/containment/DualAuthContainmentModal";
 
 export interface GraphNode {
   id: string;
@@ -152,6 +154,7 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
   const [pinnedEvidenceIds, setPinnedEvidenceIds] = useState<string[]>([]);
   const [containedEntities, setContainedEntities] = useState<Record<string, boolean>>({});
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [dualAuthRequest, setDualAuthRequest] = useState<DualAuthRequest | null>(null);
 
   const blastRadiusNodeIds = useMemo(() => {
     if (!selectedNode || !blastRadiusMode) return new Set<string>();
@@ -613,40 +616,55 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
                     {selectedNode.type === "host" && (
                       <button 
                         onClick={() => {
-                          setContainedEntities(prev => ({ ...prev, [selectedNode.id]: true }));
-                          setActionNotice(`Containment lock enforced on ${selectedNode.label}. CrowdStrike EDR network isolation active.`);
-                          setTimeout(() => setActionNotice(null), 3500);
+                          setDualAuthRequest({
+                            targetId: selectedNode.id,
+                            targetLabel: selectedNode.label,
+                            targetType: "host",
+                            action: "ISOLATE_HOST",
+                            criticality: "PRODUCTION PERIMETER",
+                            sourceTrigger: "Attack Graph Host Quarantine"
+                          });
                         }}
                         className="w-full py-2 bg-[#EF4444]/20 hover:bg-[#EF4444]/30 border border-[#EF4444]/40 text-[#EF4444] rounded-lg transition font-semibold flex items-center justify-center gap-1.5"
                       >
-                        <Ban className="w-3.5 h-3.5" />
-                        Isolate Host ({selectedNode.label})
+                        <Lock className="w-3.5 h-3.5" />
+                        Dual-Auth Host Isolation ({selectedNode.label})
                       </button>
                     )}
                     {selectedNode.type === "user" && (
                       <button 
                         onClick={() => {
-                          setContainedEntities(prev => ({ ...prev, [selectedNode.id]: true }));
-                          setActionNotice(`Active Kerberos tickets & Entra ID OAuth refresh tokens revoked for ${selectedNode.label}.`);
-                          setTimeout(() => setActionNotice(null), 3500);
+                          setDualAuthRequest({
+                            targetId: selectedNode.id,
+                            targetLabel: selectedNode.label,
+                            targetType: "user",
+                            action: "REVOKE_SESSIONS",
+                            criticality: "EXECUTIVE IDENTITY",
+                            sourceTrigger: "Attack Graph Identity Revocation"
+                          });
                         }}
                         className="w-full py-2 bg-[#F59E0B]/20 hover:bg-[#F59E0B]/30 border border-[#F59E0B]/40 text-[#F59E0B] rounded-lg transition font-semibold flex items-center justify-center gap-1.5"
                       >
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        Revoke User Sessions
+                        Dual-Auth Revoke User Sessions
                       </button>
                     )}
                     {(selectedNode.type === "ip" || selectedNode.type === "domain") && (
                       <button 
                         onClick={() => {
-                          setContainedEntities(prev => ({ ...prev, [selectedNode.id]: true }));
-                          setActionNotice(`Perimeter BGP blackhole & WAF drop rule dispatched for ${selectedNode.label}.`);
-                          setTimeout(() => setActionNotice(null), 3500);
+                          setDualAuthRequest({
+                            targetId: selectedNode.id,
+                            targetLabel: selectedNode.label,
+                            targetType: "ip",
+                            action: "CONTAIN_FIREWALL",
+                            criticality: "PRODUCTION PERIMETER",
+                            sourceTrigger: "Attack Graph Perimeter Block"
+                          });
                         }}
                         className="w-full py-2 bg-[#EF4444]/20 hover:bg-[#EF4444]/30 border border-[#EF4444]/40 text-[#EF4444] rounded-lg transition font-semibold flex items-center justify-center gap-1.5"
                       >
                         <Ban className="w-3.5 h-3.5" />
-                        Block Perimeter Ingress/Egress
+                        Dual-Auth Perimeter Block
                       </button>
                     )}
                   </>
@@ -692,6 +710,23 @@ export function InteractiveAttackGraph({ initialNodes, initialEdges }: { initial
           <span className={timelineStep >= 4 ? "text-white font-bold" : "opacity-40"}>4. C2 Exfil</span>
         </div>
       </div>
+
+      {/* Dual Authorization Modal */}
+      {dualAuthRequest && (
+        <DualAuthContainmentModal
+          isOpen={true}
+          onClose={() => setDualAuthRequest(null)}
+          request={dualAuthRequest}
+          onAuthorized={({ hmacTicket, approver }) => {
+            setContainedEntities((prev) => ({ ...prev, [dualAuthRequest.targetId]: true }));
+            setActionNotice(
+              `Dual-Auth containment verified by ${approver}. Ticket: ${hmacTicket.slice(0, 16)}... Target ${dualAuthRequest.targetLabel} quarantined.`
+            );
+            setDualAuthRequest(null);
+            setTimeout(() => setActionNotice(null), 5000);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -35,6 +35,7 @@ import {
   Sliders,
   PlusCircle
 } from "lucide-react";
+import { MultiEngineRuleTranspiler } from "@/components/detections/MultiEngineRuleTranspiler";
 
 export default function DetectionsPage() {
   const [detections, setDetections] = useState<DetectionItem[]>([]);
@@ -45,6 +46,7 @@ export default function DetectionsPage() {
   const [replaying, setReplaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [langFilter, setLangFilter] = useState("all");
+  const [transpilerStudioOpen, setTranspilerStudioOpen] = useState(false);
   
   // Transpilation & Optimization State
   const [activeTranspileTarget, setActiveTranspileTarget] = useState<"splunk" | "sentinel" | "elastic" | "athena">("splunk");
@@ -224,6 +226,14 @@ level: high`
             >
               <PlusCircle className="w-3.5 h-3.5" />
               <span>Author Rule</span>
+            </button>
+
+            <button
+              onClick={() => setTranspilerStudioOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold transition shadow-md shadow-purple-600/20"
+            >
+              <Cpu className="w-3.5 h-3.5" />
+              <span>Transpiler Studio</span>
             </button>
 
             <button
@@ -804,6 +814,15 @@ level: high`
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
             <span>{detectionToast}</span>
           </div>
+        )}
+
+        {/* Multi-Engine Rule Transpiler Studio Modal */}
+        {transpilerStudioOpen && (
+          <MultiEngineRuleTranspiler
+            isOpen={transpilerStudioOpen}
+            onClose={() => setTranspilerStudioOpen(false)}
+            initialSigmaYaml={selectedDet?.rule_content}
+          />
         )}
       </div>
     </AppShell>

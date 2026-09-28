@@ -14,8 +14,13 @@ import {
   Sparkles,
   RefreshCw,
   FolderOpen,
-  Clock
+  Clock,
+  Play,
+  Lock,
+  Flame
 } from "lucide-react";
+import { LiveAttackSimulationEngine } from "@/components/simulation/LiveAttackSimulationEngine";
+import { DualAuthContainmentModal } from "@/components/containment/DualAuthContainmentModal";
 
 const SCENARIOS: Record<string, { name: string; description: string; nodes: GraphNode[]; edges: GraphEdge[] }> = {
   mimikatz: {
@@ -87,6 +92,8 @@ export default function GraphPage() {
   const [selectedScenarioKey, setSelectedScenarioKey] = useState<string>("mimikatz");
   const [showTimeline, setShowTimeline] = useState(true);
   const [graphToast, setGraphToast] = useState<string | null>(null);
+  const [simulationOpen, setSimulationOpen] = useState(false);
+  const [dualAuthTarget, setDualAuthTarget] = useState<string | null>(null);
   const currentScenario = SCENARIOS[selectedScenarioKey] || SCENARIOS.mimikatz;
 
   const handleExportGraphJSON = () => {
@@ -132,6 +139,15 @@ export default function GraphPage() {
           </div>
 
           <div className="flex items-center gap-2 text-xs font-mono">
+            {/* Simulate APT Breach Button */}
+            <button
+              onClick={() => setSimulationOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-black font-bold transition shadow-md shadow-red-600/20"
+            >
+              <Play className="w-3.5 h-3.5 fill-black" />
+              <span>Simulate APT Breach</span>
+            </button>
+
             {/* Scenario Selector */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 text-neutral-300">
               <FolderOpen className="w-3.5 h-3.5 text-white" />
@@ -213,6 +229,41 @@ export default function GraphPage() {
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
             <span>{graphToast}</span>
           </div>
+        )}
+
+        {/* Live APT Attack Simulation Engine Modal */}
+        {simulationOpen && (
+          <LiveAttackSimulationEngine
+            isOpen={simulationOpen}
+            onClose={() => setSimulationOpen(false)}
+            onTriggerDualAuth={(host) => {
+              setSimulationOpen(false);
+              setDualAuthTarget(host);
+            }}
+          />
+        )}
+
+        {/* Two-Man Rule Dual Auth Containment Modal */}
+        {dualAuthTarget && (
+          <DualAuthContainmentModal
+            isOpen={true}
+            onClose={() => setDualAuthTarget(null)}
+            request={{
+              targetId: "target-" + dualAuthTarget,
+              targetLabel: dualAuthTarget,
+              targetType: "host",
+              action: "ISOLATE_HOST",
+              criticality: "PRODUCTION PERIMETER",
+              sourceTrigger: "APT29 Breach Simulation"
+            }}
+            onAuthorized={({ hmacTicket, approver }) => {
+              setGraphToast(
+                `Dual-Auth verified by ${approver}. Ticket: ${hmacTicket.slice(0, 16)}... Subnet isolation enforced.`
+              );
+              setDualAuthTarget(null);
+              setTimeout(() => setGraphToast(null), 5000);
+            }}
+          />
         )}
       </div>
     </AppShell>
