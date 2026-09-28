@@ -24,7 +24,7 @@ import {
   Bell
 } from "lucide-react";
 import { SocForgeLogo } from "@/components/ui/SocForgeLogo";
-import GlobalThreatMap from "@/components/analytics/GlobalThreatMap";
+import GlobalThreatMap, { ALERT_SEVERITY_CONFIG, ThreatSeverity } from "@/components/analytics/GlobalThreatMap";
 
 export default function WallboardPage() {
   const [centerView, setCenterView] = useState<"map" | "radar">("map");
@@ -62,14 +62,22 @@ export default function WallboardPage() {
     }
   };
 
-  const [alertsList, setAlertsList] = useState([
+  const [alertsList, setAlertsList] = useState<Array<{
+    id: string;
+    sev: ThreatSeverity;
+    title: string;
+    target: string;
+    time: string;
+  }>>([
     { id: "A-1", sev: "CRITICAL", title: "Mimikatz LSASS Dump via PowerShell", target: "SRV-DC01", time: "09:14:02" },
     { id: "A-2", sev: "HIGH", title: "Cobalt Strike Named Pipe Beaconing", target: "WKSTN-FIN-04", time: "09:12:45" },
     { id: "A-3", sev: "HIGH", title: "Anomalous MFA Push Fatigue Attack", target: "corp\\jdoe", time: "09:08:11" },
-    { id: "A-4", sev: "MEDIUM", title: "Perimeter SSH Port Scan Sweep (22/TCP)", target: "FW-EDGE-01", time: "08:59:30" }
+    { id: "A-4", sev: "MEDIUM", title: "Perimeter SSH Port Scan Sweep (22/TCP)", target: "FW-EDGE-01", time: "08:59:30" },
+    { id: "A-5", sev: "CRITICAL", title: "Encrypted C2 Beacon over WebSockets", target: "SRV-DC02", time: "08:55:18" },
+    { id: "A-6", sev: "LOW", title: "Perimeter TLS Certificate Enumeration", target: "US-East AWS", time: "08:50:00" },
   ]);
   const [audioEnabled, setAudioEnabled] = useState(false);
-  const [severityFilter, setSeverityFilter] = useState<"ALL" | "CRITICAL" | "HIGH">("ALL");
+  const [severityFilter, setSeverityFilter] = useState<"ALL" | ThreatSeverity>("ALL");
   const [wallboardToast, setWallboardToast] = useState<string | null>(null);
 
   const toggleAudio = () => {
@@ -81,7 +89,7 @@ export default function WallboardPage() {
   const simulateIngressAlert = () => {
     const newAlt = {
       id: `A-${Date.now().toString().slice(-4)}`,
-      sev: "CRITICAL",
+      sev: "CRITICAL" as ThreatSeverity,
       title: "Volumetric Kerberoasting Attack against Decoy SPN",
       target: "SRV-DC02",
       time: new Date().toLocaleTimeString()
@@ -332,47 +340,92 @@ export default function WallboardPage() {
               LIVE TELEMETRY ALERTS STREAM
             </div>
             <div className="flex items-center gap-1">
-              {(["ALL", "CRITICAL", "HIGH"] as const).map((sev) => (
-                <button
-                  key={sev}
-                  onClick={() => setSeverityFilter(sev)}
-                  className={`px-2 py-0.5 rounded text-[10px] transition ${
-                    severityFilter === sev
-                      ? "bg-white text-black font-bold"
-                      : "bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800"
-                  }`}
-                >
-                  {sev}
-                </button>
-              ))}
+              {(["ALL", "CRITICAL", "HIGH", "MEDIUM", "LOW"] as const).map((sev) => {
+                const isSelected = severityFilter === sev;
+                const cfg = sev !== "ALL" ? ALERT_SEVERITY_CONFIG[sev as ThreatSeverity] : null;
+
+                return (
+                  <button
+                    key={sev}
+                    onClick={() => setSeverityFilter(sev)}
+                    className="px-2 py-0.5 rounded text-[10px] font-mono font-bold transition flex items-center gap-1 border"
+                    style={
+                      isSelected
+                        ? {
+                            backgroundColor: cfg ? `${cfg.color}25` : "#ffffff",
+                            color: cfg ? cfg.color : "#000000",
+                            borderColor: cfg ? cfg.color : "#ffffff",
+                          }
+                        : {
+                            backgroundColor: "#0d0d0d",
+                            color: cfg ? `${cfg.color}90` : "#a3a3a3",
+                            borderColor: "#262626",
+                          }
+                    }
+                  >
+                    {cfg && (
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ backgroundColor: cfg.color }}
+                      />
+                    )}
+                    {sev}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           <div className="space-y-2.5 flex-1 overflow-y-auto">
             {alertsList
               .filter((alt) => severityFilter === "ALL" || alt.sev === severityFilter)
-              .map((alt) => (
-              <div
-                key={alt.id}
-                className="p-3 rounded-xl bg-black border border-neutral-800 space-y-1.5"
-              >
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className={`px-2 py-0.5 rounded font-bold ${
-                    alt.sev === "CRITICAL" ? "bg-red-500/20 text-red-400 border border-red-500/30" :
-                    alt.sev === "HIGH" ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" :
-                    "bg-neutral-800 text-white border border-neutral-700"
-                  }`}>
-                    {alt.sev}
-                  </span>
-                  <span className="text-neutral-500">{alt.time}</span>
-                </div>
-                <h4 className="text-xs font-bold text-white">{alt.title}</h4>
-                <div className="text-[11px] text-neutral-400 flex items-center justify-between">
-                  <span>Target: <strong className="text-white">{alt.target}</strong></span>
-                  <span className="text-emerald-400">Triage In-Flight</span>
-                </div>
-              </div>
-            ))}
+              .map((alt) => {
+                const config = ALERT_SEVERITY_CONFIG[alt.sev] || ALERT_SEVERITY_CONFIG.LOW;
+
+                return (
+                  <div
+                    key={alt.id}
+                    className="p-3 rounded-xl bg-black/90 border border-neutral-800 space-y-1.5 transition-all hover:border-neutral-600 border-l-4"
+                    style={{ borderLeftColor: config.color }}
+                  >
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span
+                        className="px-2 py-0.5 rounded font-mono font-bold border text-[10px] flex items-center gap-1.5 shadow-sm"
+                        style={{
+                          backgroundColor: `${config.color}20`,
+                          color: config.color,
+                          borderColor: `${config.color}50`,
+                        }}
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full"
+                          style={{ backgroundColor: config.color }}
+                        />
+                        {alt.sev}
+                      </span>
+                      <span className="text-neutral-500 font-mono">{alt.time}</span>
+                    </div>
+                    <h4 className="text-xs font-bold text-white font-sans">{alt.title}</h4>
+                    <div className="text-[11px] text-neutral-400 flex items-center justify-between">
+                      <span>Target: <strong className="text-white">{alt.target}</strong></span>
+                      <span
+                        className="text-[10px] font-mono px-1.5 py-0.5 rounded border flex items-center gap-1"
+                        style={{
+                          color: config.color,
+                          borderColor: `${config.color}40`,
+                          backgroundColor: `${config.color}10`,
+                        }}
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full animate-pulse"
+                          style={{ backgroundColor: config.color }}
+                        />
+                        Live Vector Active
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
           </div>
 
           <div className="pt-2 border-t border-neutral-800 text-center">
