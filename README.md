@@ -168,6 +168,7 @@ All visual assets below represent empirical operational evidence captured direct
 | **19. Audit & Event Trail** | Cryptographic Ledger | SHA-256 tamper-evident security audit log, operator access ledger, and forensic session history | [Section 3.19 &mdash; Audit Ledger](#319-immutable-cryptographic-audit-trail--ingestion-ledger) |
 | **20. Desktop Suite** | Native Windows Binaries | Local control center for `SOCForge-Operations.exe` and `SOCForge-Window.exe` with Edge WebView2 | [Section 3.20 &mdash; Desktop Suite](#320-standalone-windows-desktop-operations-suite) |
 | **21. SOC Wallboard** | High-Density Operations Display | Live wallboard tracking critical alerts, incident timelines, and automated response actions | [Section 3.21 &mdash; SOC Wallboard](#321-real-time-soc-operations-wallboard) |
+| **22. SOC Command Hub** | Enterprise 5-Tier Tactical Console | Auto-refresh countdown, multi-framework compliance (CIS/NIST/ISO/PCI-DSS), bulk SOAR playbooks, CSV/PDF export center, and interactive MITRE heatmap | [Section 3.22 &mdash; SOC Command Hub](#322-enterprise-soc-command-hub) |
 
 ---
 
@@ -297,7 +298,13 @@ High-density tactical wallboard designed for continuous SOC operations center mo
 
 ---
 
-### 3.22 Automated Test Suite Verification Evidence
+### 3.22 Enterprise SOC Command Hub
+5-tier executive and tactical command console with live telemetry synchronization, auto-refresh countdown timer, custom date range picker, multi-framework compliance scoring (CIS v8, NIST CSF 2.0, ISO 27001, PCI-DSS v4.0), bulk SOAR playbook execution, asset multi-select with quarantine and vulnerability rescan, 4-format export center (JSON, PDF, CSV Vulns, CSV Assets), interactive MITRE ATT&CK technique heatmap, and SVG spline alert trend charts.
+![SOCForge SOC Command Hub](docs/assets/socforge_soc_hub.png)
+
+---
+
+### 3.23 Automated Test Suite Verification Evidence
 All core domain models, policies, and pipelines are verified continuously with automated unit, integration, and security test suites (**66 tests, 0 failures, 100% pass rate**):
 
 ```text
